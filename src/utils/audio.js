@@ -5,24 +5,21 @@
  * 2. Fallback: Web Speech API
  */
 
-// ─── Google Translate TTS ────────────────────────────────────────────
+// ─── TTS via Supabase Edge Function (proxied Google Translate) ───────
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 let currentAudio = null
 
-function buildGoogleTtsUrl(text) {
-  const params = new URLSearchParams({
-    ie: 'UTF-8',
-    client: 'tw-ob',
-    tl: 'zh-CN',
-    q: text,
-  })
-  return `https://translate.google.com/translate_tts?${params}`
+function buildTtsUrl(text) {
+  return `${SUPABASE_URL}/functions/v1/tts?text=${encodeURIComponent(text)}`
 }
 
 /**
  * Play Chinese TTS via Google Translate (returns a Promise)
  */
-function speakViaGoogle(text) {
+function speakViaProxy(text) {
   return new Promise((resolve, reject) => {
     // Stop any currently playing audio
     if (currentAudio) {
@@ -30,7 +27,7 @@ function speakViaGoogle(text) {
       currentAudio = null
     }
 
-    const audio = new Audio(buildGoogleTtsUrl(text))
+    const audio = new Audio(buildTtsUrl(text))
     currentAudio = audio
 
     audio.addEventListener('ended', () => {
@@ -39,17 +36,17 @@ function speakViaGoogle(text) {
     })
     audio.addEventListener('error', () => {
       currentAudio = null
-      reject(new Error('Google TTS failed'))
+      reject(new Error('TTS proxy failed'))
     })
 
-    // Timeout: if nothing plays within 3s, reject
+    // Timeout: if nothing plays within 5s, reject
     const timeout = setTimeout(() => {
       if (currentAudio === audio) {
         audio.pause()
         currentAudio = null
-        reject(new Error('Google TTS timeout'))
+        reject(new Error('TTS proxy timeout'))
       }
-    }, 3000)
+    }, 5000)
 
     audio.addEventListener('playing', () => clearTimeout(timeout))
 
@@ -117,9 +114,9 @@ function speakViaWebSpeech(text, rate = 0.8) {
  */
 export async function speakChinese(text, rate = 0.8) {
   try {
-    await speakViaGoogle(text)
+    await speakViaProxy(text)
   } catch {
-    // Google TTS failed – try Web Speech API
+    // Proxy TTS failed – try Web Speech API
     await speakViaWebSpeech(text, rate)
   }
 }
