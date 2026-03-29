@@ -155,7 +155,7 @@ function GapCard({ sentence, onAnswer }) {
   const handleSubmit = (e) => {
     e.preventDefault()
     if (result !== null) return
-    const isCorrect = checkGapAnswer(input, sentence.gap_word)
+    const isCorrect = checkGapAnswer(input, sentence.gap_word, sentence.words, sentence.pinyin)
     setResult(isCorrect)
     onAnswer(isCorrect)
   }
@@ -193,9 +193,12 @@ function GapCard({ sentence, onAnswer }) {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Chinesisches Wort eintippen"
+          placeholder="汉字 oder Pinyin (z.B. bu4)"
           disabled={result !== null}
           autoFocus
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck="false"
           className={`w-full px-4 py-3 border rounded-lg bg-white focus:outline-none text-center font-hanzi text-lg transition-colors ${
             result === null
               ? 'border-ink/20 focus:border-ink/40'
