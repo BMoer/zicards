@@ -56,7 +56,7 @@ export default function SessionResult({ results, onRestart }) {
           onClick={onRestart}
           className="w-full py-3 bg-terracotta text-white rounded-lg font-medium hover:bg-terracotta/90 transition-colors"
         >
-          Nochmal
+          Nächste Runde
         </button>
         <button
           onClick={() => navigate('/')}
