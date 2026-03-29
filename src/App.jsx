@@ -2,11 +2,15 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import { useCharacters } from './hooks/useCharacters'
 import { useProgress } from './hooks/useProgress'
+import { useSentences } from './hooks/useSentences'
+import { useSentenceProgress } from './hooks/useSentenceProgress'
 import Layout from './components/Layout'
 import AuthForm from './components/AuthForm'
-import Dashboard from './components/Dashboard'
+import DashboardTabs from './components/DashboardTabs'
 import WeekView from './components/WeekView'
 import LearningSession from './components/LearningSession'
+import SentenceWeekView from './components/SentenceWeekView'
+import SentenceSession from './components/SentenceSession'
 
 function ProtectedRoute({ user, children }) {
   if (!user) return <Navigate to="/login" replace />
@@ -15,14 +19,23 @@ function ProtectedRoute({ user, children }) {
 
 export default function App() {
   const { user, loading: authLoading, signIn, signUp, signOut } = useAuth()
-  const { characters, weeks, loading: charsLoading } = useCharacters()
+  const { characters, weeks: charWeeks, loading: charsLoading } = useCharacters()
   const {
-    progress,
-    loading: progressLoading,
-    updateProgress,
-    markAsSeen,
-    getWeekProgress,
+    progress: charProgress,
+    loading: charProgressLoading,
+    updateProgress: updateCharProgress,
+    markAsSeen: markCharAsSeen,
+    getWeekProgress: getCharWeekProgress,
   } = useProgress(user)
+
+  const { sentences, weeks: sentenceWeeks, loading: sentencesLoading } = useSentences()
+  const {
+    progress: sentenceProgress,
+    loading: sentenceProgressLoading,
+    updateProgress: updateSentenceProgress,
+    markAsSeen: markSentenceAsSeen,
+    getWeekProgress: getSentenceWeekProgress,
+  } = useSentenceProgress(user)
 
   if (authLoading) {
     return (
@@ -32,7 +45,7 @@ export default function App() {
     )
   }
 
-  const dataLoading = charsLoading || progressLoading
+  const dataLoading = charsLoading || charProgressLoading || sentencesLoading || sentenceProgressLoading
 
   return (
     <Layout user={user} onSignOut={signOut}>
@@ -54,11 +67,18 @@ export default function App() {
               {dataLoading ? (
                 <div className="text-center py-12 text-ink/40">Laden...</div>
               ) : (
-                <Dashboard weeks={weeks} getWeekProgress={getWeekProgress} />
+                <DashboardTabs
+                  characterWeeks={charWeeks}
+                  getCharWeekProgress={getCharWeekProgress}
+                  sentenceWeeks={sentenceWeeks}
+                  getSentenceWeekProgress={getSentenceWeekProgress}
+                />
               )}
             </ProtectedRoute>
           }
         />
+
+        {/* Character routes */}
         <Route
           path="/week/:id"
           element={
@@ -66,7 +86,7 @@ export default function App() {
               {dataLoading ? (
                 <div className="text-center py-12 text-ink/40">Laden...</div>
               ) : (
-                <WeekView weeks={weeks} progress={progress} />
+                <WeekView weeks={charWeeks} progress={charProgress} />
               )}
             </ProtectedRoute>
           }
@@ -80,9 +100,40 @@ export default function App() {
               ) : (
                 <LearningSession
                   characters={characters}
-                  progress={progress}
-                  updateProgress={updateProgress}
-                  markAsSeen={markAsSeen}
+                  progress={charProgress}
+                  updateProgress={updateCharProgress}
+                  markAsSeen={markCharAsSeen}
+                />
+              )}
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Sentence routes */}
+        <Route
+          path="/sentences/week/:id"
+          element={
+            <ProtectedRoute user={user}>
+              {dataLoading ? (
+                <div className="text-center py-12 text-ink/40">Laden...</div>
+              ) : (
+                <SentenceWeekView weeks={sentenceWeeks} progress={sentenceProgress} />
+              )}
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/sentences/learn/:week?"
+          element={
+            <ProtectedRoute user={user}>
+              {dataLoading ? (
+                <div className="text-center py-12 text-ink/40">Laden...</div>
+              ) : (
+                <SentenceSession
+                  sentences={sentences}
+                  progress={sentenceProgress}
+                  updateProgress={updateSentenceProgress}
+                  markAsSeen={markSentenceAsSeen}
                 />
               )}
             </ProtectedRoute>

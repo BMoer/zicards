@@ -1,0 +1,133 @@
+import { useState, useEffect, useCallback } from 'react'
+import { supabase } from '../lib/supabase'
+
+/**
+ * Sentence progress hook – same streak/level logic as character progress.
+ * Level 0 = new (show sentence), Level 1 = word order, Level 2 = fill gap, Level 3 = translate
+ */
+export function useSentenceProgress(user) {
+  const [progress, setProgress] = useState({})
+  const [loading, setLoading] = useState(true)
+
+  const fetchProgress = useCallback(async () => {
+    if (!user) {
+      setProgress({})
+      setLoading(false)
+      return
+    }
+    setLoading(true)
+    const { data, error } = await supabase
+      .from('sentence_progress')
+      .select('*')
+      .eq('user_id', user.id)
+
+    if (error) {
+      console.error('Error fetching sentence progress:', error)
+      setLoading(false)
+      return
+    }
+    const map = {}
+    for (const r of data || []) {
+      map[r.sentence_id] = r
+    }
+    setProgress(map)
+    setLoading(false)
+  }, [user])
+
+  useEffect(() => {
+    fetchProgress()
+  }, [fetchProgress])
+
+  const markAsSeen = useCallback(
+    async (sentenceId) => {
+      if (!user) return
+      const record = {
+        user_id: user.id,
+        sentence_id: sentenceId,
+        level: 1,
+        correct_streak: 0,
+        incorrect_streak: 0,
+        times_practiced: 0,
+        last_practiced: new Date().toISOString(),
+      }
+      const { error } = await supabase
+        .from('sentence_progress')
+        .upsert(record, { onConflict: 'user_id,sentence_id' })
+      if (error) console.error('Error marking sentence as seen:', error)
+      setProgress((prev) => ({ ...prev, [sentenceId]: record }))
+    },
+    [user]
+  )
+
+  const updateProgress = useCallback(
+    async (sentenceId, isCorrect) => {
+      if (!user) return { levelChange: 0 }
+      const existing = progress[sentenceId]
+      const record = existing
+        ? { ...existing }
+        : {
+            user_id: user.id,
+            sentence_id: sentenceId,
+            level: 1,
+            correct_streak: 0,
+            incorrect_streak: 0,
+            times_practiced: 0,
+          }
+      const oldLevel = record.level
+
+      if (isCorrect) {
+        record.correct_streak = (record.correct_streak || 0) + 1
+        record.incorrect_streak = 0
+      } else {
+        record.incorrect_streak = (record.incorrect_streak || 0) + 1
+        record.correct_streak = 0
+      }
+
+      if (record.correct_streak >= 3) {
+        record.level = Math.min(record.level + 1, 3)
+        record.correct_streak = 0
+      }
+      if (record.incorrect_streak >= 2) {
+        record.level = Math.max(record.level - 1, 1)
+        record.incorrect_streak = 0
+      }
+
+      record.times_practiced = (record.times_practiced || 0) + 1
+      record.last_practiced = new Date().toISOString()
+
+      const { error } = await supabase
+        .from('sentence_progress')
+        .upsert(
+          {
+            user_id: user.id,
+            sentence_id: sentenceId,
+            level: record.level,
+            correct_streak: record.correct_streak,
+            incorrect_streak: record.incorrect_streak,
+            times_practiced: record.times_practiced,
+            last_practiced: record.last_practiced,
+          },
+          { onConflict: 'user_id,sentence_id' }
+        )
+      if (error) console.error('Error updating sentence progress:', error)
+      setProgress((prev) => ({ ...prev, [sentenceId]: record }))
+      return { levelChange: record.level - oldLevel }
+    },
+    [user, progress]
+  )
+
+  const getWeekProgress = useCallback(
+    (weekSentences) => {
+      if (!weekSentences) return { total: 0, mastered: 0 }
+      const total = weekSentences.length
+      const mastered = weekSentences.filter((s) => {
+        const p = progress[s.id]
+        return p && p.level >= 2
+      }).length
+      return { total, mastered }
+    },
+    [progress]
+  )
+
+  return { progress, loading, updateProgress, markAsSeen, getWeekProgress }
+}
