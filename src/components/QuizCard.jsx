@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { comparePinyin, compareMeaning } from '../utils/pinyin'
+import { useState, useEffect, useRef } from 'react'
+import { comparePinyin, compareMeaning, isPinyinToneWrong } from '../utils/pinyin'
 import { useAudio } from '../hooks/useAudio'
 import SpeakButton from './SpeakButton'
 import MnemonicCard from './MnemonicCard'
@@ -56,22 +56,18 @@ function LearnCard({ character, onNext, characters, progress }) {
 function MCCard({ character, options, quizType, onAnswer }) {
   const [selected, setSelected] = useState(null)
   const [answered, setAnswered] = useState(false)
-  const { autoSpeak } = useAudio()
 
   const isReverse = quizType === 'mc-hanzi'
-
-  // Auto-play when showing hanzi (not in reverse mode where we show meaning)
-  useEffect(() => {
-    if (!isReverse) autoSpeak(character.word || character.hanzi)
-  }, [character.hanzi])
   const prompt = isReverse ? character.meaning : character.hanzi
   const promptClass = isReverse ? 'text-2xl font-medium' : 'font-hanzi text-7xl'
+
+  // No auto-play on quiz cards – would make it too easy
 
   const handleSelect = (option) => {
     if (answered) return
     setSelected(option)
     setAnswered(true)
-    onAnswer(option.isCorrect)
+    onAnswer(option.isCorrect ? true : false)
   }
 
   return (
@@ -112,16 +108,14 @@ function MCCard({ character, options, quizType, onAnswer }) {
 
 /**
  * Stufe 2: Hànzì → Pinyin + Bedeutung Freitext
+ * Supports "half correct" when only tone is wrong
  */
 function FreetextCard({ character, onAnswer }) {
   const [pinyinInput, setPinyinInput] = useState('')
   const [meaningInput, setMeaningInput] = useState('')
   const [result, setResult] = useState(null)
-  const { autoSpeak } = useAudio()
 
-  useEffect(() => {
-    autoSpeak(character.word || character.hanzi)
-  }, [character.hanzi])
+  // No auto-play – hearing the tone gives away the pinyin answer!
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -129,10 +123,14 @@ function FreetextCard({ character, onAnswer }) {
 
     const pinyinCorrect = comparePinyin(pinyinInput, character.pinyin_input)
     const meaningCorrect = compareMeaning(meaningInput, character.meaning)
-    const isCorrect = pinyinCorrect && meaningCorrect
+    const toneWrong = !pinyinCorrect && isPinyinToneWrong(pinyinInput, character.pinyin_input)
 
-    setResult({ pinyinCorrect, meaningCorrect, isCorrect })
-    onAnswer(isCorrect)
+    const isCorrect = pinyinCorrect && meaningCorrect
+    // Half correct: meaning right + only tone wrong
+    const isHalf = !isCorrect && meaningCorrect && toneWrong
+
+    setResult({ pinyinCorrect, meaningCorrect, toneWrong, isCorrect, isHalf })
+    onAnswer(isCorrect ? true : isHalf ? 'half' : false)
   }
 
   return (
@@ -155,13 +153,16 @@ function FreetextCard({ character, onAnswer }) {
               result
                 ? result.pinyinCorrect
                   ? 'border-sage bg-sage/5'
+                  : result.toneWrong
+                  ? 'border-amber-400 bg-amber-50'
                   : 'border-terracotta bg-terracotta/5'
                 : 'border-ink/20 focus:border-ink/40'
             }`}
           />
           {result && !result.pinyinCorrect && (
-            <p className="text-sm text-terracotta mt-1 text-left">
-              Richtig: {character.pinyin_input} ({character.pinyin})
+            <p className={`text-sm mt-1 text-left ${result.toneWrong ? 'text-amber-600' : 'text-terracotta'}`}>
+              {result.toneWrong ? 'Fast! Richtiger Ton: ' : 'Richtig: '}
+              {character.pinyin_input} ({character.pinyin})
             </p>
           )}
         </div>
@@ -201,21 +202,34 @@ function FreetextCard({ character, onAnswer }) {
 }
 
 /**
- * Feedback overlay shown after answering
+ * Feedback overlay shown after answering.
+ * Auto-advances after 1.5s when correct.
  */
-function Feedback({ character, isCorrect, onNext, characters, progress }) {
+function Feedback({ character, isCorrect, isHalf, onNext, characters, progress }) {
   const { autoSpeak } = useAudio()
+  const timerRef = useRef(null)
+
   useEffect(() => {
     autoSpeak(character.word || character.hanzi)
   }, [])
 
+  // Auto-advance when fully correct
+  useEffect(() => {
+    if (isCorrect && !isHalf) {
+      timerRef.current = setTimeout(() => onNext(), 1800)
+    }
+    return () => clearTimeout(timerRef.current)
+  }, [isCorrect, isHalf])
+
+  const statusIcon = isCorrect ? '✓' : isHalf ? '~' : '✗'
+  const statusColor = isCorrect ? 'text-sage' : isHalf ? 'text-amber-500' : 'text-terracotta'
+  const statusText = isCorrect ? 'Richtig!' : isHalf ? 'Fast richtig – nur der Ton!' : 'Nicht ganz.'
+
   return (
     <div className="mt-6 p-4 border border-ink/10 rounded-lg">
       <div className="flex items-center gap-3 mb-3">
-        <span className={`text-2xl ${isCorrect ? 'text-sage' : 'text-terracotta'}`}>
-          {isCorrect ? '✓' : '✗'}
-        </span>
-        <span className="font-medium">{isCorrect ? 'Richtig!' : 'Nicht ganz.'}</span>
+        <span className={`text-2xl ${statusColor}`}>{statusIcon}</span>
+        <span className="font-medium">{statusText}</span>
       </div>
       <div className="flex items-center gap-4 mb-4">
         <span className="font-hanzi text-3xl">{character.hanzi}</span>
@@ -225,6 +239,8 @@ function Feedback({ character, isCorrect, onNext, characters, progress }) {
           <div>{character.meaning}</div>
         </div>
       </div>
+
+      {/* Show mnemonic on wrong or half-correct */}
       {!isCorrect && (
         <MnemonicCard
           hanzi={character.hanzi}
@@ -234,11 +250,18 @@ function Feedback({ character, isCorrect, onNext, characters, progress }) {
       )}
 
       <button
-        onClick={onNext}
+        onClick={() => {
+          clearTimeout(timerRef.current)
+          onNext()
+        }}
         className="w-full mt-4 py-3 bg-ink text-paper rounded-lg font-medium hover:bg-ink/90 transition-colors"
       >
         Weiter
       </button>
+
+      {isCorrect && !isHalf && (
+        <p className="text-center text-xs text-ink/30 mt-2">Automatisch weiter…</p>
+      )}
     </div>
   )
 }
@@ -249,11 +272,19 @@ function Feedback({ character, isCorrect, onNext, characters, progress }) {
 export default function QuizCard({ item, options, onAnswer, onNext, characters, progress }) {
   const [answered, setAnswered] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
+  const [isHalf, setIsHalf] = useState(false)
 
-  const handleAnswer = (correct) => {
+  const handleAnswer = (result) => {
     setAnswered(true)
-    setIsCorrect(correct)
-    onAnswer(correct)
+    if (result === 'half') {
+      setIsCorrect(false)
+      setIsHalf(true)
+      onAnswer('half')
+    } else {
+      setIsCorrect(result)
+      setIsHalf(false)
+      onAnswer(result)
+    }
   }
 
   const handleLearnNext = () => {
@@ -290,6 +321,7 @@ export default function QuizCard({ item, options, onAnswer, onNext, characters, 
         <Feedback
           character={item.character}
           isCorrect={isCorrect}
+          isHalf={isHalf}
           onNext={() => onNext(false)}
           characters={characters}
           progress={progress}

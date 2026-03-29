@@ -69,6 +69,7 @@ export function useProgress(user) {
 
   /**
    * Update progress after answering a quiz question.
+   * isCorrect: true (correct), false (wrong), 'half' (partial – no streak change)
    * Returns { levelChange: number } (positive = up, negative = down, 0 = same)
    */
   const updateProgress = useCallback(
@@ -89,8 +90,10 @@ export function useProgress(user) {
 
       const oldLevel = record.level
 
-      // Update streaks
-      if (isCorrect) {
+      // Update streaks – 'half' correct = no streak changes (e.g. wrong tone only)
+      if (isCorrect === 'half') {
+        // Don't touch streaks – neutral result
+      } else if (isCorrect) {
         record.correct_streak = (record.correct_streak || 0) + 1
         record.incorrect_streak = 0
       } else {

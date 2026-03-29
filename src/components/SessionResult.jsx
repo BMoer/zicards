@@ -4,11 +4,12 @@ export default function SessionResult({ results, onRestart }) {
   const navigate = useNavigate()
 
   const correct = results.filter((r) => r.isCorrect).length
+  const half = results.filter((r) => r.isHalf).length
   const total = results.length
   const levelUps = results.filter((r) => r.levelChange > 0)
   const levelDowns = results.filter((r) => r.levelChange < 0)
 
-  const pct = total > 0 ? Math.round((correct / total) * 100) : 0
+  const pct = total > 0 ? Math.round(((correct + half * 0.5) / total) * 100) : 0
 
   return (
     <div className="py-8">
@@ -17,7 +18,7 @@ export default function SessionResult({ results, onRestart }) {
           {pct >= 80 ? '🎉' : pct >= 50 ? '💪' : '📖'}
         </div>
         <div className="text-4xl font-bold mb-2">
-          {correct} / {total}
+          {correct}{half > 0 && <span className="text-amber-500 text-2xl"> +{half}½</span>} / {total}
         </div>
         <div className="text-ink/50">
           {pct}% richtig

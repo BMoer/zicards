@@ -72,10 +72,11 @@ export default function LearningSession({ characters, progress, updateProgress, 
 
   const handleAnswer = async (isCorrect) => {
     const item = session[currentIndex]
+    // isCorrect can be true, false, or 'half' (partial credit)
     const { levelChange } = await updateProgress(item.character.id, isCorrect)
     setResults((prev) => [
       ...prev,
-      { character: item.character, isCorrect, levelChange },
+      { character: item.character, isCorrect: isCorrect === true, isHalf: isCorrect === 'half', levelChange },
     ])
   }
 
