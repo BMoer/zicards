@@ -69,9 +69,14 @@ export default function App() {
               ) : (
                 <DashboardTabs
                   characterWeeks={charWeeks}
+                  characters={characters}
+                  charProgress={charProgress}
                   getCharWeekProgress={getCharWeekProgress}
                   sentenceWeeks={sentenceWeeks}
+                  sentences={sentences}
+                  sentenceProgress={sentenceProgress}
                   getSentenceWeekProgress={getSentenceWeekProgress}
+                  user={user}
                 />
               )}
             </ProtectedRoute>

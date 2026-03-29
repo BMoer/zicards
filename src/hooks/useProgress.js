@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { calculateNextReview } from '../utils/spaced'
 
 export function useProgress(user) {
   const [progress, setProgress] = useState({}) // { characterId: record }
@@ -43,6 +44,7 @@ export function useProgress(user) {
     async (characterId) => {
       if (!user) return
 
+      const now = new Date().toISOString()
       const record = {
         user_id: user.id,
         character_id: characterId,
@@ -50,7 +52,8 @@ export function useProgress(user) {
         correct_streak: 0,
         incorrect_streak: 0,
         times_practiced: 0,
-        last_practiced: new Date().toISOString(),
+        last_practiced: now,
+        next_review: calculateNextReview(0),
       }
 
       const { error } = await supabase
@@ -70,7 +73,7 @@ export function useProgress(user) {
   /**
    * Update progress after answering a quiz question.
    * isCorrect: true (correct), false (wrong), 'half' (partial – no streak change)
-   * Returns { levelChange: number } (positive = up, negative = down, 0 = same)
+   * Returns { levelChange: number }
    */
   const updateProgress = useCallback(
     async (characterId, isCorrect) => {
@@ -90,7 +93,7 @@ export function useProgress(user) {
 
       const oldLevel = record.level
 
-      // Update streaks – 'half' correct = no streak changes (e.g. wrong tone only)
+      // Update streaks – 'half' correct = no streak changes
       if (isCorrect === 'half') {
         // Don't touch streaks – neutral result
       } else if (isCorrect) {
@@ -103,11 +106,11 @@ export function useProgress(user) {
 
       // Level changes
       if (record.correct_streak >= 3) {
-        record.level = Math.min(record.level + 1, 3) // max 3 in MVP
+        record.level = Math.min(record.level + 1, 3)
         record.correct_streak = 0
       }
       if (record.incorrect_streak >= 2) {
-        record.level = Math.max(record.level - 1, 1) // min 1, never back to 0
+        record.level = Math.max(record.level - 1, 1)
         record.incorrect_streak = 0
       }
 
@@ -115,7 +118,16 @@ export function useProgress(user) {
       record.times_practiced = (record.times_practiced || 0) + 1
       record.last_practiced = new Date().toISOString()
 
-      // Upsert
+      // Spaced repetition: calculate next review
+      if (isCorrect === 'half') {
+        // Keep current next_review (don't push out, don't reset)
+      } else if (isCorrect) {
+        record.next_review = calculateNextReview(record.correct_streak)
+      } else {
+        // Wrong → review again soon (4 hours)
+        record.next_review = calculateNextReview(0)
+      }
+
       const { error } = await supabase
         .from('user_progress')
         .upsert(
@@ -127,6 +139,7 @@ export function useProgress(user) {
             incorrect_streak: record.incorrect_streak,
             times_practiced: record.times_practiced,
             last_practiced: record.last_practiced,
+            next_review: record.next_review,
           },
           { onConflict: 'user_id,character_id' }
         )
@@ -143,9 +156,6 @@ export function useProgress(user) {
     [user, progress]
   )
 
-  /**
-   * Get progress stats for a week.
-   */
   const getWeekProgress = useCallback(
     (weekCharacters) => {
       if (!weekCharacters) return { total: 0, mastered: 0 }

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
+import { calculateNextReview } from '../utils/spaced'
 
 /**
  * Sentence progress hook – same streak/level logic as character progress.
@@ -49,6 +50,7 @@ export function useSentenceProgress(user) {
         incorrect_streak: 0,
         times_practiced: 0,
         last_practiced: new Date().toISOString(),
+        next_review: calculateNextReview(0),
       }
       const { error } = await supabase
         .from('sentence_progress')
@@ -95,6 +97,13 @@ export function useSentenceProgress(user) {
       record.times_practiced = (record.times_practiced || 0) + 1
       record.last_practiced = new Date().toISOString()
 
+      // Spaced repetition
+      if (isCorrect) {
+        record.next_review = calculateNextReview(record.correct_streak)
+      } else {
+        record.next_review = calculateNextReview(0)
+      }
+
       const { error } = await supabase
         .from('sentence_progress')
         .upsert(
@@ -106,6 +115,7 @@ export function useSentenceProgress(user) {
             incorrect_streak: record.incorrect_streak,
             times_practiced: record.times_practiced,
             last_practiced: record.last_practiced,
+            next_review: record.next_review,
           },
           { onConflict: 'user_id,sentence_id' }
         )

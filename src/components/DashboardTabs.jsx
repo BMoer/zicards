@@ -1,14 +1,21 @@
 import { useState } from 'react'
 import Dashboard from './Dashboard'
 import SentenceDashboard from './SentenceDashboard'
+import DueCounter from './DueCounter'
+import ReminderToggle from './ReminderToggle'
 
 const STORAGE_KEY = 'zicards-active-tab'
 
 export default function DashboardTabs({
   characterWeeks,
+  characters,
+  charProgress,
   getCharWeekProgress,
   sentenceWeeks,
+  sentences,
+  sentenceProgress,
   getSentenceWeekProgress,
+  user,
 }) {
   const [tab, setTab] = useState(() => {
     return localStorage.getItem(STORAGE_KEY) || 'characters'
@@ -21,6 +28,14 @@ export default function DashboardTabs({
 
   return (
     <div>
+      {/* Due cards summary */}
+      <DueCounter
+        characters={characters}
+        charProgress={charProgress}
+        sentences={sentences}
+        sentenceProgress={sentenceProgress}
+      />
+
       {/* Tab bar */}
       <div className="flex border border-ink/10 rounded-lg overflow-hidden mb-6">
         <button
@@ -51,6 +66,9 @@ export default function DashboardTabs({
       ) : (
         <SentenceDashboard weeks={sentenceWeeks} getWeekProgress={getSentenceWeekProgress} />
       )}
+
+      {/* Reminder settings at bottom */}
+      <ReminderToggle user={user} />
     </div>
   )
 }

@@ -52,13 +52,16 @@ export function generateMCOptions(correctChar, allCharacters, field) {
 }
 
 /**
- * Build a learning session.
+ * Build a learning session with spaced repetition priority.
+ * Due cards come first, then new cards, then not-yet-due cards.
  * @param {array} characters - all characters (optionally filtered by week)
  * @param {object} progressMap - { characterId: progressRecord }
  * @returns {array} ordered array of { character, quizType, level }
  */
 export function buildSession(characters, progressMap) {
   if (!characters || characters.length === 0) return []
+
+  const now = Date.now()
 
   // Annotate each character with its progress
   const annotated = characters.map((char) => {
@@ -67,26 +70,33 @@ export function buildSession(characters, progressMap) {
     const lastPracticed = progress?.last_practiced
       ? new Date(progress.last_practiced).getTime()
       : 0
-    return { character: char, level, lastPracticed }
+    const nextReview = progress?.next_review
+      ? new Date(progress.next_review).getTime()
+      : 0
+    const isDue = level > 0 && nextReview <= now
+    return { character: char, level, lastPracticed, nextReview, isDue }
   })
 
-  // Sort: lowest level first, then oldest week, then longest since practiced
-  annotated.sort((a, b) => {
-    if (a.level !== b.level) return a.level - b.level
-    if (a.character.week !== b.character.week) return a.character.week - b.character.week
-    return a.lastPracticed - b.lastPracticed
-  })
-
-  // Split into new (level 0) and known
+  // Split into: new (level 0), due (needs review), and not-due
   const newChars = annotated.filter((a) => a.level === 0)
-  const knownChars = annotated.filter((a) => a.level > 0)
+  const dueChars = annotated.filter((a) => a.isDue)
+  const notDueChars = annotated.filter((a) => a.level > 0 && !a.isDue)
 
-  // Max 5 new, fill rest with known, total 15
-  const selectedNew = newChars.slice(0, 5)
-  const remaining = 15 - selectedNew.length
-  const selectedKnown = knownChars.slice(0, remaining)
+  // Sort due by most overdue first
+  dueChars.sort((a, b) => a.nextReview - b.nextReview)
+  // Sort new by week
+  newChars.sort((a, b) => a.character.week - b.character.week)
+  // Sort not-due by soonest upcoming review
+  notDueChars.sort((a, b) => a.nextReview - b.nextReview)
 
-  const session = [...selectedNew, ...selectedKnown].slice(0, 15)
+  // Build session: due first, then new (max 5), fill rest with not-due, total 15
+  const selectedDue = dueChars.slice(0, 15)
+  const remaining1 = 15 - selectedDue.length
+  const selectedNew = newChars.slice(0, Math.min(5, remaining1))
+  const remaining2 = 15 - selectedDue.length - selectedNew.length
+  const selectedNotDue = notDueChars.slice(0, remaining2)
+
+  const session = [...selectedDue, ...selectedNew, ...selectedNotDue].slice(0, 15)
 
   // Map to quiz types
   return session.map(({ character, level }) => {

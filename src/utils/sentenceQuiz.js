@@ -11,11 +11,13 @@ function shuffle(arr) {
 }
 
 /**
- * Build a sentence learning session.
+ * Build a sentence learning session with spaced repetition.
  * Level 0 = show (learn), Level 1 = word order, Level 2 = fill gap, Level 3 = translate
  */
 export function buildSentenceSession(sentences, progressMap) {
   if (!sentences || sentences.length === 0) return []
+
+  const now = Date.now()
 
   const annotated = sentences.map((s) => {
     const p = progressMap[s.id]
@@ -23,23 +25,28 @@ export function buildSentenceSession(sentences, progressMap) {
     const lastPracticed = p?.last_practiced
       ? new Date(p.last_practiced).getTime()
       : 0
-    return { sentence: s, level, lastPracticed }
-  })
-
-  annotated.sort((a, b) => {
-    if (a.level !== b.level) return a.level - b.level
-    if (a.sentence.week !== b.sentence.week) return a.sentence.week - b.sentence.week
-    return a.lastPracticed - b.lastPracticed
+    const nextReview = p?.next_review
+      ? new Date(p.next_review).getTime()
+      : 0
+    const isDue = level > 0 && nextReview <= now
+    return { sentence: s, level, lastPracticed, nextReview, isDue }
   })
 
   const newOnes = annotated.filter((a) => a.level === 0)
-  const known = annotated.filter((a) => a.level > 0)
+  const due = annotated.filter((a) => a.isDue)
+  const notDue = annotated.filter((a) => a.level > 0 && !a.isDue)
 
-  const selectedNew = newOnes.slice(0, 3)
-  const remaining = 10 - selectedNew.length
-  const selectedKnown = known.slice(0, remaining)
+  due.sort((a, b) => a.nextReview - b.nextReview)
+  newOnes.sort((a, b) => a.sentence.week - b.sentence.week)
+  notDue.sort((a, b) => a.nextReview - b.nextReview)
 
-  const session = [...selectedNew, ...selectedKnown].slice(0, 10)
+  const selectedDue = due.slice(0, 10)
+  const remaining1 = 10 - selectedDue.length
+  const selectedNew = newOnes.slice(0, Math.min(3, remaining1))
+  const remaining2 = 10 - selectedDue.length - selectedNew.length
+  const selectedNotDue = notDue.slice(0, remaining2)
+
+  const session = [...selectedDue, ...selectedNew, ...selectedNotDue].slice(0, 10)
 
   return session.map(({ sentence, level }) => {
     let quizType
