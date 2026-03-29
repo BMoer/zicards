@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { cacheCharacters, getCachedCharacters } from '../utils/offlineCache'
 
 export function useCharacters() {
   const [characters, setCharacters] = useState([])
@@ -12,7 +13,7 @@ export function useCharacters() {
 
   async function fetchCharacters() {
     setLoading(true)
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('characters')
       .select('*')
       .order('week')
@@ -20,8 +21,18 @@ export function useCharacters() {
 
     if (error) {
       console.error('Error fetching characters:', error)
-      setLoading(false)
-      return
+      // Fallback to cached data when offline
+      const cached = getCachedCharacters()
+      if (cached) {
+        console.log('Using cached characters')
+        data = cached
+      } else {
+        setLoading(false)
+        return
+      }
+    } else {
+      // Cache for offline use
+      cacheCharacters(data)
     }
 
     setCharacters(data || [])

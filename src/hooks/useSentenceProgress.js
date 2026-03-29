@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { calculateNextReview } from '../utils/spaced'
+import { cacheSentProgress, getCachedSentProgress, queueUpdate, getPendingUpdates, clearPendingUpdates } from '../utils/offlineCache'
 
 /**
  * Sentence progress hook – same streak/level logic as character progress.
@@ -24,6 +25,13 @@ export function useSentenceProgress(user) {
 
     if (error) {
       console.error('Error fetching sentence progress:', error)
+      const cached = getCachedSentProgress()
+      if (cached) {
+        console.log('Using cached sentence progress')
+        setProgress(cached)
+        setLoading(false)
+        return
+      }
       setLoading(false)
       return
     }
@@ -32,6 +40,17 @@ export function useSentenceProgress(user) {
       map[r.sentence_id] = r
     }
     setProgress(map)
+    cacheSentProgress(map)
+
+    // Sync pending
+    const pending = getPendingUpdates().filter((u) => u.type === 'sent')
+    if (pending.length > 0) {
+      for (const update of pending) {
+        await supabase.from('sentence_progress').upsert(update.record, { onConflict: 'user_id,sentence_id' })
+      }
+      clearPendingUpdates()
+      console.log(`Synced ${pending.length} offline sentence updates`)
+    }
     setLoading(false)
   }, [user])
 
@@ -104,23 +123,31 @@ export function useSentenceProgress(user) {
         record.next_review = calculateNextReview(0)
       }
 
+      const upsertData = {
+        user_id: user.id,
+        sentence_id: sentenceId,
+        level: record.level,
+        correct_streak: record.correct_streak,
+        incorrect_streak: record.incorrect_streak,
+        times_practiced: record.times_practiced,
+        last_practiced: record.last_practiced,
+        next_review: record.next_review,
+      }
+
       const { error } = await supabase
         .from('sentence_progress')
-        .upsert(
-          {
-            user_id: user.id,
-            sentence_id: sentenceId,
-            level: record.level,
-            correct_streak: record.correct_streak,
-            incorrect_streak: record.incorrect_streak,
-            times_practiced: record.times_practiced,
-            last_practiced: record.last_practiced,
-            next_review: record.next_review,
-          },
-          { onConflict: 'user_id,sentence_id' }
-        )
-      if (error) console.error('Error updating sentence progress:', error)
-      setProgress((prev) => ({ ...prev, [sentenceId]: record }))
+        .upsert(upsertData, { onConflict: 'user_id,sentence_id' })
+
+      if (error) {
+        console.error('Error updating sentence progress (queuing):', error)
+        queueUpdate({ type: 'sent', record: upsertData })
+      }
+
+      setProgress((prev) => {
+        const updated = { ...prev, [sentenceId]: record }
+        cacheSentProgress(updated)
+        return updated
+      })
       return { levelChange: record.level - oldLevel }
     },
     [user, progress]

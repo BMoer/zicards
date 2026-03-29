@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
 import { calculateNextReview } from '../utils/spaced'
+import { cacheCharProgress, getCachedCharProgress, queueUpdate, getPendingUpdates, clearPendingUpdates } from '../utils/offlineCache'
 
 export function useProgress(user) {
   const [progress, setProgress] = useState({}) // { characterId: record }
@@ -21,6 +22,13 @@ export function useProgress(user) {
 
     if (error) {
       console.error('Error fetching progress:', error)
+      const cached = getCachedCharProgress()
+      if (cached) {
+        console.log('Using cached char progress')
+        setProgress(cached)
+        setLoading(false)
+        return
+      }
       setLoading(false)
       return
     }
@@ -30,12 +38,36 @@ export function useProgress(user) {
       map[record.character_id] = record
     }
     setProgress(map)
+    cacheCharProgress(map)
+
+    // Sync any pending offline updates
+    syncPendingUpdates()
     setLoading(false)
   }, [user])
+
+  // Sync pending offline updates when back online
+  const syncPendingUpdates = useCallback(async () => {
+    const pending = getPendingUpdates().filter((u) => u.type === 'char')
+    if (pending.length === 0) return
+    for (const update of pending) {
+      await supabase
+        .from('user_progress')
+        .upsert(update.record, { onConflict: 'user_id,character_id' })
+    }
+    clearPendingUpdates()
+    console.log(`Synced ${pending.length} offline char updates`)
+  }, [])
 
   useEffect(() => {
     fetchProgress()
   }, [fetchProgress])
+
+  // Sync when coming back online
+  useEffect(() => {
+    const handleOnline = () => syncPendingUpdates()
+    window.addEventListener('online', handleOnline)
+    return () => window.removeEventListener('online', handleOnline)
+  }, [syncPendingUpdates])
 
   /**
    * Mark a Stufe-0 character as "seen" → level 1
@@ -128,28 +160,32 @@ export function useProgress(user) {
         record.next_review = calculateNextReview(0)
       }
 
-      const { error } = await supabase
-        .from('user_progress')
-        .upsert(
-          {
-            user_id: user.id,
-            character_id: characterId,
-            level: record.level,
-            correct_streak: record.correct_streak,
-            incorrect_streak: record.incorrect_streak,
-            times_practiced: record.times_practiced,
-            last_practiced: record.last_practiced,
-            next_review: record.next_review,
-          },
-          { onConflict: 'user_id,character_id' }
-        )
-
-      if (error) {
-        console.error('Error updating progress:', error)
-        return { levelChange: 0 }
+      const upsertData = {
+        user_id: user.id,
+        character_id: characterId,
+        level: record.level,
+        correct_streak: record.correct_streak,
+        incorrect_streak: record.incorrect_streak,
+        times_practiced: record.times_practiced,
+        last_practiced: record.last_practiced,
+        next_review: record.next_review,
       }
 
-      setProgress((prev) => ({ ...prev, [characterId]: record }))
+      const { error } = await supabase
+        .from('user_progress')
+        .upsert(upsertData, { onConflict: 'user_id,character_id' })
+
+      if (error) {
+        console.error('Error updating progress (queuing for offline sync):', error)
+        queueUpdate({ type: 'char', record: upsertData })
+      }
+
+      // Always update local state (works offline)
+      setProgress((prev) => {
+        const updated = { ...prev, [characterId]: record }
+        cacheCharProgress(updated)
+        return updated
+      })
 
       return { levelChange: record.level - oldLevel }
     },

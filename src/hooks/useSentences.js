@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { cacheSentences, getCachedSentences } from '../utils/offlineCache'
 
 export function useSentences() {
   const [sentences, setSentences] = useState([])
@@ -12,7 +13,7 @@ export function useSentences() {
 
   async function fetchSentences() {
     setLoading(true)
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from('sentences')
       .select('*')
       .order('week')
@@ -20,9 +21,16 @@ export function useSentences() {
 
     if (error) {
       console.error('Error fetching sentences:', error)
-      // Return empty if table doesn't exist yet
-      setLoading(false)
-      return
+      const cached = getCachedSentences()
+      if (cached) {
+        console.log('Using cached sentences')
+        data = cached
+      } else {
+        setLoading(false)
+        return
+      }
+    } else {
+      cacheSentences(data)
     }
 
     setSentences(data || [])

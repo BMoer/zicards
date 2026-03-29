@@ -2,6 +2,7 @@ import { useState } from 'react'
 import Dashboard from './Dashboard'
 import SentenceDashboard from './SentenceDashboard'
 import DueCounter from './DueCounter'
+import GlobalProgress from './GlobalProgress'
 import ReminderToggle from './ReminderToggle'
 
 const STORAGE_KEY = 'zicards-active-tab'
@@ -28,6 +29,14 @@ export default function DashboardTabs({
 
   return (
     <div>
+      {/* Global progress */}
+      <GlobalProgress
+        characters={characters}
+        charProgress={charProgress}
+        sentences={sentences}
+        sentenceProgress={sentenceProgress}
+      />
+
       {/* Due cards summary */}
       <DueCounter
         characters={characters}

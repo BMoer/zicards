@@ -1,6 +1,7 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { buildSession, generateMCOptions } from '../utils/quiz'
+import { saveCharSession, loadCharSession, clearCharSession } from '../utils/sessionStore'
 import QuizCard from './QuizCard'
 import SessionResult from './SessionResult'
 import ProgressBar from './ProgressBar'
@@ -8,29 +9,48 @@ import ProgressBar from './ProgressBar'
 export default function LearningSession({ characters, progress, updateProgress, markAsSeen }) {
   const { week } = useParams()
   const navigate = useNavigate()
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [results, setResults] = useState([])
-  const [sessionKey, setSessionKey] = useState(0) // for restarting
+
+  // Try to restore saved session
+  const saved = useRef(loadCharSession())
+  const isRestored = saved.current && saved.current.week === (week || '__all')
+
+  const [currentIndex, setCurrentIndex] = useState(isRestored ? saved.current.currentIndex : 0)
+  const [results, setResults] = useState(isRestored ? saved.current.results : [])
+  const [sessionKey, setSessionKey] = useState(0)
+  const [restoredSession, setRestoredSession] = useState(isRestored ? saved.current.session : null)
 
   // Filter characters by week if specified
   const filteredChars = useMemo(() => {
-    if (week) {
-      return characters.filter((c) => c.week === parseInt(week))
-    }
+    if (week) return characters.filter((c) => c.week === parseInt(week))
     return characters
   }, [characters, week])
 
-  // Snapshot progress when session starts/restarts so mid-session updates don't rebuild
+  // Snapshot progress when session starts/restarts
   const progressSnapshotRef = useRef(progress)
   useEffect(() => {
-    progressSnapshotRef.current = { ...progress }
-  }, [sessionKey]) // only update snapshot on restart, not on every progress change
+    if (!isRestored || sessionKey > 0) {
+      progressSnapshotRef.current = { ...progress }
+    }
+  }, [sessionKey])
 
-  // Build session (only rebuilds on restart via sessionKey, not on progress changes)
+  // Build session (use restored or build new)
   const session = useMemo(() => {
+    if (restoredSession && sessionKey === 0) return restoredSession
     return buildSession(filteredChars, progressSnapshotRef.current)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredChars, sessionKey])
+  }, [filteredChars, sessionKey, restoredSession])
+
+  // Persist session state on every change
+  useEffect(() => {
+    if (session.length > 0 && currentIndex < session.length) {
+      saveCharSession({
+        week: week || '__all',
+        currentIndex,
+        results,
+        session,
+      })
+    }
+  }, [currentIndex, results, session, week])
 
   // Generate MC options for current item
   const currentItem = session[currentIndex]
@@ -45,11 +65,24 @@ export default function LearningSession({ characters, progress, updateProgress, 
     return []
   }, [currentItem, characters])
 
+  const handleRestart = useCallback(() => {
+    clearCharSession()
+    setRestoredSession(null)
+    setCurrentIndex(0)
+    setResults([])
+    setSessionKey((k) => k + 1)
+  }, [])
+
+  const handleExit = useCallback(() => {
+    clearCharSession()
+    navigate('/')
+  }, [navigate])
+
   if (session.length === 0) {
     return (
       <div className="text-center py-12">
         <p className="text-ink/40 mb-4">Keine Zeichen zum Üben gefunden.</p>
-        <button onClick={() => navigate('/')} className="text-terracotta hover:underline text-sm">
+        <button onClick={handleExit} className="text-terracotta hover:underline text-sm">
           Zurück
         </button>
       </div>
@@ -58,21 +91,17 @@ export default function LearningSession({ characters, progress, updateProgress, 
 
   // Session complete
   if (currentIndex >= session.length) {
+    clearCharSession()
     return (
       <SessionResult
         results={results}
-        onRestart={() => {
-          setCurrentIndex(0)
-          setResults([])
-          setSessionKey((k) => k + 1)
-        }}
+        onRestart={handleRestart}
       />
     )
   }
 
   const handleAnswer = async (isCorrect) => {
     const item = session[currentIndex]
-    // isCorrect can be true, false, or 'half' (partial credit)
     const { levelChange } = await updateProgress(item.character.id, isCorrect)
     setResults((prev) => [
       ...prev,
@@ -82,7 +111,6 @@ export default function LearningSession({ characters, progress, updateProgress, 
 
   const handleNext = async (isLearnCard) => {
     if (isLearnCard) {
-      // Mark learn card as seen (level 0 → 1)
       await markAsSeen(currentItem.character.id)
     }
     setCurrentIndex((i) => i + 1)
@@ -91,7 +119,7 @@ export default function LearningSession({ characters, progress, updateProgress, 
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <button onClick={() => navigate('/')} className="text-sm text-ink/50 hover:text-ink">
+        <button onClick={handleExit} className="text-sm text-ink/50 hover:text-ink">
           ✕
         </button>
         <span className="text-sm text-ink/40">
