@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
-import { speakChinese, isSpeechAvailable } from '../utils/audio'
+import { speakChinese, stopSpeaking, isSpeechAvailable } from '../utils/audio'
 
 const AudioContext = createContext()
 
