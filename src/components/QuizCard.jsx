@@ -249,18 +249,10 @@ function Feedback({ character, isCorrect, isHalf, onNext, characters, progress }
         />
       )}
 
-      <button
-        onClick={() => {
-          clearTimeout(timerRef.current)
-          onNext()
-        }}
-        className="w-full mt-4 py-3 bg-ink text-paper rounded-lg font-medium hover:bg-ink/90 transition-colors"
-      >
-        Weiter
-      </button>
-
-      {isCorrect && !isHalf && (
-        <p className="text-center text-xs text-ink/30 mt-2">Automatisch weiter…</p>
+      {isCorrect && !isHalf ? (
+        <p className="text-center text-xs text-ink/30 mt-3">Automatisch weiter…</p>
+      ) : (
+        <p className="text-center text-xs text-ink/30 mt-3">Swipe oder → für weiter</p>
       )}
     </div>
   )

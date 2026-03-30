@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAudio } from '../hooks/useAudio'
 import SpeakButton from './SpeakButton'
 import { getShuffledWords, checkWordOrder, checkGapAnswer, checkTranslation } from '../utils/sentenceQuiz'
@@ -288,9 +288,19 @@ function TranslateCard({ sentence, onAnswer }) {
  */
 function SentenceFeedback({ sentence, isCorrect, onNext }) {
   const { autoSpeak } = useAudio()
+  const timerRef = useRef(null)
+
   useEffect(() => {
     autoSpeak(sentence.chinese)
   }, [])
+
+  // Auto-advance when correct
+  useEffect(() => {
+    if (isCorrect) {
+      timerRef.current = setTimeout(() => onNext(), 1800)
+    }
+    return () => clearTimeout(timerRef.current)
+  }, [isCorrect])
 
   return (
     <div className="mt-6 p-4 border border-ink/10 rounded-lg">
@@ -308,12 +318,11 @@ function SentenceFeedback({ sentence, isCorrect, onNext }) {
         <div className="text-sm text-ink/50">{sentence.pinyin}</div>
         <div className="text-sm text-ink/60">{sentence.german}</div>
       </div>
-      <button
-        onClick={onNext}
-        className="w-full py-3 bg-ink text-paper rounded-lg font-medium hover:bg-ink/90 transition-colors"
-      >
-        Weiter
-      </button>
+      {isCorrect ? (
+        <p className="text-center text-xs text-ink/30 mt-3">Automatisch weiter…</p>
+      ) : (
+        <p className="text-center text-xs text-ink/30 mt-3">Swipe oder → für weiter</p>
+      )}
     </div>
   )
 }
