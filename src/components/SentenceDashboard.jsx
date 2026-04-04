@@ -19,7 +19,7 @@ export default function SentenceDashboard({ weeks, getWeekProgress }) {
 
       <div className="space-y-3">
         {weeks.map((w) => {
-          const { total, mastered } = getWeekProgress(w.sentences)
+          const { total, mastered, lapsed, level1, level2 } = getWeekProgress(w.sentences)
           return (
             <button
               key={w.week}
@@ -35,9 +35,10 @@ export default function SentenceDashboard({ weeks, getWeekProgress }) {
                 </div>
                 <span className="text-sm text-ink/40">
                   {mastered}/{total}
+                  {lapsed > 0 && <span className="text-amber-500 ml-1">(+{lapsed})</span>}
                 </span>
               </div>
-              <ProgressBar current={mastered} total={total} />
+              <ProgressBar current={mastered} total={total} lapsed={lapsed} level1={level1} level2={level2} />
             </button>
           )
         })}

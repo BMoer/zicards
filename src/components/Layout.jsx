@@ -1,7 +1,10 @@
 import OfflineBanner from './OfflineBanner'
 import { AudioToggle } from '../hooks/useAudio'
+import { useAdmin } from '../hooks/useAdmin'
 
-export default function Layout({ user, onSignOut, children }) {
+export default function Layout({ user, authLoading, onSignOut, children }) {
+  const { isAdmin } = useAdmin(user, authLoading)
+
   return (
     <div className="min-h-screen bg-paper">
       <OfflineBanner />
@@ -11,6 +14,15 @@ export default function Layout({ user, onSignOut, children }) {
         </a>
         <div className="flex items-center gap-2">
           {user && <AudioToggle />}
+          {isAdmin && (
+            <a
+              href="/admin"
+              className="text-sm text-ink/50 hover:text-ink transition-colors"
+              title="Kurs-Dashboard"
+            >
+              📊
+            </a>
+          )}
           {user && (
             <button
               onClick={onSignOut}

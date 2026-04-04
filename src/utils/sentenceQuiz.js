@@ -196,10 +196,39 @@ export function checkGapAnswer(userAnswer, correctWord, words, fullPinyin) {
 }
 
 /**
- * Compare user translation. Flexible matching.
+ * Compare user translation. Accepts Hanzi or Pinyin (numbered or tone-marked).
  */
-export function checkTranslation(userChinese, correctChinese) {
-  // Remove all whitespace and punctuation for comparison
-  const normalize = (s) => s.replace(/[\s。！？，、.!?,]/g, '')
-  return normalize(userChinese) === normalize(correctChinese)
+export function checkTranslation(userInput, correctChinese, correctPinyin) {
+  const normalize = (s) => s.replace(/[\s。！？，、.!?,;：""'']/g, '')
+  const userNorm = normalize(userInput.trim())
+  if (!userNorm) return false
+
+  // Hanzi exact match
+  if (userNorm === normalize(correctChinese)) return true
+
+  // Pinyin match
+  if (correctPinyin) {
+    const toneCharMap = {}
+    const toneMarks = {
+      a: ['ā', 'á', 'ǎ', 'à'], e: ['ē', 'é', 'ě', 'è'],
+      i: ['ī', 'í', 'ǐ', 'ì'], o: ['ō', 'ó', 'ǒ', 'ò'],
+      u: ['ū', 'ú', 'ǔ', 'ù'], ü: ['ǖ', 'ǘ', 'ǚ', 'ǜ'],
+    }
+    for (const [base, marks] of Object.entries(toneMarks)) {
+      marks.forEach((mark, i) => { toneCharMap[mark] = { base, tone: i + 1 } })
+    }
+
+    const stripTones = (s) => {
+      let result = s.toLowerCase().replace(/v/g, 'ü')
+      for (const [mark, info] of Object.entries(toneCharMap)) {
+        result = result.replace(new RegExp(mark, 'g'), info.base)
+      }
+      return result.replace(/[0-5]/g, '').replace(/[\s。！？，、.!?,;]+/g, '')
+    }
+
+    // Compare stripped pinyin (no tones, no spaces, no punctuation)
+    if (stripTones(userNorm) === stripTones(correctPinyin)) return true
+  }
+
+  return false
 }

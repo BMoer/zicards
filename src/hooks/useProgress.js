@@ -194,13 +194,27 @@ export function useProgress(user) {
 
   const getWeekProgress = useCallback(
     (weekCharacters) => {
-      if (!weekCharacters) return { total: 0, mastered: 0 }
+      if (!weekCharacters) return { total: 0, mastered: 0, lapsed: 0, level1: 0, level2: 0 }
+      const now = new Date()
       const total = weekCharacters.length
-      const mastered = weekCharacters.filter((c) => {
+      let mastered = 0
+      let lapsed = 0
+      let level1 = 0
+      let level2 = 0
+      for (const c of weekCharacters) {
         const p = progress[c.id]
-        return p && p.level >= 2
-      }).length
-      return { total, mastered }
+        if (!p || p.level < 1) continue
+        if (!p.next_review || new Date(p.next_review) <= now) {
+          lapsed++
+        } else if (p.level >= 3) {
+          mastered++
+        } else if (p.level === 2) {
+          level2++
+        } else {
+          level1++
+        }
+      }
+      return { total, mastered, lapsed, level1, level2 }
     },
     [progress]
   )

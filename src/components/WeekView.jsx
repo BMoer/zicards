@@ -1,10 +1,54 @@
+import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import SpeakButton from './SpeakButton'
+import MnemonicCard from './MnemonicCard'
+import GrammarHint from './GrammarHint'
 
 const levelLabels = ['Neu', 'Stufe 1', 'Stufe 2', 'Stufe 3']
 const levelColors = ['bg-ink/10 text-ink/50', 'bg-terracotta/15 text-terracotta', 'bg-sage/20 text-sage', 'bg-sage text-white']
 
-export default function WeekView({ weeks, progress }) {
+function CharacterRow({ char, level, characters, progress }) {
+  const [expanded, setExpanded] = useState(false)
+
+  return (
+    <div
+      className="border border-ink/10 rounded-lg cursor-pointer hover:border-ink/20 transition-colors"
+      onClick={() => setExpanded(!expanded)}
+    >
+      <div className="p-4 flex items-center gap-4">
+        <div className="font-hanzi text-4xl leading-none">{char.hanzi}</div>
+        <SpeakButton text={char.word || char.hanzi} size="sm" />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-ink/60 text-sm">{char.pinyin}</span>
+            {char.word && (
+              <span className="text-ink/40 text-sm">
+                {char.word} ({char.pinyin_word})
+              </span>
+            )}
+          </div>
+          <div className="text-sm mt-0.5">{char.meaning}</div>
+          <GrammarHint meaning={char.meaning} />
+          {char.radical && (
+            <div className="text-xs text-ink/30 mt-0.5">Radikal: {char.radical}</div>
+          )}
+        </div>
+        <span
+          className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${levelColors[level]}`}
+        >
+          {levelLabels[level]}
+        </span>
+      </div>
+      {expanded && (
+        <div className="px-4 pb-4" onClick={(e) => e.stopPropagation()}>
+          <MnemonicCard hanzi={char.hanzi} characters={characters} progress={progress} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default function WeekView({ weeks, progress, characters }) {
   const { id } = useParams()
   const navigate = useNavigate()
   const week = weeks.find((w) => w.week === parseInt(id))
@@ -45,32 +89,13 @@ export default function WeekView({ weeks, progress }) {
           const level = p ? p.level : 0
 
           return (
-            <div
+            <CharacterRow
               key={char.id}
-              className="p-4 border border-ink/10 rounded-lg flex items-center gap-4"
-            >
-              <div className="font-hanzi text-4xl leading-none">{char.hanzi}</div>
-              <SpeakButton text={char.word || char.hanzi} size="sm" />
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-ink/60 text-sm">{char.pinyin}</span>
-                  {char.word && (
-                    <span className="text-ink/40 text-sm">
-                      {char.word} ({char.pinyin_word})
-                    </span>
-                  )}
-                </div>
-                <div className="text-sm mt-0.5">{char.meaning}</div>
-                {char.radical && (
-                  <div className="text-xs text-ink/30 mt-0.5">Radikal: {char.radical}</div>
-                )}
-              </div>
-              <span
-                className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${levelColors[level]}`}
-              >
-                {levelLabels[level]}
-              </span>
-            </div>
+              char={char}
+              level={level}
+              characters={characters}
+              progress={progress}
+            />
           )
         })}
       </div>

@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { comparePinyin, compareMeaning, isPinyinToneWrong } from '../utils/pinyin'
 import { useAudio } from '../hooks/useAudio'
 import SpeakButton from './SpeakButton'
 import MnemonicCard from './MnemonicCard'
+import GrammarHint from './GrammarHint'
 
 /**
  * Stufe 0: Learn card (just display)
@@ -27,6 +28,7 @@ function LearnCard({ character, onNext, characters, progress }) {
         <div className="text-sm text-ink/40 mb-3">{character.pinyin_word}</div>
       )}
       <div className="text-xl font-medium mb-2">{character.meaning}</div>
+      <GrammarHint meaning={character.meaning} />
       {character.radical && (
         <div className="text-sm text-ink/40 mb-4">Radikal: {character.radical}</div>
       )}
@@ -207,19 +209,12 @@ function FreetextCard({ character, onAnswer }) {
  */
 function Feedback({ character, isCorrect, isHalf, onNext, characters, progress }) {
   const { autoSpeak } = useAudio()
-  const timerRef = useRef(null)
 
   useEffect(() => {
     autoSpeak(character.word || character.hanzi)
   }, [])
 
-  // Auto-advance when fully correct
-  useEffect(() => {
-    if (isCorrect && !isHalf) {
-      timerRef.current = setTimeout(() => onNext(), 1800)
-    }
-    return () => clearTimeout(timerRef.current)
-  }, [isCorrect, isHalf])
+  // No auto-advance – always show mnemonic so user can read it
 
   const statusIcon = isCorrect ? '✓' : isHalf ? '~' : '✗'
   const statusColor = isCorrect ? 'text-sage' : isHalf ? 'text-amber-500' : 'text-terracotta'
@@ -237,23 +232,17 @@ function Feedback({ character, isCorrect, isHalf, onNext, characters, progress }
         <div className="text-sm text-ink/60">
           <div>{character.pinyin}</div>
           <div>{character.meaning}</div>
+          <GrammarHint meaning={character.meaning} />
         </div>
       </div>
 
-      {/* Show mnemonic on wrong or half-correct */}
-      {!isCorrect && (
-        <MnemonicCard
-          hanzi={character.hanzi}
-          characters={characters}
-          progress={progress}
-        />
-      )}
+      <MnemonicCard
+        hanzi={character.hanzi}
+        characters={characters}
+        progress={progress}
+      />
 
-      {isCorrect && !isHalf ? (
-        <p className="text-center text-xs text-ink/30 mt-3">Automatisch weiter…</p>
-      ) : (
-        <p className="text-center text-xs text-ink/30 mt-3">Swipe oder → für weiter</p>
-      )}
+      <p className="text-center text-xs text-ink/30 mt-3">Swipe oder → für weiter</p>
     </div>
   )
 }

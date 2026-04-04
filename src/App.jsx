@@ -11,6 +11,9 @@ import WeekView from './components/WeekView'
 import LearningSession from './components/LearningSession'
 import SentenceWeekView from './components/SentenceWeekView'
 import SentenceSession from './components/SentenceSession'
+import AdminDashboard from './components/AdminDashboard'
+import AdminUserDetail from './components/AdminUserDetail'
+import { useAdmin } from './hooks/useAdmin'
 
 function ProtectedRoute({ user, children }) {
   if (!user) return <Navigate to="/login" replace />
@@ -19,6 +22,7 @@ function ProtectedRoute({ user, children }) {
 
 export default function App() {
   const { user, loading: authLoading, signIn, signUp, signOut } = useAuth()
+  const { isAdmin, loading: adminLoading } = useAdmin(user, authLoading)
   const { characters, weeks: charWeeks, loading: charsLoading } = useCharacters()
   const {
     progress: charProgress,
@@ -39,7 +43,7 @@ export default function App() {
 
   if (authLoading) {
     return (
-      <Layout user={null} onSignOut={() => {}}>
+      <Layout user={null} authLoading={true} onSignOut={() => {}}>
         <div className="text-center py-12 text-ink/40">Laden...</div>
       </Layout>
     )
@@ -48,7 +52,7 @@ export default function App() {
   const dataLoading = charsLoading || charProgressLoading || sentencesLoading || sentenceProgressLoading
 
   return (
-    <Layout user={user} onSignOut={signOut}>
+    <Layout user={user} authLoading={authLoading} onSignOut={signOut}>
       <Routes>
         <Route
           path="/login"
@@ -91,7 +95,7 @@ export default function App() {
               {dataLoading ? (
                 <div className="text-center py-12 text-ink/40">Laden...</div>
               ) : (
-                <WeekView weeks={charWeeks} progress={charProgress} />
+                <WeekView weeks={charWeeks} progress={charProgress} characters={characters} />
               )}
             </ProtectedRoute>
           }
@@ -109,6 +113,36 @@ export default function App() {
                   updateProgress={updateCharProgress}
                   markAsSeen={markCharAsSeen}
                 />
+              )}
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Admin routes */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute user={user}>
+              {adminLoading ? (
+                <div className="text-center py-12 text-ink/40">Laden...</div>
+              ) : isAdmin ? (
+                <AdminDashboard />
+              ) : (
+                <Navigate to="/" replace />
+              )}
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/user/:userId"
+          element={
+            <ProtectedRoute user={user}>
+              {adminLoading ? (
+                <div className="text-center py-12 text-ink/40">Laden...</div>
+              ) : isAdmin ? (
+                <AdminUserDetail />
+              ) : (
+                <Navigate to="/" replace />
               )}
             </ProtectedRoute>
           }

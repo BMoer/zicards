@@ -236,7 +236,7 @@ function TranslateCard({ sentence, onAnswer }) {
   const handleSubmit = (e) => {
     e.preventDefault()
     if (result !== null) return
-    const isCorrect = checkTranslation(input, sentence.chinese)
+    const isCorrect = checkTranslation(input, sentence.chinese, sentence.pinyin)
     setResult(isCorrect)
     onAnswer(isCorrect)
     if (isCorrect) autoSpeak(sentence.chinese)
@@ -254,7 +254,7 @@ function TranslateCard({ sentence, onAnswer }) {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="中文..."
+          placeholder="汉字 oder Pinyin (z.B. ni3 hao3)"
           disabled={result !== null}
           autoFocus
           className={`w-full px-4 py-3 border rounded-lg bg-white focus:outline-none text-center font-hanzi text-lg transition-colors ${
