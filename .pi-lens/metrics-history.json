@@ -50,7 +50,82 @@
         }
       ],
       "trend": "stable"
+    },
+    "vite.config.js": {
+      "latest": {
+        "commit": "854fe4a",
+        "timestamp": "2026-04-13T16:36:58.265Z",
+        "mi": 46.3,
+        "cognitive": 0,
+        "nesting": 0,
+        "lines": 61,
+        "maxCyclomatic": 1,
+        "entropy": 4.44
+      },
+      "history": [
+        {
+          "commit": "854fe4a",
+          "timestamp": "2026-04-13T16:36:58.265Z",
+          "mi": 46.3,
+          "cognitive": 0,
+          "nesting": 0,
+          "lines": 61,
+          "maxCyclomatic": 1,
+          "entropy": 4.44
+        }
+      ],
+      "trend": "stable"
+    },
+    "src/utils/sentenceQuiz.test.js": {
+      "latest": {
+        "commit": "854fe4a",
+        "timestamp": "2026-04-13T16:39:44.417Z",
+        "mi": 32.2,
+        "cognitive": 0,
+        "nesting": 3,
+        "lines": 123,
+        "maxCyclomatic": 5,
+        "entropy": 4.35
+      },
+      "history": [
+        {
+          "commit": "854fe4a",
+          "timestamp": "2026-04-13T16:39:44.417Z",
+          "mi": 32.2,
+          "cognitive": 0,
+          "nesting": 3,
+          "lines": 123,
+          "maxCyclomatic": 5,
+          "entropy": 4.35
+        }
+      ],
+      "trend": "stable"
+    },
+    "src/utils/quiz.test.js": {
+      "latest": {
+        "commit": "854fe4a",
+        "timestamp": "2026-04-13T16:40:14.394Z",
+        "mi": 34.7,
+        "cognitive": 1,
+        "nesting": 3,
+        "lines": 104,
+        "maxCyclomatic": 10,
+        "entropy": 5.53
+      },
+      "history": [
+        {
+          "commit": "854fe4a",
+          "timestamp": "2026-04-13T16:40:14.394Z",
+          "mi": 34.7,
+          "cognitive": 1,
+          "nesting": 3,
+          "lines": 104,
+          "maxCyclomatic": 10,
+          "entropy": 5.53
+        }
+      ],
+      "trend": "stable"
     }
   },
-  "capturedAt": "2026-04-13T16:31:39.467Z"
+  "capturedAt": "2026-04-13T16:40:19.396Z"
 }
