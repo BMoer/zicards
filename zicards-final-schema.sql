@@ -127,7 +127,7 @@ values
   ('照', null, 'zhào', null, 'zhao4', 'scheinen, fotografieren', '灬', 3, 'Lektion 3'),
   ('片', null, 'piàn', null, 'pian4', 'Scheibe, Schnitt', null, 3, 'Lektion 3'),
   ('做', null, 'zuò', null, 'zuo4', 'machen, tun', '亻', 3, 'Lektion 3'),
-  ('工', null, 'gōng', null, 'gong1', 'Arbeit', null, 3, 'Lektion 3'),
-  ('作', null, 'zuò', null, 'zuo4', 'arbeiten, Arbeit', '亻', 3, 'Lektion 3'),
-  ('大', '大夫', 'dài', 'dàifu', 'dai4', 'Arzt (in 大夫)', null, 3, 'Lektion 3'),
-  ('夫', '大夫', 'fu', 'dàifu', 'fu0', 'Arzt (in 大夫)', null, 3, 'Lektion 3');
+  ('工', '工作', 'gōng', 'gōngzuò', 'gong1', 'Handwerk; in 工作: arbeiten', null, 3, 'Lektion 3'),
+  ('作', '工作', 'zuò', 'gōngzuò', 'zuo4', 'machen, schaffen; in 工作: arbeiten', '亻', 3, 'Lektion 3'),
+  ('大', '大夫', 'dài', 'dàifu', 'dai4', 'groß; in 大夫: Arzt', null, 3, 'Lektion 3'),
+  ('夫', '大夫', 'fu', 'dàifu', 'fu0', 'Mann; in 大夫: Arzt', null, 3, 'Lektion 3');

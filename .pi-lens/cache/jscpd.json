@@ -1,0 +1,208 @@
+{
+  "success": true,
+  "clones": [
+    {
+      "fileA": "src/utils/sentenceQuiz.js",
+      "startA": 211,
+      "fileB": "src/utils/sentenceQuiz.js",
+      "startB": 136,
+      "lines": 11,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/utils/quiz.js",
+      "startA": 4,
+      "fileB": "src/utils/sentenceQuiz.js",
+      "startB": 4,
+      "lines": 17,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/utils/pinyin.js",
+      "startA": 2,
+      "fileB": "src/utils/sentenceQuiz.js",
+      "startB": 137,
+      "lines": 10,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/utils/pinyin.js",
+      "startA": 72,
+      "fileB": "src/utils/sentenceQuiz.js",
+      "startB": 149,
+      "lines": 10,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/hooks/useProgress.js",
+      "startA": 8,
+      "fileB": "src/hooks/useSentenceProgress.js",
+      "startB": 12,
+      "lines": 12,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/hooks/useProgress.js",
+      "startA": 140,
+      "fileB": "src/hooks/useSentenceProgress.js",
+      "startB": 107,
+      "lines": 10,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/hooks/useProgress.js",
+      "startA": 205,
+      "fileB": "src/hooks/useSentenceProgress.js",
+      "startB": 166,
+      "lines": 18,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/components/SessionNav.jsx",
+      "startA": 80,
+      "fileB": "src/components/SessionNav.jsx",
+      "startB": 64,
+      "lines": 10,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/components/SentenceWeekView.jsx",
+      "startA": 12,
+      "fileB": "src/components/WeekView.jsx",
+      "startB": 51,
+      "lines": 24,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/components/SentenceWeekView.jsx",
+      "startA": 36,
+      "fileB": "src/components/WeekView.jsx",
+      "startB": 75,
+      "lines": 13,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/components/SentenceSessionResult.jsx",
+      "startA": 19,
+      "fileB": "src/components/SessionResult.jsx",
+      "startB": 21,
+      "lines": 9,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/components/SentenceSessionResult.jsx",
+      "startA": 40,
+      "fileB": "src/components/SessionResult.jsx",
+      "startB": 48,
+      "lines": 23,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/components/SentenceQuizCard.jsx",
+      "startA": 208,
+      "fileB": "src/components/SentenceQuizCard.jsx",
+      "startB": 183,
+      "lines": 101,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/components/SentenceQuizCard.jsx",
+      "startA": 10,
+      "fileB": "src/components/SentenceSession.jsx",
+      "startB": 17,
+      "lines": 14,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/components/LearningSession.jsx",
+      "startA": 63,
+      "fileB": "src/components/SentenceSession.jsx",
+      "startB": 38,
+      "lines": 195,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/components/LearningSession.jsx",
+      "startA": 42,
+      "fileB": "src/components/LearningSession.jsx",
+      "startB": 25,
+      "lines": 8,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/components/LearningSession.jsx",
+      "startA": 75,
+      "fileB": "src/components/SentenceSession.jsx",
+      "startB": 53,
+      "lines": 11,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/components/LearningSession.jsx",
+      "startA": 134,
+      "fileB": "src/components/SentenceSession.jsx",
+      "startB": 104,
+      "lines": 13,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/components/LearningSession.jsx",
+      "startA": 166,
+      "fileB": "src/components/SentenceSession.jsx",
+      "startB": 119,
+      "lines": 9,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/components/LearningSession.jsx",
+      "startA": 181,
+      "fileB": "src/components/SentenceSession.jsx",
+      "startB": 132,
+      "lines": 24,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/components/LearningSession.jsx",
+      "startA": 204,
+      "fileB": "src/components/SentenceSession.jsx",
+      "startB": 155,
+      "lines": 13,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/components/LearningSession.jsx",
+      "startA": 235,
+      "fileB": "src/components/SentenceSession.jsx",
+      "startB": 185,
+      "lines": 18,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/components/Dashboard.jsx",
+      "startA": 14,
+      "fileB": "src/components/SentenceDashboard.jsx",
+      "startB": 14,
+      "lines": 9,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/components/Dashboard.jsx",
+      "startA": 22,
+      "fileB": "src/components/SentenceDashboard.jsx",
+      "startB": 22,
+      "lines": 27,
+      "tokens": 0
+    },
+    {
+      "fileA": "src/components/AdminDashboard.jsx",
+      "startA": 6,
+      "fileB": "src/components/AdminUserDetail.jsx",
+      "startB": 18,
+      "lines": 7,
+      "tokens": 0
+    }
+  ],
+  "duplicatedLines": 591,
+  "totalLines": 7838,
+  "percentage": 7.54
+}
