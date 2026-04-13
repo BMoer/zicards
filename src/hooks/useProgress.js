@@ -7,6 +7,18 @@ export function useProgress(user) {
   const [progress, setProgress] = useState({}) // { characterId: record }
   const [loading, setLoading] = useState(true)
 
+  const syncPendingUpdates = useCallback(async () => {
+    const pending = getPendingUpdates().filter((u) => u.type === 'char')
+    if (pending.length === 0) return
+    for (const update of pending) {
+      await supabase
+        .from('user_progress')
+        .upsert(update.record, { onConflict: 'user_id,character_id' })
+    }
+    clearPendingUpdates()
+    console.log(`Synced ${pending.length} offline char updates`)
+  }, [])
+
   const fetchProgress = useCallback(async () => {
     if (!user) {
       setProgress({})
@@ -43,20 +55,7 @@ export function useProgress(user) {
     // Sync any pending offline updates
     syncPendingUpdates()
     setLoading(false)
-  }, [user])
-
-  // Sync pending offline updates when back online
-  const syncPendingUpdates = useCallback(async () => {
-    const pending = getPendingUpdates().filter((u) => u.type === 'char')
-    if (pending.length === 0) return
-    for (const update of pending) {
-      await supabase
-        .from('user_progress')
-        .upsert(update.record, { onConflict: 'user_id,character_id' })
-    }
-    clearPendingUpdates()
-    console.log(`Synced ${pending.length} offline char updates`)
-  }, [])
+  }, [user, syncPendingUpdates])
 
   useEffect(() => {
     fetchProgress()
@@ -138,8 +137,14 @@ export function useProgress(user) {
 
       // Level changes
       if (record.correct_streak >= 3) {
-        record.level = Math.min(record.level + 1, 3)
-        record.correct_streak = 0
+        const newLevel = Math.min(record.level + 1, 3)
+        if (newLevel > record.level) {
+          // Actually levelled up — reset streak for the new level
+          record.level = newLevel
+          record.correct_streak = 0
+        }
+        // At max level (3): don't reset streak — let it keep growing so
+        // calculateNextReview produces longer intervals (1d → 3d → 7d → 14d → 30d)
       }
       if (record.incorrect_streak >= 2) {
         record.level = Math.max(record.level - 1, 1)

@@ -51,6 +51,15 @@ describe('calculateNextReview', () => {
     expect(r99).toBe(r5) // cap
   })
 
+  it('streak grows beyond 5 → capped at 30 days (max level behaviour)', () => {
+    // At level 3 (max), streak is no longer reset — it keeps growing.
+    // calculateNextReview caps at index 5 (30 days) regardless.
+    const r6 = new Date(calculateNextReview(6)).getTime()
+    const r10 = new Date(calculateNextReview(10)).getTime()
+    expect(r6).toBe(Date.now() + 30 * DAY)
+    expect(r10).toBe(r6)
+  })
+
   it('returns an ISO string', () => {
     const result = calculateNextReview(1)
     expect(typeof result).toBe('string')
