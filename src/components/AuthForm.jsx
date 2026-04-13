@@ -4,7 +4,6 @@ export default function AuthForm({ onSignIn, onSignUp }) {
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [courseCode, setCourseCode] = useState('')
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const [signUpSuccess, setSignUpSuccess] = useState(false)
@@ -18,9 +17,6 @@ export default function AuthForm({ onSignIn, onSignUp }) {
       if (isLogin) {
         await onSignIn(email, password)
       } else {
-        if (courseCode !== import.meta.env.VITE_COURSE_CODE) {
-          throw new Error('Ungültiger Kurscode. Bitte frag deine Kursleiterin.')
-        }
         await onSignUp(email, password)
         setSignUpSuccess(true)
       }
@@ -80,19 +76,6 @@ export default function AuthForm({ onSignIn, onSignUp }) {
           />
         </div>
 
-        {!isLogin && (
-          <div>
-            <input
-              type="text"
-              value={courseCode}
-              onChange={(e) => setCourseCode(e.target.value)}
-              placeholder="Kurscode"
-              required
-              className="w-full px-4 py-3 border border-ink/20 rounded-lg bg-white focus:outline-none focus:border-ink/40 transition-colors"
-            />
-          </div>
-        )}
-
         {error && <p className="text-terracotta text-sm">{error}</p>}
 
         <button
@@ -110,7 +93,6 @@ export default function AuthForm({ onSignIn, onSignUp }) {
           onClick={() => {
             setIsLogin(!isLogin)
             setError(null)
-            setCourseCode('')
           }}
           className="text-terracotta hover:underline"
         >
