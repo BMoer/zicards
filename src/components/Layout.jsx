@@ -1,6 +1,7 @@
 import OfflineBanner from './OfflineBanner'
 import { AudioToggle } from '../hooks/useAudio'
 import { useAdmin } from '../hooks/useAdmin'
+import FeedbackButton from './FeedbackButton'
 
 export default function Layout({ user, authLoading, onSignOut, children }) {
   const { isAdmin } = useAdmin(user, authLoading)
@@ -34,6 +35,7 @@ export default function Layout({ user, authLoading, onSignOut, children }) {
         </div>
       </header>
       <main className="max-w-lg mx-auto px-4 py-6">{children}</main>
+      <FeedbackButton user={user} />
     </div>
   )
 }
