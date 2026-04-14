@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import html2canvas from 'html2canvas'
 import { supabase } from '../lib/supabase'
 
@@ -9,6 +9,26 @@ export default function FeedbackButton({ user }) {
   const [comment, setComment] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
+  const [inputFocused, setInputFocused] = useState(false)
+
+  useEffect(() => {
+    const handleFocusIn = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        setInputFocused(true)
+      }
+    }
+    const handleFocusOut = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        setInputFocused(false)
+      }
+    }
+    document.addEventListener('focusin', handleFocusIn)
+    document.addEventListener('focusout', handleFocusOut)
+    return () => {
+      document.removeEventListener('focusin', handleFocusIn)
+      document.removeEventListener('focusout', handleFocusOut)
+    }
+  }, [])
 
   const capture = useCallback(async () => {
     // Hide button before capturing
@@ -61,8 +81,8 @@ export default function FeedbackButton({ user }) {
 
   return (
     <>
-      {/* Floating button — hidden while capturing */}
-      {!capturing && !open && (
+      {/* Floating button — hidden while capturing or input is focused (prevents mobile keyboard overlap) */}
+      {!capturing && !open && !inputFocused && (
         <button
           onClick={capture}
           title="Feedback geben"

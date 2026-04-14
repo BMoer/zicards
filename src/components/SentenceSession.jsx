@@ -152,6 +152,8 @@ export default function SentenceSession({ sentences, progress, updateProgress, m
   }, [viewIndex])
 
   const handleRestart = useCallback(() => {
+    // Snapshot progress synchronously so useMemo rebuilds the session with current data
+    progressSnapshotRef.current = { ...progress }
     clearSentenceSession()
     setRestoredSession(null)
     setCurrentIndex(0)
@@ -161,7 +163,7 @@ export default function SentenceSession({ sentences, progress, updateProgress, m
     setAnswered(false)
     lastAdvancedRef.current = -1
     setSessionKey((k) => k + 1)
-  }, [])
+  }, [progress])
 
   const handleExit = useCallback(() => {
     clearSentenceSession()

@@ -287,12 +287,7 @@ function TranslateCard({ sentence, onAnswer }) {
  * Feedback shown after answering
  */
 function SentenceFeedback({ sentence, isCorrect, onNext }) {
-  const { autoSpeak } = useAudio()
   const timerRef = useRef(null)
-
-  useEffect(() => {
-    autoSpeak(sentence.chinese)
-  }, [])
 
   // Auto-advance when correct
   useEffect(() => {

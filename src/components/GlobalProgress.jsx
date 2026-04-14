@@ -36,22 +36,25 @@ export default function GlobalProgress({ characters, charProgress, sentences, se
     const totalItems = totalChars + totalSentences
     const masteredItems = masteredChars + masteredSentences
     const lapsedItems = lapsedChars + lapsedSentences
-    const overallPct = totalItems > 0 ? Math.round((masteredItems / totalItems) * 100) : 0
+    // overallPct includes both solidly mastered and lapsed (all items that reached level 3)
+    const masteredPct = totalItems > 0 ? Math.round((masteredItems / totalItems) * 100) : 0
     const lapsedPct = totalItems > 0 ? Math.round((lapsedItems / totalItems) * 100) : 0
+    const overallPct = masteredPct + lapsedPct
 
     // Total practice sessions
     const allProgress = [...charLevels, ...sentLevels]
     const totalPracticed = allProgress.reduce((s, p) => s + (p.times_practiced || 0), 0)
 
     // Time to fluency estimate
-    // Based on: how many items still need to reach level 3, and learning pace
-    const notMastered = totalItems - masteredItems
+    // Only count items that haven't reached level 3 yet (lapsed items already got there)
+    const notMastered = totalItems - masteredItems - lapsedItems
     const practiceDates = allProgress
       .filter((p) => p.last_practiced)
       .map((p) => new Date(p.last_practiced).toDateString())
     const uniqueDays = new Set(practiceDates).size
+    // Use all items that reached level 3 (mastered + lapsed) for a realistic pace estimate
     const itemsPerDay = uniqueDays > 1
-      ? masteredItems / uniqueDays
+      ? (masteredItems + lapsedItems) / uniqueDays
       : null
 
     let daysEstimate = null
@@ -62,7 +65,7 @@ export default function GlobalProgress({ characters, charProgress, sentences, se
     return {
       totalChars, practicedChars, masteredChars, lapsedChars, avgCharLevel,
       totalSentences, practicedSentences, masteredSentences, lapsedSentences, avgSentLevel,
-      totalItems, masteredItems, lapsedItems, overallPct, lapsedPct,
+      totalItems, masteredItems, lapsedItems, overallPct, masteredPct, lapsedPct,
       totalPracticed, uniqueDays, daysEstimate,
     }
   }, [characters, charProgress, sentences, sentenceProgress])
@@ -80,7 +83,7 @@ export default function GlobalProgress({ characters, charProgress, sentences, se
       <div className="w-full h-3 bg-ink/10 rounded-full overflow-hidden mb-3 flex">
         <div
           className="h-full bg-gradient-to-r from-sage/70 to-sage transition-all duration-700"
-          style={{ width: `${stats.overallPct}%` }}
+          style={{ width: `${stats.masteredPct}%` }}
         />
         {stats.lapsedPct > 0 && (
           <div
@@ -135,7 +138,7 @@ export default function GlobalProgress({ characters, charProgress, sentences, se
         </div>
       )}
 
-      {stats.masteredItems === stats.totalItems && stats.totalItems > 0 && (
+      {stats.masteredItems + stats.lapsedItems === stats.totalItems && stats.totalItems > 0 && (
         <div className="mt-3 pt-3 border-t border-ink/5 text-center">
           <span className="text-sage font-medium">🎓 Alles gemeistert!</span>
         </div>
