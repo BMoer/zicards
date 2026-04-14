@@ -14,7 +14,7 @@ export default function SentenceDashboard({ weeks, getWeekProgress }) {
       </button>
 
       <h2 className="text-sm font-medium text-ink/50 uppercase tracking-wider mb-4">
-        Wochen
+        Lektionen
       </h2>
 
       <div className="space-y-3">
@@ -28,7 +28,7 @@ export default function SentenceDashboard({ weeks, getWeekProgress }) {
             >
               <div className="flex items-center justify-between mb-2">
                 <div>
-                  <span className="font-medium">Woche {w.week}</span>
+                  <span className="font-medium">Lektion {w.week}</span>
                   {w.lesson && (
                     <span className="text-ink/40 text-sm ml-2">{w.lesson}</span>
                   )}

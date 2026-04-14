@@ -17,7 +17,7 @@ export default function SentenceWeekView({ weeks, progress }) {
   if (!week) {
     return (
       <div className="text-center py-12 text-ink/40">
-        <p>Woche nicht gefunden.</p>
+        <p>Lektion nicht gefunden.</p>
         <button onClick={() => navigate('/')} className="text-terracotta hover:underline mt-4 text-sm">
           Zurück
         </button>
@@ -32,7 +32,7 @@ export default function SentenceWeekView({ weeks, progress }) {
           ← Zurück
         </button>
         <h2 className="font-medium">
-          Woche {week.week} – Sätze
+          Lektion {week.week} – Sätze
           {week.lesson && <span className="text-ink/40 ml-2 text-sm">{week.lesson}</span>}
         </h2>
       </div>
@@ -41,7 +41,7 @@ export default function SentenceWeekView({ weeks, progress }) {
         onClick={() => navigate(`/sentences/learn/${week.week}`)}
         className="w-full py-3 bg-terracotta text-white rounded-lg font-medium hover:bg-terracotta/90 transition-colors mb-6"
       >
-        Diese Woche üben
+        Diese Lektion üben
       </button>
 
       <div className="space-y-3">

@@ -137,7 +137,7 @@ export default function AdminUserDetail() {
   const charsByLesson = useMemo(() => {
     const map = {}
     for (const c of chars) {
-      const key = c.lesson || `Woche ${c.week}`
+      const key = c.lesson || `Lektion ${c.week}`
       if (!map[key]) map[key] = []
       map[key].push(c)
     }
@@ -147,7 +147,7 @@ export default function AdminUserDetail() {
   const sentencesByLesson = useMemo(() => {
     const map = {}
     for (const s of sentences) {
-      const key = s.lesson || `Woche ${s.week}`
+      const key = s.lesson || `Lektion ${s.week}`
       if (!map[key]) map[key] = []
       map[key].push(s)
     }
@@ -168,13 +168,13 @@ export default function AdminUserDetail() {
     // Find weakest lesson
     const lessonScores = {}
     for (const c of chars) {
-      const key = c.lesson || `Woche ${c.week}`
+      const key = c.lesson || `Lektion ${c.week}`
       if (!lessonScores[key]) lessonScores[key] = { total: 0, score: 0 }
       lessonScores[key].total++
       lessonScores[key].score += c.level
     }
     for (const s of sentences) {
-      const key = s.lesson || `Woche ${s.week}`
+      const key = s.lesson || `Lektion ${s.week}`
       if (!lessonScores[key]) lessonScores[key] = { total: 0, score: 0 }
       lessonScores[key].total++
       lessonScores[key].score += s.level
