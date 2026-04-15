@@ -12,15 +12,15 @@ export default function GlobalProgress({ characters, charProgress, sentences, se
     const isMastered = (p) => p.level >= 3 && p.next_review && new Date(p.next_review) > now
     const isLapsed = (p) => p.level >= 3 && (!p.next_review || new Date(p.next_review) <= now)
 
+    const isLevel2 = (p) => p.level === 2
+    const isLevel1 = (p) => p.level === 1
+
     // Character stats
     const totalChars = characters.length
     const practicedChars = Object.keys(charProgress).length
     const charLevels = Object.values(charProgress)
     const masteredChars = charLevels.filter(isMastered).length
     const lapsedChars = charLevels.filter(isLapsed).length
-    const avgCharLevel = charLevels.length > 0
-      ? charLevels.reduce((s, p) => s + p.level, 0) / charLevels.length
-      : 0
 
     // Sentence stats
     const totalSentences = sentences.length
@@ -28,17 +28,19 @@ export default function GlobalProgress({ characters, charProgress, sentences, se
     const sentLevels = Object.values(sentenceProgress)
     const masteredSentences = sentLevels.filter(isMastered).length
     const lapsedSentences = sentLevels.filter(isLapsed).length
-    const avgSentLevel = sentLevels.length > 0
-      ? sentLevels.reduce((s, p) => s + p.level, 0) / sentLevels.length
-      : 0
 
     // Overall
     const totalItems = totalChars + totalSentences
+    const allLevels = [...charLevels, ...sentLevels]
     const masteredItems = masteredChars + masteredSentences
     const lapsedItems = lapsedChars + lapsedSentences
+    const level2Items = allLevels.filter(isLevel2).length
+    const level1Items = allLevels.filter(isLevel1).length
     // overallPct includes both solidly mastered and lapsed (all items that reached level 3)
     const masteredPct = totalItems > 0 ? Math.round((masteredItems / totalItems) * 100) : 0
     const lapsedPct = totalItems > 0 ? Math.round((lapsedItems / totalItems) * 100) : 0
+    const level2Pct = totalItems > 0 ? Math.round((level2Items / totalItems) * 100) : 0
+    const level1Pct = totalItems > 0 ? Math.round((level1Items / totalItems) * 100) : 0
     const overallPct = masteredPct + lapsedPct
 
     // Total practice sessions
@@ -63,9 +65,10 @@ export default function GlobalProgress({ characters, charProgress, sentences, se
     }
 
     return {
-      totalChars, practicedChars, masteredChars, lapsedChars, avgCharLevel,
-      totalSentences, practicedSentences, masteredSentences, lapsedSentences, avgSentLevel,
+      totalChars, practicedChars, masteredChars, lapsedChars,
+      totalSentences, practicedSentences, masteredSentences, lapsedSentences,
       totalItems, masteredItems, lapsedItems, overallPct, masteredPct, lapsedPct,
+      level2Pct, level1Pct,
       totalPracticed, uniqueDays, daysEstimate,
     }
   }, [characters, charProgress, sentences, sentenceProgress])
@@ -82,9 +85,21 @@ export default function GlobalProgress({ characters, charProgress, sentences, se
       </div>
       <div className="w-full h-3 bg-ink/10 rounded-full overflow-hidden mb-3 flex">
         <div
-          className="h-full bg-gradient-to-r from-sage/70 to-sage transition-all duration-700"
+          className="h-full bg-sage transition-all duration-700"
           style={{ width: `${stats.masteredPct}%` }}
         />
+        {stats.level2Pct > 0 && (
+          <div
+            className="h-full bg-sage/50 transition-all duration-700"
+            style={{ width: `${stats.level2Pct}%` }}
+          />
+        )}
+        {stats.level1Pct > 0 && (
+          <div
+            className="h-full bg-sage/25 transition-all duration-700"
+            style={{ width: `${stats.level1Pct}%` }}
+          />
+        )}
         {stats.lapsedPct > 0 && (
           <div
             className="h-full bg-amber-400/70 transition-all duration-700"

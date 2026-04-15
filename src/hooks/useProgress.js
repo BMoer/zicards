@@ -209,10 +209,12 @@ export function useProgress(user) {
       for (const c of weekCharacters) {
         const p = progress[c.id]
         if (!p || p.level < 1) continue
-        if (!p.next_review || new Date(p.next_review) <= now) {
-          lapsed++
-        } else if (p.level >= 3) {
-          mastered++
+        if (p.level >= 3) {
+          if (!p.next_review || new Date(p.next_review) <= now) {
+            lapsed++
+          } else {
+            mastered++
+          }
         } else if (p.level === 2) {
           level2++
         } else {
