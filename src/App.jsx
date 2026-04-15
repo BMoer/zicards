@@ -1,19 +1,21 @@
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useParams } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
-import { useCharacters } from './hooks/useCharacters'
+import { useLessons } from './hooks/useLessons'
 import { useProgress } from './hooks/useProgress'
-import { useSentences } from './hooks/useSentences'
 import { useSentenceProgress } from './hooks/useSentenceProgress'
 import Layout from './components/Layout'
 import AuthForm from './components/AuthForm'
-import DashboardTabs from './components/DashboardTabs'
-import WeekView from './components/WeekView'
-import LearningSession from './components/LearningSession'
-import SentenceWeekView from './components/SentenceWeekView'
-import SentenceSession from './components/SentenceSession'
+import UnifiedDashboard from './components/UnifiedDashboard'
+import LessonView from './components/LessonView'
+import UnifiedSession from './components/UnifiedSession'
 import AdminDashboard from './components/AdminDashboard'
 import AdminUserDetail from './components/AdminUserDetail'
 import { useAdmin } from './hooks/useAdmin'
+
+function RedirectToLesson() {
+  const { id } = useParams()
+  return <Navigate to={`/lesson/${id}`} replace />
+}
 
 function ProtectedRoute({ user, children }) {
   if (!user) return <Navigate to="/login" replace />
@@ -23,22 +25,18 @@ function ProtectedRoute({ user, children }) {
 export default function App() {
   const { user, loading: authLoading, signIn, signUp, signOut } = useAuth()
   const { isAdmin, loading: adminLoading } = useAdmin(user, authLoading)
-  const { characters, weeks: charWeeks, loading: charsLoading } = useCharacters()
+  const { characters, sentences, lessons, loading: dataLoading } = useLessons()
   const {
     progress: charProgress,
     loading: charProgressLoading,
     updateProgress: updateCharProgress,
     markAsSeen: markCharAsSeen,
-    getWeekProgress: getCharWeekProgress,
   } = useProgress(user)
-
-  const { sentences, weeks: sentenceWeeks, loading: sentencesLoading } = useSentences()
   const {
     progress: sentenceProgress,
     loading: sentenceProgressLoading,
     updateProgress: updateSentenceProgress,
     markAsSeen: markSentenceAsSeen,
-    getWeekProgress: getSentenceWeekProgress,
   } = useSentenceProgress(user)
 
   if (authLoading) {
@@ -49,7 +47,7 @@ export default function App() {
     )
   }
 
-  const dataLoading = charsLoading || charProgressLoading || sentencesLoading || sentenceProgressLoading
+  const loading = dataLoading || charProgressLoading || sentenceProgressLoading
 
   return (
     <Layout user={user} authLoading={authLoading} onSignOut={signOut}>
@@ -68,18 +66,15 @@ export default function App() {
           path="/"
           element={
             <ProtectedRoute user={user}>
-              {dataLoading ? (
+              {loading ? (
                 <div className="text-center py-12 text-ink/40">Laden...</div>
               ) : (
-                <DashboardTabs
-                  characterWeeks={charWeeks}
+                <UnifiedDashboard
+                  lessons={lessons}
                   characters={characters}
                   charProgress={charProgress}
-                  getCharWeekProgress={getCharWeekProgress}
-                  sentenceWeeks={sentenceWeeks}
                   sentences={sentences}
                   sentenceProgress={sentenceProgress}
-                  getSentenceWeekProgress={getSentenceWeekProgress}
                   user={user}
                 />
               )}
@@ -87,31 +82,42 @@ export default function App() {
           }
         />
 
-        {/* Character routes */}
+        {/* Lesson detail */}
         <Route
-          path="/week/:id"
+          path="/lesson/:week"
           element={
             <ProtectedRoute user={user}>
-              {dataLoading ? (
+              {loading ? (
                 <div className="text-center py-12 text-ink/40">Laden...</div>
               ) : (
-                <WeekView weeks={charWeeks} progress={charProgress} characters={characters} />
+                <LessonView
+                  lessons={lessons}
+                  charProgress={charProgress}
+                  sentenceProgress={sentenceProgress}
+                  characters={characters}
+                />
               )}
             </ProtectedRoute>
           }
         />
+
+        {/* Unified learning session */}
         <Route
           path="/learn/:week?"
           element={
             <ProtectedRoute user={user}>
-              {dataLoading ? (
+              {loading ? (
                 <div className="text-center py-12 text-ink/40">Laden...</div>
               ) : (
-                <LearningSession
+                <UnifiedSession
                   characters={characters}
-                  progress={charProgress}
-                  updateProgress={updateCharProgress}
-                  markAsSeen={markCharAsSeen}
+                  charProgress={charProgress}
+                  updateCharProgress={updateCharProgress}
+                  markCharAsSeen={markCharAsSeen}
+                  sentences={sentences}
+                  sentenceProgress={sentenceProgress}
+                  updateSentenceProgress={updateSentenceProgress}
+                  markSentenceAsSeen={markSentenceAsSeen}
                 />
               )}
             </ProtectedRoute>
@@ -148,36 +154,10 @@ export default function App() {
           }
         />
 
-        {/* Sentence routes */}
-        <Route
-          path="/sentences/week/:id"
-          element={
-            <ProtectedRoute user={user}>
-              {dataLoading ? (
-                <div className="text-center py-12 text-ink/40">Laden...</div>
-              ) : (
-                <SentenceWeekView weeks={sentenceWeeks} progress={sentenceProgress} />
-              )}
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/sentences/learn/:week?"
-          element={
-            <ProtectedRoute user={user}>
-              {dataLoading ? (
-                <div className="text-center py-12 text-ink/40">Laden...</div>
-              ) : (
-                <SentenceSession
-                  sentences={sentences}
-                  progress={sentenceProgress}
-                  updateProgress={updateSentenceProgress}
-                  markAsSeen={markSentenceAsSeen}
-                />
-              )}
-            </ProtectedRoute>
-          }
-        />
+        {/* Redirects for old routes */}
+        <Route path="/week/:id" element={<RedirectToLesson />} />
+        <Route path="/sentences/week/:id" element={<RedirectToLesson />} />
+        <Route path="/sentences/learn/:week?" element={<Navigate to="/learn" replace />} />
       </Routes>
     </Layout>
   )

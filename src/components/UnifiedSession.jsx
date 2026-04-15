@@ -1,17 +1,19 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { buildSession, generateMCOptions } from '../utils/quiz'
-import { saveCharSession, loadCharSession, clearCharSession } from '../utils/sessionStore'
+import { buildUnifiedSession } from '../utils/unifiedSession'
+import { generateMCOptions } from '../utils/quiz'
+import { saveUnifiedSession, loadUnifiedSession, clearUnifiedSession } from '../utils/sessionStore'
 import { useAudio } from '../hooks/useAudio'
 import SpeakButton from './SpeakButton'
 import MnemonicCard from './MnemonicCard'
 import QuizCard from './QuizCard'
-import SessionResult from './SessionResult'
+import SentenceQuizCard from './SentenceQuizCard'
+import UnifiedSessionResult from './UnifiedSessionResult'
 import ProgressBar from './ProgressBar'
 import SessionNav from './SessionNav'
 
 /**
- * Review card shown when navigating back to a past card.
+ * Review card for a past character card.
  */
 function CharacterReview({ item, result, characters, progress }) {
   const { character } = item
@@ -67,12 +69,51 @@ function CharacterReview({ item, result, characters, progress }) {
   )
 }
 
-export default function LearningSession({ characters, progress, updateProgress, markAsSeen }) {
+/**
+ * Review card for a past sentence card.
+ */
+function SentenceReview({ item, result }) {
+  const { sentence } = item
+  const { autoSpeak } = useAudio()
+
+  useEffect(() => {
+    autoSpeak(sentence.chinese)
+  }, [sentence.id])
+
+  return (
+    <div className="text-center py-8">
+      <div className="font-hanzi text-3xl mb-2 leading-relaxed">{sentence.chinese}</div>
+      <div className="mb-4"><SpeakButton text={sentence.chinese} size="md" /></div>
+      <div className="text-ink/60 mb-1">{sentence.pinyin}</div>
+      <div className="text-lg font-medium mb-2">{sentence.german}</div>
+      <div className="flex flex-wrap justify-center gap-1.5 mb-4">
+        {sentence.words.map((w, i) => (
+          <span key={i} className="px-2 py-1 bg-ink/5 rounded text-sm font-hanzi">{w}</span>
+        ))}
+      </div>
+
+      {result && !result.isLearn && (
+        <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${
+          result.isCorrect ? 'bg-sage/10 text-sage' : 'bg-terracotta/10 text-terracotta'
+        }`}>
+          {result.isCorrect ? '✓ Richtig' : '✗ Nicht ganz'}
+        </div>
+      )}
+      {result?.isLearn && (
+        <div className="text-sm text-ink/30 mt-4">Gelernt ✓</div>
+      )}
+    </div>
+  )
+}
+
+export default function UnifiedSession({
+  characters, charProgress, updateCharProgress, markCharAsSeen,
+  sentences, sentenceProgress, updateSentenceProgress, markSentenceAsSeen,
+}) {
   const { week } = useParams()
   const navigate = useNavigate()
 
-  // Try to restore saved session
-  const saved = useRef(loadCharSession())
+  const saved = useRef(loadUnifiedSession())
   const isRestored = saved.current && saved.current.week === (week || '__all')
 
   const [currentIndex, setCurrentIndex] = useState(isRestored ? saved.current.currentIndex : 0)
@@ -81,57 +122,56 @@ export default function LearningSession({ characters, progress, updateProgress, 
   const [answered, setAnswered] = useState(false)
   const [sessionKey, setSessionKey] = useState(0)
   const [restoredSession, setRestoredSession] = useState(isRestored ? saved.current.session : null)
-
-  // Result map: cardIndex → result (for review navigation)
   const [resultMap, setResultMap] = useState(() => {
-    // Rebuild from restored results
     if (isRestored && saved.current.resultMap) return saved.current.resultMap
     return {}
   })
 
-  // Guard against double-advance (race between auto-advance and manual nav)
   const lastAdvancedRef = useRef(-1)
   const currentIndexRef = useRef(currentIndex)
   useEffect(() => { currentIndexRef.current = currentIndex }, [currentIndex])
 
-  // Filter characters by week if specified
+  // Filter by week if specified
   const filteredChars = useMemo(() => {
     if (week) return characters.filter((c) => c.week === parseInt(week))
     return characters
   }, [characters, week])
 
+  const filteredSentences = useMemo(() => {
+    if (week) return sentences.filter((s) => s.week === parseInt(week))
+    return sentences
+  }, [sentences, week])
+
   // Snapshot progress when session starts/restarts
-  const progressSnapshotRef = useRef(progress)
+  const charProgressRef = useRef(charProgress)
+  const sentProgressRef = useRef(sentenceProgress)
   useEffect(() => {
     if (!isRestored || sessionKey > 0) {
-      progressSnapshotRef.current = { ...progress }
+      charProgressRef.current = { ...charProgress }
+      sentProgressRef.current = { ...sentenceProgress }
     }
   }, [sessionKey])
 
-  // Build session (use restored or build new)
   const session = useMemo(() => {
     if (restoredSession && sessionKey === 0) return restoredSession
-    return buildSession(filteredChars, progressSnapshotRef.current)
+    return buildUnifiedSession(
+      filteredChars, charProgressRef.current,
+      filteredSentences, sentProgressRef.current
+    )
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredChars, sessionKey, restoredSession])
+  }, [filteredChars, filteredSentences, sessionKey, restoredSession])
 
-  // Persist session state on every change
+  // Persist session state
   useEffect(() => {
     if (session.length > 0 && currentIndex < session.length) {
-      saveCharSession({
-        week: week || '__all',
-        currentIndex,
-        results,
-        session,
-        resultMap,
-      })
+      saveUnifiedSession({ week: week || '__all', currentIndex, results, session, resultMap })
     }
   }, [currentIndex, results, session, week, resultMap])
 
   // Clear session when complete
   useEffect(() => {
     if (currentIndex >= session.length && session.length > 0) {
-      clearCharSession()
+      clearUnifiedSession()
     }
   }, [currentIndex, session.length])
 
@@ -143,9 +183,9 @@ export default function LearningSession({ characters, progress, updateProgress, 
   const canGoNext = !showResults && (isReviewing || isLearnCard || answered)
   const canGoBack = viewIndex > 0
 
-  // Generate MC options for current (active) item
+  // MC options for character quiz cards
   const mcOptions = useMemo(() => {
-    if (!currentItem) return []
+    if (!currentItem || currentItem.type !== 'character') return []
     if (currentItem.quizType === 'mc-meaning') {
       return generateMCOptions(currentItem.character, characters, 'meaning')
     }
@@ -157,9 +197,17 @@ export default function LearningSession({ characters, progress, updateProgress, 
 
   const handleAnswer = async (isCorrect) => {
     const item = session[currentIndex]
-    const { levelChange } = await updateProgress(item.character.id, isCorrect)
+    let levelChange = 0
+    if (item.type === 'character') {
+      const res = await updateCharProgress(item.character.id, isCorrect)
+      levelChange = res.levelChange
+    } else {
+      const res = await updateSentenceProgress(item.sentence.id, isCorrect)
+      levelChange = res.levelChange
+    }
     const result = {
-      character: item.character,
+      type: item.type,
+      ...(item.type === 'character' ? { character: item.character } : { sentence: item.sentence }),
       isCorrect: isCorrect === true,
       isHalf: isCorrect === 'half',
       levelChange,
@@ -171,14 +219,17 @@ export default function LearningSession({ characters, progress, updateProgress, 
 
   const handleNext = async (isLearnCard) => {
     const ci = currentIndexRef.current
-    // Guard against double-advance
     if (lastAdvancedRef.current === ci) return
     lastAdvancedRef.current = ci
 
     if (isLearnCard) {
-      await markAsSeen(session[ci]?.character.id)
-      // Track learn card in resultMap for review
-      setResultMap((prev) => ({ ...prev, [ci]: { isLearn: true, isCorrect: true } }))
+      const item = session[ci]
+      if (item.type === 'character') {
+        await markCharAsSeen(item.character.id)
+      } else {
+        await markSentenceAsSeen(item.sentence.id)
+      }
+      setResultMap((prev) => ({ ...prev, [ci]: { isLearn: true, isCorrect: true, type: item.type } }))
     }
     const next = ci + 1
     setCurrentIndex(next)
@@ -201,7 +252,9 @@ export default function LearningSession({ characters, progress, updateProgress, 
   }, [viewIndex])
 
   const handleRestart = useCallback(() => {
-    clearCharSession()
+    charProgressRef.current = { ...charProgress }
+    sentProgressRef.current = { ...sentenceProgress }
+    clearUnifiedSession()
     setRestoredSession(null)
     setCurrentIndex(0)
     setViewIndex(0)
@@ -210,17 +263,17 @@ export default function LearningSession({ characters, progress, updateProgress, 
     setAnswered(false)
     lastAdvancedRef.current = -1
     setSessionKey((k) => k + 1)
-  }, [])
+  }, [charProgress, sentenceProgress])
 
   const handleExit = useCallback(() => {
-    clearCharSession()
+    clearUnifiedSession()
     navigate('/')
   }, [navigate])
 
   if (session.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-ink/40 mb-4">Keine Zeichen zum Üben gefunden.</p>
+        <p className="text-ink/40 mb-4">Nichts zum Üben gefunden.</p>
         <button onClick={handleExit} className="text-terracotta hover:underline text-sm">
           Zurück
         </button>
@@ -228,11 +281,10 @@ export default function LearningSession({ characters, progress, updateProgress, 
     )
   }
 
-  // Session complete – show results
   if (showResults) {
     return (
       <SessionNav canGoNext={false} canGoBack={canGoBack} onNext={() => {}} onBack={goBack}>
-        <SessionResult results={results} onRestart={handleRestart} />
+        <UnifiedSessionResult results={results} onRestart={handleRestart} />
       </SessionNav>
     )
   }
@@ -249,27 +301,34 @@ export default function LearningSession({ characters, progress, updateProgress, 
       </div>
       <ProgressBar current={currentIndex} total={session.length} className="mb-6" />
 
-      {/* Review mode (past card) */}
-      {isReviewing && (
-        <CharacterReview
-          item={viewItem}
-          result={resultMap[viewIndex]}
-          characters={characters}
-          progress={progress}
-        />
+      {/* Review mode */}
+      {isReviewing && viewItem.type === 'character' && (
+        <CharacterReview item={viewItem} result={resultMap[viewIndex]} characters={characters} progress={charProgress} />
+      )}
+      {isReviewing && viewItem.type === 'sentence' && (
+        <SentenceReview item={viewItem} result={resultMap[viewIndex]} />
       )}
 
-      {/* Active card – hidden when reviewing (keeps state + auto-advance timer) */}
+      {/* Active card */}
       <div style={{ display: isReviewing ? 'none' : undefined }}>
-        <QuizCard
-          key={`${sessionKey}-${currentIndex}`}
-          item={currentItem}
-          options={mcOptions}
-          onAnswer={handleAnswer}
-          onNext={handleNext}
-          characters={characters}
-          progress={progress}
-        />
+        {currentItem.type === 'character' ? (
+          <QuizCard
+            key={`${sessionKey}-${currentIndex}`}
+            item={currentItem}
+            options={mcOptions}
+            onAnswer={handleAnswer}
+            onNext={handleNext}
+            characters={characters}
+            progress={charProgress}
+          />
+        ) : (
+          <SentenceQuizCard
+            key={`${sessionKey}-${currentIndex}`}
+            item={currentItem}
+            onAnswer={handleAnswer}
+            onNext={handleNext}
+          />
+        )}
       </div>
     </SessionNav>
   )

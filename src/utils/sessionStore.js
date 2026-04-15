@@ -43,3 +43,25 @@ export function loadSentenceSession() {
 export function clearSentenceSession() {
   sessionStorage.removeItem(SENT_SESSION_KEY)
 }
+
+// Unified session persistence
+const UNIFIED_SESSION_KEY = 'zicards-unified-session'
+
+export function saveUnifiedSession(state) {
+  try {
+    sessionStorage.setItem(UNIFIED_SESSION_KEY, JSON.stringify(state))
+  } catch {}
+}
+
+export function loadUnifiedSession() {
+  try {
+    const raw = sessionStorage.getItem(UNIFIED_SESSION_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
+export function clearUnifiedSession() {
+  sessionStorage.removeItem(UNIFIED_SESSION_KEY)
+}
