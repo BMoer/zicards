@@ -1,0 +1,3 @@
+{
+  "signature": "src/components/AdminFeedback.jsx|src/components/Layout.jsx::🔴 New duplicates in modified code:\n  src/components/AdminFeedback.jsx:4 ↔ src/components/AdminUserDetail.jsx:16 (12 lines)\n  First location: src/components/AdminFeedback.jsx\n"
+}

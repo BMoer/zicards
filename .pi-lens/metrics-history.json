@@ -28,14 +28,14 @@
     },
     "src/components/AuthForm.jsx": {
       "latest": {
-        "commit": "f9b6799",
-        "timestamp": "2026-04-13T16:31:32.337Z",
-        "mi": 35.1,
-        "cognitive": 19,
-        "nesting": 4,
-        "lines": 95,
-        "maxCyclomatic": 8,
-        "entropy": 5.53
+        "commit": "adfffd4",
+        "timestamp": "2026-04-13T17:17:06.928Z",
+        "mi": 33,
+        "cognitive": 25,
+        "nesting": 5,
+        "lines": 112,
+        "maxCyclomatic": 12,
+        "entropy": 5.59
       },
       "history": [
         {
@@ -47,9 +47,19 @@
           "lines": 95,
           "maxCyclomatic": 8,
           "entropy": 5.53
+        },
+        {
+          "commit": "adfffd4",
+          "timestamp": "2026-04-13T17:17:06.928Z",
+          "mi": 33,
+          "cognitive": 25,
+          "nesting": 5,
+          "lines": 112,
+          "maxCyclomatic": 12,
+          "entropy": 5.59
         }
       ],
-      "trend": "stable"
+      "trend": "regressing"
     },
     "vite.config.js": {
       "latest": {
@@ -125,7 +135,132 @@
         }
       ],
       "trend": "stable"
+    },
+    "src/hooks/useProgress.js": {
+      "latest": {
+        "commit": "adfffd4",
+        "timestamp": "2026-04-13T16:58:39.136Z",
+        "mi": 30.5,
+        "cognitive": 85,
+        "nesting": 6,
+        "lines": 184,
+        "maxCyclomatic": 64,
+        "entropy": 6.09
+      },
+      "history": [
+        {
+          "commit": "adfffd4",
+          "timestamp": "2026-04-13T16:58:39.136Z",
+          "mi": 30.5,
+          "cognitive": 85,
+          "nesting": 6,
+          "lines": 184,
+          "maxCyclomatic": 64,
+          "entropy": 6.09
+        }
+      ],
+      "trend": "stable"
+    },
+    "src/utils/spaced.test.js": {
+      "latest": {
+        "commit": "adfffd4",
+        "timestamp": "2026-04-13T17:00:03.100Z",
+        "mi": 36.1,
+        "cognitive": 0,
+        "nesting": 3,
+        "lines": 110,
+        "maxCyclomatic": 14,
+        "entropy": 4.69
+      },
+      "history": [
+        {
+          "commit": "adfffd4",
+          "timestamp": "2026-04-13T17:00:03.100Z",
+          "mi": 36.1,
+          "cognitive": 0,
+          "nesting": 3,
+          "lines": 110,
+          "maxCyclomatic": 14,
+          "entropy": 4.69
+        }
+      ],
+      "trend": "stable"
+    },
+    "src/components/Layout.jsx": {
+      "latest": {
+        "commit": "bd11729",
+        "timestamp": "2026-04-13T17:20:46.585Z",
+        "mi": 47.7,
+        "cognitive": 3,
+        "nesting": 1,
+        "lines": 37,
+        "maxCyclomatic": 6,
+        "entropy": 4.41
+      },
+      "history": [
+        {
+          "commit": "bd11729",
+          "timestamp": "2026-04-13T17:20:46.585Z",
+          "mi": 47.7,
+          "cognitive": 3,
+          "nesting": 1,
+          "lines": 37,
+          "maxCyclomatic": 6,
+          "entropy": 4.41
+        }
+      ],
+      "trend": "stable"
+    },
+    "src/App.jsx": {
+      "latest": {
+        "commit": "bd11729",
+        "timestamp": "2026-04-13T17:21:10.092Z",
+        "mi": 28,
+        "cognitive": 27,
+        "nesting": 3,
+        "lines": 175,
+        "maxCyclomatic": 17,
+        "entropy": 5.54
+      },
+      "history": [
+        {
+          "commit": "bd11729",
+          "timestamp": "2026-04-13T17:21:10.092Z",
+          "mi": 28,
+          "cognitive": 27,
+          "nesting": 3,
+          "lines": 175,
+          "maxCyclomatic": 17,
+          "entropy": 5.54
+        }
+      ],
+      "trend": "stable"
+    },
+    "src/components/AdminDashboard.jsx": {
+      "latest": {
+        "commit": "bd11729",
+        "timestamp": "2026-04-13T17:21:27.341Z",
+        "mi": 28,
+        "cognitive": 42,
+        "nesting": 3,
+        "lines": 143,
+        "maxCyclomatic": 19,
+        "entropy": 5.48
+      },
+      "history": [
+        {
+          "commit": "bd11729",
+          "timestamp": "2026-04-13T17:21:27.341Z",
+          "mi": 28,
+          "cognitive": 42,
+          "nesting": 3,
+          "lines": 143,
+          "maxCyclomatic": 19,
+          "entropy": 5.48
+        }
+      ],
+      "trend": "stable"
     }
   },
-  "capturedAt": "2026-04-13T16:40:19.396Z"
+  "capturedAt": "2026-04-13T17:21:33.737Z"
 }

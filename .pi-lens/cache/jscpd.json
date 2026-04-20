@@ -35,23 +35,7 @@
     },
     {
       "fileA": "src/hooks/useProgress.js",
-      "startA": 8,
-      "fileB": "src/hooks/useSentenceProgress.js",
-      "startB": 12,
-      "lines": 12,
-      "tokens": 0
-    },
-    {
-      "fileA": "src/hooks/useProgress.js",
-      "startA": 140,
-      "fileB": "src/hooks/useSentenceProgress.js",
-      "startB": 107,
-      "lines": 10,
-      "tokens": 0
-    },
-    {
-      "fileA": "src/hooks/useProgress.js",
-      "startA": 205,
+      "startA": 210,
       "fileB": "src/hooks/useSentenceProgress.js",
       "startB": 166,
       "lines": 18,
@@ -202,7 +186,7 @@
       "tokens": 0
     }
   ],
-  "duplicatedLines": 591,
-  "totalLines": 7847,
-  "percentage": 7.53
+  "duplicatedLines": 571,
+  "totalLines": 8031,
+  "percentage": 7.11
 }
