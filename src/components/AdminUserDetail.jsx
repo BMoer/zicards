@@ -28,15 +28,33 @@ function LessonSection({ title, items, type }) {
   const [expanded, setExpanded] = useState(false)
 
   const stats = useMemo(() => {
+    const now = new Date()
     const total = items.length
-    const mastered = items.filter(i => i.level >= 3 && i.next_review && new Date(i.next_review) > new Date()).length
+    let mastered = 0
+    let lapsed = 0
+    let level2 = 0
+    let level1 = 0
+    for (const i of items) {
+      if (!i || i.level < 1) continue
+      if (i.level >= 3) {
+        if (!i.next_review || new Date(i.next_review) <= now) lapsed++
+        else mastered++
+      } else if (i.level === 2) {
+        level2++
+      } else {
+        level1++
+      }
+    }
     const struggling = items.filter(i => i.times_practiced >= 3 && i.level <= 1).length
     const notStarted = items.filter(i => i.level === 0).length
-    const overdue = items.filter(i => i.level >= 1 && i.next_review && new Date(i.next_review) <= new Date()).length
-    return { total, mastered, struggling, notStarted, overdue }
+    return { total, mastered, lapsed, level2, level1, struggling, notStarted }
   }, [items])
 
-  const pct = stats.total > 0 ? Math.round((stats.mastered / stats.total) * 100) : 0
+  const masteredPct = stats.total > 0 ? Math.round((stats.mastered / stats.total) * 100) : 0
+  const lapsedPct = stats.total > 0 ? Math.round((stats.lapsed / stats.total) * 100) : 0
+  const level2Pct = stats.total > 0 ? Math.round((stats.level2 / stats.total) * 100) : 0
+  const level1Pct = stats.total > 0 ? Math.round((stats.level1 / stats.total) * 100) : 0
+  const overallPct = masteredPct + lapsedPct
 
   return (
     <div className="border border-ink/10 rounded-lg overflow-hidden">
@@ -52,22 +70,27 @@ function LessonSection({ title, items, type }) {
                 ⚠ {stats.struggling} schwierig
               </span>
             )}
-            <span className="text-xs text-ink/40">{pct}%</span>
+            <span className="text-xs text-ink/40">{overallPct}%</span>
             <span className="text-ink/30">{expanded ? '▾' : '▸'}</span>
           </div>
         </div>
         <div className="w-full h-1.5 bg-ink/10 rounded-full overflow-hidden flex">
-          <div className="h-full bg-sage" style={{ width: `${pct}%` }} />
-          {stats.overdue > 0 && (
-            <div
-              className="h-full bg-amber-400"
-              style={{ width: `${Math.round((stats.overdue / stats.total) * 100)}%` }}
-            />
+          <div className="h-full bg-sage transition-all duration-700" style={{ width: `${masteredPct}%` }} />
+          {level2Pct > 0 && (
+            <div className="h-full bg-sage/50 transition-all duration-700" style={{ width: `${level2Pct}%` }} />
+          )}
+          {level1Pct > 0 && (
+            <div className="h-full bg-sage/25 transition-all duration-700" style={{ width: `${level1Pct}%` }} />
+          )}
+          {lapsedPct > 0 && (
+            <div className="h-full bg-amber-400/70 transition-all duration-700" style={{ width: `${lapsedPct}%` }} />
           )}
         </div>
-        <div className="flex gap-3 mt-1.5 text-xs text-ink/40">
+        <div className="flex gap-3 mt-1.5 text-xs text-ink/40 flex-wrap">
           <span>{stats.mastered} gemeistert</span>
-          <span>{stats.overdue} fällig</span>
+          {stats.lapsed > 0 && <span className="text-amber-600">{stats.lapsed} fällig</span>}
+          {stats.level2 > 0 && <span>{stats.level2} geübt</span>}
+          {stats.level1 > 0 && <span>{stats.level1} gesehen</span>}
           <span>{stats.notStarted} offen</span>
         </div>
       </button>
@@ -85,7 +108,7 @@ function LessonSection({ title, items, type }) {
             })
             .map(item => {
               const isStruggling = item.times_practiced >= 3 && item.level <= 1
-              const isOverdue = item.level >= 1 && item.next_review && new Date(item.next_review) <= new Date()
+              const isLapsed = item.level >= 3 && (!item.next_review || new Date(item.next_review) <= new Date())
 
               return (
                 <div
@@ -108,7 +131,7 @@ function LessonSection({ title, items, type }) {
                     <div className="text-xs text-ink/30 mt-0.5">
                       {item.times_practiced}× geübt
                       {item.last_practiced && <> · {timeAgo(item.last_practiced)}</>}
-                      {isOverdue && <span className="text-amber-600"> · fällig</span>}
+                      {isLapsed && <span className="text-amber-600"> · fällig</span>}
                     </div>
                   </div>
                   <div className="flex-shrink-0 flex items-center gap-1.5">
@@ -156,14 +179,18 @@ export default function AdminUserDetail() {
 
   // Overall weakness analysis
   const analysis = useMemo(() => {
+    const now = new Date()
+    const isMastered = (p) => p.level >= 3 && p.next_review && new Date(p.next_review) > now
+    const isLapsed = (p) => p.level >= 3 && (!p.next_review || new Date(p.next_review) <= now)
+
     const strugglingChars = chars.filter(c => c.times_practiced >= 3 && c.level <= 1)
     const strugglingSents = sentences.filter(s => s.times_practiced >= 3 && s.level <= 1)
-    const overdueChars = chars.filter(c => c.level >= 1 && c.next_review && new Date(c.next_review) <= new Date())
-    const overdueSents = sentences.filter(s => s.level >= 1 && s.next_review && new Date(s.next_review) <= new Date())
+    const lapsedChars = chars.filter(isLapsed)
+    const lapsedSents = sentences.filter(isLapsed)
     const notStartedChars = chars.filter(c => c.level === 0)
     const notStartedSents = sentences.filter(s => s.level === 0)
-    const masteredChars = chars.filter(c => c.level >= 3 && c.next_review && new Date(c.next_review) > new Date())
-    const masteredSents = sentences.filter(s => s.level >= 3 && s.next_review && new Date(s.next_review) > new Date())
+    const masteredChars = chars.filter(isMastered)
+    const masteredSents = sentences.filter(isMastered)
 
     // Find weakest lesson
     const lessonScores = {}
@@ -185,7 +212,7 @@ export default function AdminUserDetail() {
 
     return {
       strugglingChars, strugglingSents,
-      overdueChars, overdueSents,
+      lapsedChars, lapsedSents,
       notStartedChars, notStartedSents,
       masteredChars, masteredSents,
       weakestLesson: weakestLesson ? weakestLesson[0] : null,
@@ -236,11 +263,11 @@ export default function AdminUserDetail() {
                 <span className="text-ink/70">{analysis.weakestLesson}</span>
               </div>
             )}
-            {analysis.overdueChars.length + analysis.overdueSents.length > 0 && (
+            {analysis.lapsedChars.length + analysis.lapsedSents.length > 0 && (
               <div className="text-sm">
                 <span className="text-amber-600 font-medium">⏰ Wiederholung fällig: </span>
                 <span className="text-ink/70">
-                  {analysis.overdueChars.length} Zeichen, {analysis.overdueSents.length} Sätze
+                  {analysis.lapsedChars.length} Zeichen, {analysis.lapsedSents.length} Sätze
                 </span>
               </div>
             )}
