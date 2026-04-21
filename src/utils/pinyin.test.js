@@ -6,6 +6,10 @@ import {
   comparePinyin,
   isPinyinToneWrong,
   compareMeaning,
+  stripAllTones,
+  compareWordPinyin,
+  isDoubledWord,
+  isMeaningClose,
 } from './pinyin.js'
 
 // ─── numberToToneMark ────────────────────────────────────────────────────────
@@ -158,5 +162,73 @@ describe('compareMeaning', () => {
 
   it('returns false for empty inputs', () => {
     expect(compareMeaning('', 'gut')).toBe(false)
+  })
+})
+
+// ─── stripAllTones ──────────────────────────────────────────────────────────
+
+describe('stripAllTones', () => {
+  it('removes all tone marks from multi-syllable input', () => {
+    expect(stripAllTones('jiějie')).toBe('jiejie')
+    expect(stripAllTones('Zhōngguó')).toBe('zhongguo')
+  })
+  it('strips tone numbers and spaces', () => {
+    expect(stripAllTones('jie3 jie0')).toBe('jiejie')
+    expect(stripAllTones('zhong1guo2')).toBe('zhongguo')
+  })
+  it('normalizes v to ü', () => {
+    expect(stripAllTones('nv3')).toBe('nü')
+  })
+})
+
+// ─── compareWordPinyin ──────────────────────────────────────────────────────
+
+describe('compareWordPinyin', () => {
+  it('accepts exact tone-marked match', () => {
+    expect(compareWordPinyin('jiějie', 'jiějie')).toEqual({ correct: true, toneWrong: false })
+  })
+  it('accepts numbered form matching tones', () => {
+    expect(compareWordPinyin('jie3jie0', 'jiějie')).toEqual({ correct: true, toneWrong: false })
+    expect(compareWordPinyin('jie3 jie0', 'jiějie')).toEqual({ correct: true, toneWrong: false })
+  })
+  it('toneless input → tone wrong', () => {
+    expect(compareWordPinyin('jiejie', 'jiějie')).toEqual({ correct: false, toneWrong: true })
+  })
+  it('wrong tone → tone wrong', () => {
+    expect(compareWordPinyin('jie2jie1', 'jiějie')).toEqual({ correct: false, toneWrong: true })
+  })
+  it('wrong syllables → fully wrong', () => {
+    expect(compareWordPinyin('didi', 'jiějie')).toEqual({ correct: false, toneWrong: false })
+  })
+})
+
+// ─── isDoubledWord ──────────────────────────────────────────────────────────
+
+describe('isDoubledWord', () => {
+  it('recognizes 姐姐 as doubled', () => {
+    expect(isDoubledWord({ hanzi: '姐', word: '姐姐' })).toBe(true)
+  })
+  it('rejects compound words like 中午', () => {
+    expect(isDoubledWord({ hanzi: '中', word: '中午' })).toBe(false)
+  })
+  it('handles missing word', () => {
+    expect(isDoubledWord({ hanzi: '我', word: null })).toBe(false)
+  })
+})
+
+// ─── isMeaningClose ─────────────────────────────────────────────────────────
+
+describe('isMeaningClose', () => {
+  it('matches via shared prefix (druck…)', () => {
+    expect(isMeaningClose(
+      'Zählwort Druckwerke',
+      'Zählwort für Bücher/Druckerzeugnisse'
+    )).toBe(true)
+  })
+  it('returns false for exact matches', () => {
+    expect(isMeaningClose('Buch', 'Buch')).toBe(false)
+  })
+  it('returns false for unrelated words', () => {
+    expect(isMeaningClose('Katze', 'Hund')).toBe(false)
   })
 })

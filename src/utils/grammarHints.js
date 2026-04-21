@@ -7,6 +7,10 @@
  */
 const grammarHints = [
   {
+    pattern: /^Folgefrage/i,
+    hint: 'Wird ans Satzende gestellt, um eine Rückfrage zu bilden („und …?"). z.B. 我很好，你呢？ = Mir geht\'s gut, und dir?',
+  },
+  {
     pattern: /^Fragepartikel/i,
     hint: 'Wird ans Satzende gestellt, um eine Ja/Nein-Frage zu bilden. z.B. 你好吗？ = Geht es dir gut?',
   },

@@ -36,7 +36,8 @@ RETURNS TABLE(
   sent_lapsed bigint,
   total_practice_count bigint,
   last_activity timestamptz,
-  active_days bigint
+  active_days bigint,
+  active_days_7d bigint
 ) AS $$
 BEGIN
   -- Check admin
@@ -50,6 +51,29 @@ BEGIN
            au.last_sign_in_at AS usign, au.created_at AS ucreated
     FROM auth.users au
   ),
+  char_days AS (
+    SELECT up.user_id AS uid, date_trunc('day', up.last_practiced) AS day
+    FROM public.user_progress up
+    WHERE up.last_practiced IS NOT NULL
+  ),
+  sent_days AS (
+    SELECT sp.user_id AS uid, date_trunc('day', sp.last_practiced) AS day
+    FROM public.sentence_progress sp
+    WHERE sp.last_practiced IS NOT NULL
+  ),
+  all_days AS (
+    SELECT uid, day FROM char_days
+    UNION
+    SELECT uid, day FROM sent_days
+  ),
+  day_stats AS (
+    SELECT
+      uid,
+      count(DISTINCT day) AS total_days,
+      count(DISTINCT day) FILTER (WHERE day >= date_trunc('day', now()) - interval '6 days') AS days_7d
+    FROM all_days
+    GROUP BY uid
+  ),
   char_stats AS (
     SELECT
       up.user_id AS uid,
@@ -57,8 +81,7 @@ BEGIN
       count(*) FILTER (WHERE up.level >= 3 AND up.next_review > now()) AS mastered,
       count(*) FILTER (WHERE up.level >= 3 AND (up.next_review IS NULL OR up.next_review <= now())) AS lapsed,
       sum(up.times_practiced) AS practice_count,
-      max(up.last_practiced) AS last_act,
-      count(DISTINCT date_trunc('day', up.last_practiced)) AS days
+      max(up.last_practiced) AS last_act
     FROM public.user_progress up
     GROUP BY up.user_id
   ),
@@ -93,11 +116,13 @@ BEGIN
     COALESCE(ss.lapsed, 0),
     COALESCE(cs.practice_count, 0) + COALESCE(ss.practice_count, 0),
     GREATEST(cs.last_act, ss.last_act),
-    COALESCE(cs.days, 0)
+    COALESCE(ds.total_days, 0),
+    COALESCE(ds.days_7d, 0)
   FROM user_list ul
   CROSS JOIN totals t
   LEFT JOIN char_stats cs ON cs.uid = ul.uid
   LEFT JOIN sent_stats ss ON ss.uid = ul.uid
+  LEFT JOIN day_stats ds ON ds.uid = ul.uid
   ORDER BY GREATEST(cs.last_act, ss.last_act) DESC NULLS LAST;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

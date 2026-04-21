@@ -1,3 +1,5 @@
+import { stripAllTones } from './pinyin'
+
 /**
  * Shuffle array (Fisher-Yates)
  */
@@ -84,111 +86,55 @@ export function checkWordOrder(userOrder, correctWords) {
 
 /**
  * Extract pinyin for a specific word from full sentence pinyin + words array.
- * Aligns non-punctuation words with pinyin tokens.
+ * Supports two tokenizations: one pinyin token per word (preferred)
+ * or one per character. Always returns tone-marked pinyin joined by spaces
+ * when the word spans multiple character-level tokens.
  */
 function extractGapPinyin(words, fullPinyin, gapWord) {
-  const punct = new Set(['。', '！', '？', '，', '、'])
+  const punct = new Set(['。', '！', '？', '，', '、', '；', '：', '.', '!', '?', ',', ';', ':'])
   const contentWords = words.filter((w) => !punct.has(w))
   const gapIndex = contentWords.indexOf(gapWord)
   if (gapIndex === -1) return null
 
-  // Split pinyin, strip trailing punctuation from tokens
   const pinyinTokens = fullPinyin
     .split(/\s+/)
-    .map((t) => t.replace(/[。！？，、.!?,;]+$/, ''))
+    .map((t) => t.replace(/[。！？，、；：.!?,;:]+$/, ''))
     .filter(Boolean)
 
-  // Single-char words map 1:1; multi-char words may span multiple tokens
-  let tokenIdx = 0
-  for (let i = 0; i < contentWords.length && tokenIdx < pinyinTokens.length; i++) {
-    const word = contentWords[i]
-    // Estimate how many pinyin tokens this word uses (roughly 1 per character)
-    const charCount = [...word].length
-    const tokens = pinyinTokens.slice(tokenIdx, tokenIdx + charCount)
-
-    if (i === gapIndex) {
-      return tokens.join(' ').toLowerCase()
-    }
-    tokenIdx += charCount
+  if (pinyinTokens.length === contentWords.length) {
+    return pinyinTokens[gapIndex].toLowerCase()
   }
+
+  const totalChars = contentWords.reduce((sum, w) => sum + [...w].length, 0)
+  if (pinyinTokens.length === totalChars) {
+    let tokenIdx = 0
+    for (let i = 0; i < contentWords.length; i++) {
+      const charCount = [...contentWords[i]].length
+      if (i === gapIndex) {
+        return pinyinTokens.slice(tokenIdx, tokenIdx + charCount).join(' ').toLowerCase()
+      }
+      tokenIdx += charCount
+    }
+  }
+
   return null
 }
 
 /**
  * Compare user gap answer to correct answer.
- * Accepts both Hanzi (exact match) and Pinyin (numbered or tone-marked).
+ * Accepts both Hanzi (exact match) and Pinyin in any form
+ * (numbered `zhong1 guo2`, tone-marked `zhōngguó`, toneless `zhongguo`).
  */
 export function checkGapAnswer(userAnswer, correctWord, words, fullPinyin) {
   const user = userAnswer.trim()
   if (!user) return false
 
-  // Hanzi exact match
   if (user === correctWord.trim()) return true
 
-  // Try Pinyin match if sentence data is available
   if (words && fullPinyin) {
     const gapPinyin = extractGapPinyin(words, fullPinyin, correctWord)
     if (gapPinyin) {
-      const userLower = user.toLowerCase()
-        .replace(/v/g, 'ü')
-
-      // Normalize tone-marked pinyin to numbered for comparison
-      const toneCharMap = {}
-      const toneMarks = {
-        a: ['ā', 'á', 'ǎ', 'à'], e: ['ē', 'é', 'ě', 'è'],
-        i: ['ī', 'í', 'ǐ', 'ì'], o: ['ō', 'ó', 'ǒ', 'ò'],
-        u: ['ū', 'ú', 'ǔ', 'ù'], ü: ['ǖ', 'ǘ', 'ǚ', 'ǜ'],
-      }
-      for (const [base, marks] of Object.entries(toneMarks)) {
-        marks.forEach((mark, i) => { toneCharMap[mark] = { base, tone: i + 1 } })
-      }
-
-      const toNumbered = (s) => {
-        let str = s.toLowerCase()
-        let tone = 0
-        for (let i = 0; i < str.length; i++) {
-          const info = toneCharMap[str[i]]
-          if (info) {
-            str = str.slice(0, i) + info.base + str.slice(i + 1)
-            tone = info.tone
-            break
-          }
-        }
-        // If already has trailing number, keep it
-        if (/[0-5]$/.test(s)) return s.toLowerCase()
-        return tone === 0 ? str : str + tone
-      }
-
-      const stripTone = (s) => s.replace(/[0-5]$/, '').toLowerCase()
-
-      // Normalize both to numbered format for comparison
-      const gapTokens = gapPinyin.split(' ')
-      const userTokens = userLower.split(/\s+/)
-
-      // Single token gap (e.g., bù / bu4 for 不)
-      if (gapTokens.length === 1 && userTokens.length === 1) {
-        const gapNum = toNumbered(gapTokens[0])
-        const userNum = toNumbered(userTokens[0])
-        // Exact pinyin+tone match
-        if (gapNum === userNum) return true
-        // Base match (ignore tone) – still accept
-        if (stripTone(gapNum) === stripTone(userNum)) return true
-      }
-
-      // Multi-token gap (e.g., Zhōngguó = zhong1 guo2)
-      if (gapTokens.length === userTokens.length) {
-        const allMatch = gapTokens.every((gt, i) => {
-          const gn = toNumbered(gt)
-          const un = toNumbered(userTokens[i])
-          return gn === un || stripTone(gn) === stripTone(un)
-        })
-        if (allMatch) return true
-      }
-
-      // Also try as single string without spaces (e.g., "zhongguo2" or "zhongguo")
-      const gapJoined = gapTokens.map((t) => stripTone(toNumbered(t))).join('')
-      const userJoined = userTokens.map((t) => stripTone(toNumbered(t))).join('')
-      if (gapJoined === userJoined) return true
+      return stripAllTones(user) === stripAllTones(gapPinyin)
     }
   }
 

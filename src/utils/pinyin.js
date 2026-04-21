@@ -148,6 +148,56 @@ export function isPinyinToneWrong(userInput, correctPinyinInput) {
 }
 
 /**
+ * Strip all tone marks and digits from pinyin, normalize spaces and v→ü.
+ * "jiějie" → "jiejie", "jie3 jie0" → "jiejie", "Zhōngguó" → "zhongguo"
+ */
+export function stripAllTones(input) {
+  if (!input) return ''
+  let r = input.toLowerCase().replace(/v/g, 'ü')
+  for (const [mark, info] of Object.entries(toneCharMap)) {
+    r = r.split(mark).join(info.base)
+  }
+  return r.replace(/[0-5]/g, '').replace(/\s+/g, '')
+}
+
+/**
+ * Compare user input against a multi-syllable word pinyin (e.g. "jiějie" for 姐姐).
+ * Returns { correct, toneWrong }. Accepts tone-marked, numbered, or plain forms.
+ */
+export function compareWordPinyin(userInput, pinyinWord) {
+  if (!userInput || !pinyinWord) return { correct: false, toneWrong: false }
+
+  const userBase = stripAllTones(userInput.trim())
+  const correctBase = stripAllTones(pinyinWord)
+  if (userBase !== correctBase) return { correct: false, toneWrong: false }
+
+  const userClean = userInput.trim().toLowerCase().replace(/v/g, 'ü').replace(/\s+/g, '')
+  const correctClean = pinyinWord.toLowerCase().replace(/\s+/g, '')
+  if (userClean === correctClean) return { correct: true, toneWrong: false }
+
+  const userTones = (userInput.match(/[1-5]/g) || []).map(Number)
+  const correctTones = []
+  for (const ch of pinyinWord) {
+    if (toneCharMap[ch]) correctTones.push(toneCharMap[ch].tone)
+  }
+  if (userTones.length > 0 && userTones.length === correctTones.length &&
+      userTones.every((t, i) => t === correctTones[i])) {
+    return { correct: true, toneWrong: false }
+  }
+
+  return { correct: false, toneWrong: true }
+}
+
+/**
+ * Check whether the character's canonical display is the doubled word (e.g. 姐姐, 妈妈).
+ */
+export function isDoubledWord(character) {
+  if (!character?.word || !character?.hanzi) return false
+  const chars = [...character.word]
+  return chars.length === 2 && chars[0] === chars[1] && chars[0] === character.hanzi
+}
+
+/**
  * Compare user meaning input against correct meaning.
  * Case-insensitive, handles German articles, parentheticals, flexible matching.
  */
@@ -198,4 +248,51 @@ export function compareMeaning(userInput, correctMeaning) {
   if (allCorrectInUser && correctWords.length > 0) return true
 
   return false
+}
+
+const MEANING_STOPWORDS = new Set([
+  'der','die','das','ein','eine','einen','einem','einer',
+  'und','oder','mit','für','von','bei','zu','in','auf','im','am',
+  'ist','sind','sein','etwas','jemand','man','sich','sie','er','es',
+])
+
+function meaningContentWords(s) {
+  if (!s) return []
+  const stripParens = (x) => x.replace(/\s*\(.*?\)\s*/g, ' ').trim()
+  return stripParens(s.toLowerCase())
+    .split(/[\s,;/]+/)
+    .filter(Boolean)
+    .filter((w) => !MEANING_STOPWORDS.has(w))
+}
+
+function wordsOverlap(a, b, minPrefix = 4) {
+  if (a === b) return true
+  if (a.length < minPrefix || b.length < minPrefix) return false
+  const n = Math.min(a.length, b.length)
+  let shared = 0
+  for (let i = 0; i < n; i++) {
+    if (a[i] === b[i]) shared++
+    else break
+  }
+  return shared >= minPrefix
+}
+
+/**
+ * Decide if a wrong meaning answer is "close" — at least half of the content
+ * keywords match (exact or via a shared 4+ character prefix). Example:
+ * user "Zählwort Druckwerke" vs correct "Zählwort für Bücher/Druckerzeugnisse"
+ * → "Zählwort" matches exactly, "Druckwerke"↔"Druckerzeugnisse" share "druck"
+ * prefix → 2/2 user words hit → close.
+ */
+export function isMeaningClose(userInput, correctMeaning) {
+  if (!userInput || !correctMeaning) return false
+  if (compareMeaning(userInput, correctMeaning)) return false
+  const userWords = meaningContentWords(userInput)
+  const correctWords = meaningContentWords(correctMeaning)
+  if (userWords.length === 0 || correctWords.length === 0) return false
+
+  const matched = userWords.filter((uw) =>
+    correctWords.some((cw) => wordsOverlap(uw, cw))
+  ).length
+  return matched / userWords.length >= 0.5
 }

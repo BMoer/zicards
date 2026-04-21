@@ -28,23 +28,43 @@ function commitmentLevel(user) {
   return { label: 'Anfänger', color: 'bg-blue-100 text-blue-700' }
 }
 
-function ProgressMini({ practiced, mastered, lapsed, total, label }) {
-  const pct = total > 0 ? Math.round((mastered / total) * 100) : 0
-  const lapsedPct = total > 0 ? Math.round((lapsed / total) * 100) : 0
+function masteryProjection(user) {
+  const mastered = Number(user.char_mastered) + Number(user.sent_mastered)
+  const total = Number(user.char_total) + Number(user.sent_total)
+  const activeDays = Number(user.active_days) || 0
+  const remaining = total - mastered
+  if (remaining <= 0) return { label: 'Ziel erreicht', complete: true }
+  if (activeDays < 2 || mastered === 0) return { label: '—', complete: false }
+  const perDay = mastered / activeDays
+  const daysNeeded = Math.ceil(remaining / perDay)
+  return { label: `~${daysNeeded} Tage`, complete: false }
+}
+
+function OverallProgress({ user }) {
+  const mastered = Number(user.char_mastered) + Number(user.sent_mastered)
+  const lapsed = Number(user.char_lapsed) + Number(user.sent_lapsed)
+  const total = Number(user.char_total) + Number(user.sent_total)
+  const masteredPct = total > 0 ? (mastered / total) * 100 : 0
+  const lapsedPct = total > 0 ? (lapsed / total) * 100 : 0
 
   return (
-    <div className="min-w-0">
-      <div className="text-xs text-ink/40 mb-0.5">{label}</div>
-      <div className="flex items-center gap-1.5">
-        <div className="flex-1 h-1.5 bg-ink/10 rounded-full overflow-hidden flex">
-          <div className="h-full bg-sage" style={{ width: `${pct}%` }} />
-          {lapsedPct > 0 && (
-            <div className="h-full bg-amber-400" style={{ width: `${lapsedPct}%` }} />
-          )}
-        </div>
-        <span className="text-xs text-ink/50 tabular-nums whitespace-nowrap">
-          {mastered}/{total}
+    <div>
+      <div className="flex items-center justify-between mb-1">
+        <span className="text-xs text-ink/50 uppercase tracking-wide">Gesamtfortschritt</span>
+        <span className="text-xs text-ink/60 tabular-nums">
+          {mastered}/{total} <span className="text-ink/30">({Math.round(masteredPct)}%)</span>
         </span>
+      </div>
+      <div className="h-2.5 bg-ink/10 rounded-full overflow-hidden flex">
+        <div className="h-full bg-sage" style={{ width: `${masteredPct}%` }} />
+        {lapsedPct > 0 && (
+          <div className="h-full bg-amber-400" style={{ width: `${lapsedPct}%` }} />
+        )}
+      </div>
+      <div className="flex gap-3 text-xs text-ink/45 mt-1.5 tabular-nums">
+        <span>Zeichen {user.char_mastered}/{user.char_total}</span>
+        <span>·</span>
+        <span>Sätze {user.sent_mastered}/{user.sent_total}</span>
       </div>
     </div>
   )
@@ -95,44 +115,41 @@ export default function AdminDashboard() {
       </div>
 
       {/* User list */}
-      <div className="space-y-2">
+      <div className="space-y-3">
         {users.map(user => {
           const commitment = commitmentLevel(user)
+          const projection = masteryProjection(user)
+          const days7d = user.active_days_7d != null ? Number(user.active_days_7d) : null
           return (
             <button
               key={user.user_id}
               onClick={() => navigate(`/admin/user/${user.user_id}`)}
               className="w-full text-left p-4 border border-ink/10 rounded-lg hover:border-ink/25 hover:bg-ink/[0.02] transition-all"
             >
-              <div className="flex items-start justify-between mb-2">
+              <div className="flex items-start justify-between mb-3 gap-2">
                 <div className="min-w-0 flex-1">
                   <div className="font-medium text-sm truncate">
                     {user.email || 'Unbekannt'}
                   </div>
                   <div className="text-xs text-ink/40 mt-0.5">
                     Letzte Aktivität: {timeAgo(user.last_activity)}
-                    {user.active_days > 0 && ` · ${user.active_days} aktive Tage`}
                   </div>
                 </div>
-                <span className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap ml-2 ${commitment.color}`}>
+                <span className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${commitment.color}`}>
                   {commitment.label}
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <ProgressMini
-                  practiced={Number(user.char_practiced)}
-                  mastered={Number(user.char_mastered)}
-                  lapsed={Number(user.char_lapsed)}
-                  total={Number(user.char_total)}
-                  label="Zeichen"
-                />
-                <ProgressMini
-                  practiced={Number(user.sent_practiced)}
-                  mastered={Number(user.sent_mastered)}
-                  lapsed={Number(user.sent_lapsed)}
-                  total={Number(user.sent_total)}
-                  label="Sätze"
+              <OverallProgress user={user} />
+
+              <div className="flex flex-wrap gap-2 mt-3 text-xs">
+                {days7d != null && (
+                  <Chip label={`${days7d}/7 Tage aktiv`} tone={days7d >= 5 ? 'sage' : days7d >= 3 ? 'blue' : 'muted'} />
+                )}
+                <Chip label={`${user.active_days || 0} Tage gesamt`} tone="muted" />
+                <Chip
+                  label={projection.complete ? '✓ Ziel erreicht' : `~ ${projection.label} bis Ziel`}
+                  tone={projection.complete ? 'sage' : 'muted'}
                 />
               </div>
             </button>
@@ -141,6 +158,15 @@ export default function AdminDashboard() {
       </div>
     </div>
   )
+}
+
+function Chip({ label, tone = 'muted' }) {
+  const toneClass = {
+    sage: 'bg-sage/15 text-sage',
+    blue: 'bg-blue-50 text-blue-700',
+    muted: 'bg-ink/5 text-ink/50',
+  }[tone]
+  return <span className={`px-2 py-0.5 rounded-full ${toneClass}`}>{label}</span>
 }
 
 function SummaryCard({ value, label, total, warn }) {

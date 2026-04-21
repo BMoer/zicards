@@ -1,3 +1,13 @@
+import { isDoubledWord } from './pinyin'
+
+/**
+ * Display value for the `hanzi` field: doubled words (姐姐) instead of the
+ * bare single character when applicable.
+ */
+function hanziValue(character) {
+  return isDoubledWord(character) ? character.word : character.hanzi
+}
+
 /**
  * Shuffle an array (Fisher-Yates)
  */
@@ -28,15 +38,18 @@ export function generateMCOptions(correctChar, allCharacters, field) {
   // Pick distractors: same week first, then others
   const pool = [...shuffle(sameWeek), ...shuffle(otherWeeks)]
 
-  // Deduplicate by field value
-  const usedValues = new Set([correctChar[field]])
+  const valueFor = (c) => (field === 'hanzi' ? hanziValue(c) : c[field])
+
+  // Deduplicate by displayed value
+  const usedValues = new Set([valueFor(correctChar)])
   const distractors = []
   for (const c of pool) {
     if (distractors.length >= 3) break
-    if (!usedValues.has(c[field])) {
-      usedValues.add(c[field])
+    const v = valueFor(c)
+    if (!usedValues.has(v)) {
+      usedValues.add(v)
       distractors.push({
-        value: c[field],
+        value: v,
         characterId: c.id,
         isCorrect: false,
       })
@@ -44,7 +57,7 @@ export function generateMCOptions(correctChar, allCharacters, field) {
   }
 
   const options = [
-    { value: correctChar[field], characterId: correctChar.id, isCorrect: true },
+    { value: valueFor(correctChar), characterId: correctChar.id, isCorrect: true },
     ...distractors,
   ]
 

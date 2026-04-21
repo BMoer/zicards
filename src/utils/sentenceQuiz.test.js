@@ -84,6 +84,20 @@ describe('checkGapAnswer', () => {
     const pinyin = 'wǒ bù shì xuésheng'
     expect(checkGapAnswer('hao3', '不', words, pinyin)).toBe(false)
   })
+
+  it('accepts multi-syllable word-level pinyin (中国 / zhongguo)', () => {
+    const words = ['你', '是', '中国', '人', '吗', '？']
+    const pinyin = 'Nǐ shì Zhōngguó rén ma?'
+    expect(checkGapAnswer('Zhong1 guo3', '中国', words, pinyin)).toBe(true)
+    expect(checkGapAnswer('zhongguo', '中国', words, pinyin)).toBe(true)
+    expect(checkGapAnswer('Zhōngguó', '中国', words, pinyin)).toBe(true)
+  })
+
+  it('rejects wrong multi-syllable pinyin', () => {
+    const words = ['你', '是', '中国', '人', '吗', '？']
+    const pinyin = 'Nǐ shì Zhōngguó rén ma?'
+    expect(checkGapAnswer('meiguo', '中国', words, pinyin)).toBe(false)
+  })
 })
 
 // ─── checkTranslation ───────────────────────────────────────────────────────

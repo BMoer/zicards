@@ -1,9 +1,28 @@
 import { useState, useEffect } from 'react'
-import { comparePinyin, compareMeaning, isPinyinToneWrong } from '../utils/pinyin'
+import {
+  comparePinyin,
+  compareMeaning,
+  isPinyinToneWrong,
+  compareWordPinyin,
+  isDoubledWord,
+  isMeaningClose,
+} from '../utils/pinyin'
 import { useAudio } from '../hooks/useAudio'
 import SpeakButton from './SpeakButton'
 import MnemonicCard from './MnemonicCard'
 import GrammarHint from './GrammarHint'
+
+/**
+ * For characters like 姐 (姐姐 jiějie) the single hànzì form is misleading:
+ * the word is always doubled. Use the doubled form as the visual prompt.
+ */
+function displayHanzi(character) {
+  return isDoubledWord(character) ? character.word : character.hanzi
+}
+
+function displayPinyin(character) {
+  return isDoubledWord(character) ? character.pinyin_word : character.pinyin
+}
 
 /**
  * Stufe 0: Learn card (just display)
@@ -14,17 +33,19 @@ function LearnCard({ character, onNext, characters, progress }) {
     autoSpeak(character.word || character.hanzi)
   }, [character.hanzi])
 
+  const doubled = isDoubledWord(character)
+
   return (
     <div className="text-center py-8">
-      <div className="font-hanzi text-7xl mb-2">{character.hanzi}</div>
+      <div className="font-hanzi text-7xl mb-2">{displayHanzi(character)}</div>
       <div className="mb-4">
         <SpeakButton text={character.word || character.hanzi} size="md" />
       </div>
-      {character.word && (
+      {character.word && !doubled && (
         <div className="font-hanzi text-2xl text-ink/60 mb-2">{character.word}</div>
       )}
-      <div className="text-lg text-ink/60 mb-1">{character.pinyin}</div>
-      {character.pinyin_word && (
+      <div className="text-lg text-ink/60 mb-1">{displayPinyin(character)}</div>
+      {character.pinyin_word && !doubled && (
         <div className="text-sm text-ink/40 mb-3">{character.pinyin_word}</div>
       )}
       <div className="text-xl font-medium mb-2">{character.meaning}</div>
@@ -60,7 +81,7 @@ function MCCard({ character, options, quizType, onAnswer }) {
   const [answered, setAnswered] = useState(false)
 
   const isReverse = quizType === 'mc-hanzi'
-  const prompt = isReverse ? character.meaning : character.hanzi
+  const prompt = isReverse ? character.meaning : displayHanzi(character)
   const promptClass = isReverse ? 'text-2xl font-medium' : 'font-hanzi text-7xl'
 
   // No auto-play on quiz cards – would make it too easy
@@ -123,21 +144,34 @@ function FreetextCard({ character, onAnswer }) {
     e.preventDefault()
     if (result) return
 
-    const pinyinCorrect = comparePinyin(pinyinInput, character.pinyin_input)
+    let pinyinCorrect, toneWrong
+    if (isDoubledWord(character)) {
+      const res = compareWordPinyin(pinyinInput, character.pinyin_word)
+      pinyinCorrect = res.correct
+      toneWrong = res.toneWrong
+    } else {
+      pinyinCorrect = comparePinyin(pinyinInput, character.pinyin_input)
+      toneWrong = !pinyinCorrect && isPinyinToneWrong(pinyinInput, character.pinyin_input)
+    }
+
     const meaningCorrect = compareMeaning(meaningInput, character.meaning)
-    const toneWrong = !pinyinCorrect && isPinyinToneWrong(pinyinInput, character.pinyin_input)
+    const meaningClose = !meaningCorrect && isMeaningClose(meaningInput, character.meaning)
 
     const isCorrect = pinyinCorrect && meaningCorrect
-    // Half correct: meaning right + only tone wrong
-    const isHalf = !isCorrect && meaningCorrect && toneWrong
+    // Half correct: partial credit — tone off OR meaning close but not exact
+    const isHalf = !isCorrect && (
+      (meaningCorrect && toneWrong) ||
+      (pinyinCorrect && meaningClose) ||
+      (toneWrong && meaningClose)
+    )
 
-    setResult({ pinyinCorrect, meaningCorrect, toneWrong, isCorrect, isHalf })
+    setResult({ pinyinCorrect, meaningCorrect, meaningClose, toneWrong, isCorrect, isHalf })
     onAnswer(isCorrect ? true : isHalf ? 'half' : false)
   }
 
   return (
     <div className="text-center py-8">
-      <div className="font-hanzi text-7xl mb-2">{character.hanzi}</div>
+      <div className="font-hanzi text-7xl mb-2">{displayHanzi(character)}</div>
       <div className="mb-6">
         <SpeakButton text={character.word || character.hanzi} size="md" />
       </div>
@@ -164,7 +198,7 @@ function FreetextCard({ character, onAnswer }) {
           {result && !result.pinyinCorrect && (
             <p className={`text-sm mt-1 text-left ${result.toneWrong ? 'text-amber-600' : 'text-terracotta'}`}>
               {result.toneWrong ? 'Fast! Richtiger Ton: ' : 'Richtig: '}
-              {character.pinyin_input} ({character.pinyin})
+              {isDoubledWord(character) ? character.pinyin_word : `${character.pinyin_input} (${character.pinyin})`}
             </p>
           )}
         </div>
@@ -179,13 +213,16 @@ function FreetextCard({ character, onAnswer }) {
               result
                 ? result.meaningCorrect
                   ? 'border-sage bg-sage/5'
+                  : result.meaningClose
+                  ? 'border-amber-400 bg-amber-50'
                   : 'border-terracotta bg-terracotta/5'
                 : 'border-ink/20 focus:border-ink/40'
             }`}
           />
           {result && !result.meaningCorrect && (
-            <p className="text-sm text-terracotta mt-1 text-left">
-              Richtig: {character.meaning}
+            <p className={`text-sm mt-1 text-left ${result.meaningClose ? 'text-amber-600' : 'text-terracotta'}`}>
+              {result.meaningClose ? 'Fast! Genauer: ' : 'Richtig: '}
+              {character.meaning}
             </p>
           )}
         </div>
@@ -213,7 +250,7 @@ function Feedback({ character, isCorrect, isHalf, onNext, characters, progress }
 
   const statusIcon = isCorrect ? '✓' : isHalf ? '~' : '✗'
   const statusColor = isCorrect ? 'text-sage' : isHalf ? 'text-amber-500' : 'text-terracotta'
-  const statusText = isCorrect ? 'Richtig!' : isHalf ? 'Fast richtig – nur der Ton!' : 'Nicht ganz.'
+  const statusText = isCorrect ? 'Richtig!' : isHalf ? 'Fast richtig!' : 'Nicht ganz.'
 
   return (
     <div className="mt-6 p-4 border border-ink/10 rounded-lg">
@@ -222,10 +259,10 @@ function Feedback({ character, isCorrect, isHalf, onNext, characters, progress }
         <span className="font-medium">{statusText}</span>
       </div>
       <div className="flex items-center gap-4 mb-4">
-        <span className="font-hanzi text-3xl">{character.hanzi}</span>
+        <span className="font-hanzi text-3xl">{displayHanzi(character)}</span>
         <SpeakButton text={character.word || character.hanzi} size="sm" />
         <div className="text-sm text-ink/60">
-          <div>{character.pinyin}</div>
+          <div>{displayPinyin(character)}</div>
           <div>{character.meaning}</div>
           <GrammarHint meaning={character.meaning} />
         </div>
