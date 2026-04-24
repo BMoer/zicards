@@ -236,6 +236,294 @@ const mnemonics = {
     parts: [{ char: '大', meaning: 'groß' }, { char: '一', meaning: 'Haarnadel' }],
     mnemonic: 'Ein großer (大) Mann mit Haarnadel (一) – ein erwachsener MANN.',
   },
+
+  // === LEKTION 1 (Ergänzungen) ===
+  '下': {
+    parts: [],
+    mnemonic: 'Eine Linie mit Punkt DARUNTER – was unter dem Horizont liegt. ⬇️',
+  },
+  '上': {
+    parts: [],
+    mnemonic: 'Eine Linie mit Punkt DRÜBER – was oberhalb schwebt. ⬆️',
+  },
+  '午': {
+    parts: [],
+    mnemonic: 'Ein stilisierter Stößel zum Stampfen – das tat man zur MITTAGszeit. ☀️',
+  },
+  '早': {
+    parts: [{ char: '日', meaning: 'Sonne' }, { char: '十', meaning: 'zehn' }],
+    mnemonic: 'Die Sonne (日) schon über dem Kreuz (十) – FRÜH am Morgen! 🌅',
+  },
+  '晚': {
+    parts: [{ char: '日', meaning: 'Sonne' }, { char: '免', meaning: 'vermeiden' }],
+    mnemonic: 'Die Sonne (日) zieht sich zurück (免) – SPÄT, es wird Abend. 🌙',
+  },
+  '安': {
+    parts: [{ char: '宀', meaning: 'Dach' }, { char: '女', meaning: 'Frau' }],
+    mnemonic: 'Eine Frau (女) sicher unterm Dach (宀) – RUHE und Frieden. 🏠',
+  },
+  '呢': {
+    parts: [{ char: '口', meaning: 'Mund' }, { char: '尼', meaning: 'Nonne (phonetisch)' }],
+    mnemonic: 'Der Mund (口) fragt zur Nonne (尼) hinüber: "…und du?" – Folgefrage.',
+  },
+  '意': {
+    parts: [{ char: '音', meaning: 'Klang' }, { char: '心', meaning: 'Herz' }],
+    mnemonic: 'Der Klang (音) aus dem Herzen (心) – die wahre BEDEUTUNG.',
+  },
+  '德': {
+    parts: [{ char: '彳', meaning: 'Schritt' }, { char: '直', meaning: 'gerade' }, { char: '心', meaning: 'Herz' }],
+    mnemonic: 'Aufrecht schreiten (彳) mit geradem (直) Herzen (心) – das ist TUGEND (auch: DEUTSCHLAND 🇩🇪).',
+  },
+
+  // === LEKTION 2 (Zahlen & Ergänzungen) ===
+  '一': {
+    parts: [],
+    mnemonic: 'EIN einzelner Strich – EINS.',
+  },
+  '二': {
+    parts: [],
+    mnemonic: 'ZWEI Striche übereinander – ZWEI.',
+  },
+  '三': {
+    parts: [],
+    mnemonic: 'DREI Striche – DREI. (Bis hier ist Chinesisch einfach!)',
+  },
+  '四': {
+    parts: [],
+    mnemonic: 'Eine Box mit zwei Beinen drin – VIER Wände. 🟦',
+  },
+  '五': {
+    parts: [],
+    mnemonic: 'Ein Z zwischen zwei Horizontalen – FÜNF, wie die Finger einer Hand. ✋',
+  },
+  '六': {
+    parts: [],
+    mnemonic: 'Ein Dach mit zwei Beinen – SECHS versammeln sich darunter.',
+  },
+  '七': {
+    parts: [],
+    mnemonic: 'Ein Haken wie eine umgedrehte 7 – SIEBEN.',
+  },
+  '八': {
+    parts: [],
+    mnemonic: 'Zwei Beine, die nach außen auseinander gehen – ACHT.',
+  },
+  '九': {
+    parts: [],
+    mnemonic: 'Wie eine 7 mit Schwanz dran – NEUN.',
+  },
+  '十': {
+    parts: [],
+    mnemonic: 'Ein Plus-Zeichen, ein Kreuz – ZEHN. ➕',
+  },
+  '奥': {
+    parts: [],
+    mnemonic: 'Geheimnisvoll und tief – so mystisch wie ÖSTERREICH. 🇦🇹',
+  },
+  '利': {
+    parts: [{ char: '禾', meaning: 'Getreide' }, { char: '刂', meaning: 'Messer' }],
+    mnemonic: 'Mit scharfem Messer (刂) das Getreide (禾) schneiden – SCHARF & Vorteil!',
+  },
+  '文': {
+    parts: [],
+    mnemonic: 'Ein Mensch mit Mustern auf der Brust – SCHRIFT und Kultur.',
+  },
+
+  // === LEKTION 3 (Ergänzungen) ===
+  '口': {
+    parts: [],
+    mnemonic: 'Ein offener MUND – und Zählwort für Personen im Haushalt. 👄',
+  },
+  '谁': {
+    parts: [{ char: '讠', meaning: 'sprechen' }, { char: '隹', meaning: 'Kurzschwanz-Vogel' }],
+    mnemonic: 'Wer (讠) spricht da? Nur ein Vogel (隹)! – WER?',
+  },
+
+  // === LEKTION 4 ===
+  '女': {
+    parts: [],
+    mnemonic: 'Eine Figur mit gekreuzten Beinen – eine sitzende FRAU. 👩',
+  },
+  '男': {
+    parts: [{ char: '田', meaning: 'Feld' }, { char: '力', meaning: 'Kraft' }],
+    mnemonic: 'Wer mit Kraft (力) auf dem Feld (田) arbeitet – MANN. 💪',
+  },
+  '友': {
+    parts: [],
+    mnemonic: 'Zwei Hände, die sich reichen – FREUND. 🤝',
+  },
+  '朋': {
+    parts: [{ char: '月', meaning: 'Mond' }, { char: '月', meaning: 'Mond' }],
+    mnemonic: 'Zwei Monde (月月) nebeneinander – beste FREUNDE, immer zusammen.',
+  },
+  '习': {
+    parts: [],
+    mnemonic: 'Ein kleiner Flügel – junge Vögel ÜBEN das Fliegen. 🕊️',
+  },
+  '字': {
+    parts: [{ char: '宀', meaning: 'Dach' }, { char: '子', meaning: 'Kind' }],
+    mnemonic: 'Unterm Dach (宀) lernt das Kind (子) SCHRIFTZEICHEN.',
+  },
+  '难': {
+    parts: [{ char: '又', meaning: 'Hand' }, { char: '隹', meaning: 'Vogel' }],
+    mnemonic: 'Einen Vogel (隹) mit der Hand (又) fangen – SCHWIERIG! 🐦',
+  },
+  '英': {
+    parts: [{ char: '艹', meaning: 'Gras' }, { char: '央', meaning: 'Zentrum' }],
+    mnemonic: 'Die Blume (艹) im Zentrum (央) – herausragend (ENGLISCH).',
+  },
+  '班': {
+    parts: [],
+    mnemonic: 'Zwei Jade-Gruppen, von einem Messer (刂) getrennt – eine eingeteilte KLASSE.',
+  },
+  '都': {
+    parts: [{ char: '者', meaning: 'jemand' }, { char: '阝', meaning: 'Stadt' }],
+    mnemonic: 'ALLE Leute (者) aus der Stadt (阝) – ALLE zusammen.',
+  },
+  '名': {
+    parts: [{ char: '夕', meaning: 'Abend' }, { char: '口', meaning: 'Mund' }],
+    mnemonic: 'Am Abend (夕) ruft der Mund (口) den NAMEN – im Dunkeln hilft nur der Name.',
+  },
+  '进': {
+    parts: [{ char: '辶', meaning: 'gehen' }, { char: '井', meaning: 'Brunnen' }],
+    mnemonic: 'Man geht (辶) hinein zum Brunnen (井) – EINTRETEN.',
+  },
+  '哪': {
+    parts: [{ char: '口', meaning: 'Mund' }, { char: '那', meaning: 'jenes' }],
+    mnemonic: 'Der Mund (口) fragt: "jenes (那)?" – WELCHES denn?',
+  },
+  '少': {
+    parts: [{ char: '小', meaning: 'klein' }],
+    mnemonic: 'Ein klein (小) bisschen weniger – nur noch WENIG.',
+  },
+  '多': {
+    parts: [{ char: '夕', meaning: 'Abend' }, { char: '夕', meaning: 'Abend' }],
+    mnemonic: 'Abend (夕) auf Abend (夕) – VIELE Tage gesammelt.',
+  },
+  '语': {
+    parts: [{ char: '讠', meaning: 'sprechen' }, { char: '吾', meaning: 'ich' }],
+    mnemonic: 'Wenn ich (吾) spreche (讠) – das ist SPRACHE. 💬',
+  },
+  '同': {
+    parts: [],
+    mnemonic: 'Ein Rahmen mit "一口" drin – ein Mund sagt dasselbe: GEMEINSAM.',
+  },
+  '请': {
+    parts: [{ char: '讠', meaning: 'sprechen' }, { char: '青', meaning: 'grün/jung' }],
+    mnemonic: 'Mit frischem, grünem (青) Wort (讠) – BITTE sehr!',
+  },
+  '外': {
+    parts: [{ char: '夕', meaning: 'Abend' }, { char: '卜', meaning: 'Wahrsagung' }],
+    mnemonic: 'Abends (夕) wird draußen das Orakel (卜) befragt – FREMD & außen.',
+  },
+
+  // === LEKTION 5 ===
+  '今': {
+    parts: [],
+    mnemonic: 'Ein Dach über dem Moment – genau in diesem Augenblick: HEUTE. ⏰',
+  },
+  '明': {
+    parts: [{ char: '日', meaning: 'Sonne' }, { char: '月', meaning: 'Mond' }],
+    mnemonic: 'Sonne (日) und Mond (月) zusammen – HELL! Und MORGEN kommt wieder. 🌞🌙',
+  },
+  '昨': {
+    parts: [{ char: '日', meaning: 'Sonne/Tag' }, { char: '乍', meaning: 'plötzlich' }],
+    mnemonic: 'Der Tag (日), der plötzlich (乍) vorbei war – GESTERN.',
+  },
+  '星': {
+    parts: [{ char: '日', meaning: 'Sonne' }, { char: '生', meaning: 'gebären' }],
+    mnemonic: 'Kleine Sonnen (日), die am Nachthimmel geboren (生) werden – STERNE. ⭐',
+  },
+  '月': {
+    parts: [],
+    mnemonic: 'Eine Mondsichel – MOND und MONAT. 🌙',
+  },
+  '期': {
+    parts: [{ char: '其', meaning: 'jenes' }, { char: '月', meaning: 'Mond' }],
+    mnemonic: 'Der bestimmte (其) Mond (月) – die festgesetzte FRIST. 🗓️',
+  },
+  '送': {
+    parts: [{ char: '辶', meaning: 'gehen' }, { char: '关', meaning: 'Tor' }],
+    mnemonic: 'Man geht (辶) mit jemandem bis zum Tor (关) – VERABSCHIEDEN & SCHICKEN.',
+  },
+  '礼': {
+    parts: [{ char: '礻', meaning: 'Altar' }, { char: '乚', meaning: 'gebeugt' }],
+    mnemonic: 'Vor dem Altar (礻) verbeugt (乚) man sich höflich – GESCHENK & Ritus. 🎁',
+  },
+  '物': {
+    parts: [{ char: '牛', meaning: 'Rind' }, { char: '勿', meaning: 'nicht' }],
+    mnemonic: 'Das Rind (牛) ist nicht (勿) nur Tier, sondern wertvolle SACHE.',
+  },
+  '乐': {
+    parts: [],
+    mnemonic: 'Ein Instrument mit gezupften Saiten – MUSIK bringt FREUDE. 🎵',
+  },
+  '高': {
+    parts: [],
+    mnemonic: 'Ein Turm mit mehreren Etagen – HOCH hinaus! 🗼',
+  },
+  '快': {
+    parts: [{ char: '忄', meaning: 'Herz' }, { char: '夬', meaning: 'Entschluss' }],
+    mnemonic: 'Das Herz (忄) fasst einen Entschluss (夬) – SCHNELL entschieden! ⚡',
+  },
+  '很': {
+    parts: [{ char: '彳', meaning: 'Schritt' }, { char: '艮', meaning: 'fest' }],
+    mnemonic: 'Mit festen (艮) Schritten (彳) – SEHR entschlossen!',
+  },
+  '兴': {
+    parts: [],
+    mnemonic: 'Viele Hände hochgerissen – FRÖHLICH feiern! 🙌',
+  },
+
+  // === LEKTION 6 ===
+  '时': {
+    parts: [{ char: '日', meaning: 'Sonne' }, { char: '寸', meaning: 'Maß' }],
+    mnemonic: 'Die Sonne (日) gibt das Maß (寸) – ZEITPUNKT. ⏲️',
+  },
+  '候': {
+    parts: [{ char: '亻', meaning: 'Person' }],
+    mnemonic: 'Eine Person (亻) wartet mit Pfeil gespannt – den richtigen MOMENT abpassen. 🏹',
+  },
+  '点': {
+    parts: [{ char: '占', meaning: 'festlegen' }, { char: '灬', meaning: 'Feuer' }],
+    mnemonic: 'Kleine Funken (灬) markieren einen festen (占) PUNKT – Uhrzeit. 🕐',
+  },
+  '分': {
+    parts: [{ char: '八', meaning: 'teilen' }, { char: '刀', meaning: 'Messer' }],
+    mnemonic: 'Mit dem Messer (刀) etwas teilen (八) – MINUTE & TEILEN. ✂️',
+  },
+  '半': {
+    parts: [{ char: '八', meaning: 'teilen' }, { char: '牛', meaning: 'Rind' }],
+    mnemonic: 'Ein Rind (牛) wird geteilt (八) – in zwei HÄLFTEN. 🐄',
+  },
+  '起': {
+    parts: [{ char: '走', meaning: 'gehen' }, { char: '己', meaning: 'selbst' }],
+    mnemonic: 'Selbst (己) loslaufen (走) – AUFSTEHEN! 🚶',
+  },
+  '睡': {
+    parts: [{ char: '目', meaning: 'Auge' }, { char: '垂', meaning: 'hängen' }],
+    mnemonic: 'Das Auge (目) hängt (垂) schwer herunter – SCHLAFEN. 😴',
+  },
+  '觉': {
+    parts: [{ char: '见', meaning: 'sehen' }],
+    mnemonic: 'Augen zu, nicht mehr sehen (见) – SCHLAF. 💤',
+  },
+  '课': {
+    parts: [{ char: '讠', meaning: 'sprechen' }, { char: '果', meaning: 'Frucht' }],
+    mnemonic: 'Worte (讠), die Früchte (果) tragen – UNTERRICHT. 📚',
+  },
+  '现': {
+    parts: [{ char: '王', meaning: 'Jade' }, { char: '见', meaning: 'sehen' }],
+    mnemonic: 'Die Jade (王) wird sichtbar (见) – sie erscheint JETZT. 💎',
+  },
+  '在': {
+    parts: [{ char: '土', meaning: 'Erde' }],
+    mnemonic: 'Die Erde (土), auf der wir stehen – hier und JETZT.',
+  },
+  '床': {
+    parts: [{ char: '广', meaning: 'Dach' }, { char: '木', meaning: 'Holz' }],
+    mnemonic: 'Unter dem Dach (广) ein Holzgestell (木) – BETT. 🛏️',
+  },
 }
 
 /**

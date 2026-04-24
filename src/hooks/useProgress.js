@@ -136,7 +136,7 @@ export function useProgress(user) {
       }
 
       // Level changes
-      if (record.correct_streak >= 3) {
+      if (record.correct_streak >= 2) {
         const newLevel = Math.min(record.level + 1, 3)
         if (newLevel > record.level) {
           // Actually levelled up — reset streak for the new level

@@ -104,7 +104,7 @@ export function useSentenceProgress(user) {
         record.correct_streak = 0
       }
 
-      if (record.correct_streak >= 3) {
+      if (record.correct_streak >= 2) {
         record.level = Math.min(record.level + 1, 3)
         record.correct_streak = 0
       }
