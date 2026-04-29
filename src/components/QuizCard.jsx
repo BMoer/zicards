@@ -5,6 +5,7 @@ import {
   isPinyinToneWrong,
   compareWordPinyin,
   isDoubledWord,
+  isCompoundWord,
   isMeaningClose,
 } from '../utils/pinyin'
 import { useAudio } from '../hooks/useAudio'
@@ -149,6 +150,10 @@ function FreetextCard({ character, onAnswer }) {
       const res = compareWordPinyin(pinyinInput, character.pinyin_word)
       pinyinCorrect = res.correct
       toneWrong = res.toneWrong
+    } else if (isCompoundWord(character)) {
+      const res = compareWordPinyin(pinyinInput, character.pinyin)
+      pinyinCorrect = res.correct
+      toneWrong = res.toneWrong
     } else {
       pinyinCorrect = comparePinyin(pinyinInput, character.pinyin_input)
       toneWrong = !pinyinCorrect && isPinyinToneWrong(pinyinInput, character.pinyin_input)
@@ -198,7 +203,11 @@ function FreetextCard({ character, onAnswer }) {
           {result && !result.pinyinCorrect && (
             <p className={`text-sm mt-1 text-left ${result.toneWrong ? 'text-amber-600' : 'text-terracotta'}`}>
               {result.toneWrong ? 'Fast! Richtiger Ton: ' : 'Richtig: '}
-              {isDoubledWord(character) ? character.pinyin_word : `${character.pinyin_input} (${character.pinyin})`}
+              {isDoubledWord(character)
+                ? character.pinyin_word
+                : isCompoundWord(character)
+                ? character.pinyin
+                : `${character.pinyin_input} (${character.pinyin})`}
             </p>
           )}
         </div>

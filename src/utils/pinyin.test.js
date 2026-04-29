@@ -9,6 +9,7 @@ import {
   stripAllTones,
   compareWordPinyin,
   isDoubledWord,
+  isCompoundWord,
   isMeaningClose,
 } from './pinyin.js'
 
@@ -199,6 +200,34 @@ describe('compareWordPinyin', () => {
   })
   it('wrong syllables → fully wrong', () => {
     expect(compareWordPinyin('didi', 'jiějie')).toEqual({ correct: false, toneWrong: false })
+  })
+  it('accepts numbers grouped at end (women30 for wǒmen)', () => {
+    expect(compareWordPinyin('women30', 'wǒmen')).toEqual({ correct: true, toneWrong: false })
+    expect(compareWordPinyin('Women30', 'wǒmen')).toEqual({ correct: true, toneWrong: false })
+  })
+  it('accepts dropped neutral-tone digit (women3 for wǒmen)', () => {
+    expect(compareWordPinyin('women3', 'wǒmen')).toEqual({ correct: true, toneWrong: false })
+    expect(compareWordPinyin('wo3men', 'wǒmen')).toEqual({ correct: true, toneWrong: false })
+  })
+  it('accepts compound pinyin in numbered form (duo1shao3 for duōshǎo)', () => {
+    expect(compareWordPinyin('duo1shao3', 'duōshǎo')).toEqual({ correct: true, toneWrong: false })
+    expect(compareWordPinyin('duōshǎo', 'duōshǎo')).toEqual({ correct: true, toneWrong: false })
+  })
+})
+
+// ─── isCompoundWord ─────────────────────────────────────────────────────────
+
+describe('isCompoundWord', () => {
+  it('recognizes multi-char hanzi as compound', () => {
+    expect(isCompoundWord({ hanzi: '多少' })).toBe(true)
+    expect(isCompoundWord({ hanzi: '我们' })).toBe(true)
+  })
+  it('rejects single-char hanzi', () => {
+    expect(isCompoundWord({ hanzi: '我' })).toBe(false)
+  })
+  it('handles missing hanzi', () => {
+    expect(isCompoundWord({})).toBe(false)
+    expect(isCompoundWord(null)).toBe(false)
   })
 })
 

@@ -198,6 +198,15 @@ export function isDoubledWord(character) {
 }
 
 /**
+ * Check whether the row's `hanzi` field itself is a multi-character compound
+ * (e.g. 多少, 名字). The whole compound is the unit of learning.
+ */
+export function isCompoundWord(character) {
+  if (!character?.hanzi) return false
+  return [...character.hanzi].length > 1
+}
+
+/**
  * Compare user meaning input against correct meaning.
  * Case-insensitive, handles German articles, parentheticals, flexible matching.
  */

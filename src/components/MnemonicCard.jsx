@@ -12,12 +12,17 @@ export default function MnemonicCard({ hanzi, characters, progress }) {
   const data = getMnemonic(hanzi)
   if (!data) return null
 
-  // Build a set of hanzi the user has already learned (level >= 1)
+  // Build a set of hanzi the user has already learned (level >= 1).
+  // Compound rows (hanzi="多少") count as known for each of their components,
+  // so a mnemonic for 名字 can highlight 多 / 少 as known.
   const knownHanzi = new Set()
   for (const char of characters) {
     const p = progress[char.id]
     if (p && p.level >= 1) {
       knownHanzi.add(char.hanzi)
+      for (const ch of [...char.hanzi]) {
+        knownHanzi.add(ch)
+      }
     }
   }
 

@@ -417,6 +417,40 @@ const mnemonics = {
     mnemonic: 'Abends (夕) wird draußen das Orakel (卜) befragt – FREMD & außen.',
   },
 
+  // Compound words (Lektion 4)
+  '多少': {
+    parts: [{ char: '多', meaning: 'viel' }, { char: '少', meaning: 'wenig' }],
+    mnemonic: 'Viel (多) oder wenig (少)? – Die Frage nach der Menge: WIEVIEL?',
+  },
+  '英语': {
+    parts: [{ char: '英', meaning: 'englisch' }, { char: '语', meaning: 'Sprache' }],
+    mnemonic: 'Die englische (英) Sprache (语) – ENGLISCH. 🇬🇧',
+  },
+  '朋友': {
+    parts: [{ char: '朋', meaning: 'Freund' }, { char: '友', meaning: 'Freund' }],
+    mnemonic: 'Zwei Monde (朋) und reichende Hände (友) – ein FREUND. 🤝',
+  },
+  '名字': {
+    parts: [{ char: '名', meaning: 'Vorname' }, { char: '字', meaning: 'Schriftzeichen' }],
+    mnemonic: 'Der Vorname (名) als Schriftzeichen (字) – der NAME.',
+  },
+  '同学': {
+    parts: [{ char: '同', meaning: 'gemeinsam' }, { char: '学', meaning: 'lernen' }],
+    mnemonic: 'Gemeinsam (同) lernen (学) – ein MITSCHÜLER. 📚',
+  },
+  '男生': {
+    parts: [{ char: '男', meaning: 'männlich' }, { char: '生', meaning: 'leben' }],
+    mnemonic: 'Männlich (男) geboren (生) – ein JUNGE. 👦',
+  },
+  '女生': {
+    parts: [{ char: '女', meaning: 'weiblich' }, { char: '生', meaning: 'leben' }],
+    mnemonic: 'Weiblich (女) geboren (生) – ein MÄDCHEN. 👧',
+  },
+  '外国': {
+    parts: [{ char: '外', meaning: 'fremd' }, { char: '国', meaning: 'Land' }],
+    mnemonic: 'Ein fremdes (外) Land (国) – das AUSLAND. 🌍',
+  },
+
   // === LEKTION 5 ===
   '今': {
     parts: [],

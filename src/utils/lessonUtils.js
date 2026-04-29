@@ -8,11 +8,23 @@ const PUNCT = new Set(['。', '！', '？', '，', '、', '：', '\u201c', '\u20
 
 /**
  * Build a lookup from hanzi → character object for fast matching.
+ * Compound rows (hanzi="多少") are also indexed by their component characters
+ * so sentences referencing 多 or 少 can find the compound row.
  */
 function buildHanziMap(characters) {
   const map = {}
+  // First pass: index by full hanzi (single chars and compounds).
   for (const c of characters) {
     map[c.hanzi] = c
+  }
+  // Second pass: index components of compounds, but never overwrite a
+  // dedicated single-char row.
+  for (const c of characters) {
+    const chars = [...c.hanzi]
+    if (chars.length <= 1) continue
+    for (const ch of chars) {
+      if (!map[ch]) map[ch] = c
+    }
   }
   return map
 }
