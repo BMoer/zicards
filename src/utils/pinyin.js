@@ -256,6 +256,20 @@ export function compareMeaning(userInput, correctMeaning) {
   )
   if (allCorrectInUser && correctWords.length > 0) return true
 
+  // Lenient: user starts with one of the comma-separated alternatives.
+  // E.g. correct "sie, ihnen (mask.)" → user "Sie Plural maskulin" → accept
+  // because they led with the right pronoun even if they appended grammar.
+  const correctAlts = correctNoParens
+    .split(/[,;/]/)
+    .map((s) => s.trim())
+    .filter((s) => s.length >= 2)
+  const userFirst = userNoParens.split(/\s+/)[0]
+  for (const alt of correctAlts) {
+    if (alt === userFirst) return true
+    const altFirst = alt.split(/\s+/)[0]
+    if (altFirst && altFirst === userFirst) return true
+  }
+
   return false
 }
 

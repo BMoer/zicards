@@ -161,6 +161,16 @@ describe('compareMeaning', () => {
     expect(compareMeaning('Hund', 'Buch')).toBe(false)
   })
 
+  it('accepts answer that starts with first alternative + extra description', () => {
+    // User typed "Sie Plural maskulin" for "sie, ihnen (mask.)"
+    expect(compareMeaning('Sie Plural maskulin', 'sie, ihnen (mask.)')).toBe(true)
+    expect(compareMeaning('Zählwort Druckwerke', 'Zählwort für Bücher/Druckerzeugnisse')).toBe(true)
+  })
+
+  it('rejects answer that does not start with any correct alternative', () => {
+    expect(compareMeaning('Plural maskulin', 'sie, ihnen (mask.)')).toBe(false)
+  })
+
   it('returns false for empty inputs', () => {
     expect(compareMeaning('', 'gut')).toBe(false)
   })
@@ -248,11 +258,9 @@ describe('isDoubledWord', () => {
 // ─── isMeaningClose ─────────────────────────────────────────────────────────
 
 describe('isMeaningClose', () => {
-  it('matches via shared prefix (druck…)', () => {
-    expect(isMeaningClose(
-      'Zählwort Druckwerke',
-      'Zählwort für Bücher/Druckerzeugnisse'
-    )).toBe(true)
+  it('matches via shared prefix when not already accepted', () => {
+    // "Druckwerke" alone (without "Zählwort") shares "druck" prefix with "Druckerzeugnisse"
+    expect(isMeaningClose('Druckwerke', 'für Bücher/Druckerzeugnisse')).toBe(true)
   })
   it('returns false for exact matches', () => {
     expect(isMeaningClose('Buch', 'Buch')).toBe(false)

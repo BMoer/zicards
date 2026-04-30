@@ -254,7 +254,10 @@ function FreetextCard({ character, onAnswer }) {
  * Auto-advances after 1.5s when correct.
  */
 function Feedback({ character, isCorrect, isHalf, onNext, characters, progress }) {
-  // No autoSpeak here – the quiz card already speaks when mounted.
+  const { autoSpeak } = useAudio()
+  useEffect(() => {
+    autoSpeak(character.word || character.hanzi)
+  }, [character.hanzi])
   // No auto-advance – always show mnemonic so user can read it
 
   const statusIcon = isCorrect ? '✓' : isHalf ? '~' : '✗'

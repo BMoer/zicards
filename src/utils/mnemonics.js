@@ -317,8 +317,8 @@ const mnemonics = {
     mnemonic: 'Ein Plus-Zeichen, ein Kreuz – ZEHN. ➕',
   },
   '奥': {
-    parts: [],
-    mnemonic: 'Geheimnisvoll und tief – so mystisch wie ÖSTERREICH. 🇦🇹',
+    parts: [{ char: '大', meaning: 'groß' }],
+    mnemonic: 'Ein Reiskorn (米) unter dem Dach, von einem Großen (大) bewacht – tief und geheimnisvoll. Klingt wie "Aha!" (ào) und wird in 奥地利 phonetisch für Österreich genutzt.',
   },
   '利': {
     parts: [{ char: '禾', meaning: 'Getreide' }, { char: '刂', meaning: 'Messer' }],
