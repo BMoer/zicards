@@ -26,7 +26,17 @@ function annotateSentence(sentence, progressMap) {
   return { type: 'sentence', item: sentence, level, nextReview, isDue }
 }
 
-function getQuizType(type, level) {
+const SENTENCE_PUNCT = new Set([
+  '。', '！', '？', '，', '、', '：', '；',
+  '.', '!', '?', ',', ';', ':',
+])
+
+function contentWordCount(sentence) {
+  if (!sentence?.words) return 0
+  return sentence.words.filter((w) => !SENTENCE_PUNCT.has(w)).length
+}
+
+function getQuizType(type, level, item) {
   if (type === 'character') {
     switch (level) {
       case 0: return 'learn'
@@ -35,6 +45,14 @@ function getQuizType(type, level) {
       case 3: return 'ime'
       default: return 'mc-meaning'
     }
+  }
+  // Sentences with only a single content word (e.g. 晚安!) collapse all
+  // non-learn quiz types into the same task: type that one word via IME.
+  // L1 order would be a single button to tap, and L2 gap would need a
+  // gap_word that doesn't exist — so any post-learn level becomes
+  // translate. Reported 2026-05-10.
+  if (level > 0 && contentWordCount(item) <= 1) {
+    return 'translate'
   }
   // sentence
   switch (level) {
@@ -80,7 +98,7 @@ export function buildUnifiedSession(characters, charProgress, sentences, sentenc
     type,
     // Keep `character` / `sentence` keys for compatibility with QuizCard / SentenceQuizCard
     ...(type === 'character' ? { character: item } : { sentence: item }),
-    quizType: getQuizType(type, level),
+    quizType: getQuizType(type, level, item),
     level,
   }))
 }
