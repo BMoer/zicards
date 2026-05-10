@@ -35,12 +35,23 @@ export default function FeedbackButton({ user }) {
     setCapturing(true)
     await new Promise((r) => setTimeout(r, 120))
     try {
+      // Render at full DPR scale: at scale 0.5 html2canvas rounds character
+      // positions and drops inter-word whitespace in flex/inline-flow text
+      // (made screenshots unreadable for diagnosis, 2026-05-10). The JPEG
+      // compression below makes up for the larger raster.
       const canvas = await html2canvas(document.body, {
-        scale: 0.5,
+        scale: 1,
         useCORS: true,
         logging: false,
+        onclone: (doc) => {
+          // Force spaces to render as their own glyphs instead of being
+          // collapsed during text-run measurement.
+          const style = doc.createElement('style')
+          style.textContent = '* { white-space: normal !important; word-spacing: 0.05em !important; }'
+          doc.head.appendChild(style)
+        },
       })
-      setScreenshot(canvas.toDataURL('image/jpeg', 0.65))
+      setScreenshot(canvas.toDataURL('image/jpeg', 0.55))
     } catch (e) {
       console.error('Screenshot failed:', e)
       setScreenshot(null)

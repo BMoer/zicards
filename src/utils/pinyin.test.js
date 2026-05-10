@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { isDoubledWord, displayHanzi } from './pinyin'
+import { isDoubledWord, displayHanzi, meaningForQuiz } from './pinyin'
 
 describe('isDoubledWord', () => {
   it('true for canonical doubled forms', () => {
@@ -49,5 +49,41 @@ describe('displayHanzi (audio-display sync source-of-truth)', () => {
   it('handles null/undefined character without crashing', () => {
     expect(displayHanzi(null)).toBe('')
     expect(displayHanzi(undefined)).toBe('')
+  })
+})
+
+describe('meaningForQuiz', () => {
+  it('strips trailing parenthetical hanzi', () => {
+    expect(meaningForQuiz('Österreich (奥地利)')).toBe('Österreich')
+  })
+
+  it('strips "in <hanzi>:" prefix', () => {
+    expect(meaningForQuiz('in 奥地利: Österreich')).toBe('Österreich')
+  })
+
+  it('strips "(in <hanzi>)" inline parenthetical', () => {
+    expect(meaningForQuiz('Tugend; (in 德国) Deutschland')).toBe('Tugend; Deutschland')
+    expect(meaningForQuiz('Bedeutung, Sinn; (in 意大利) Italien')).toBe('Bedeutung, Sinn; Italien')
+  })
+
+  it('strips "in <hanzi>:" mid-string after a semicolon', () => {
+    expect(meaningForQuiz('Handwerk; in 工作: arbeiten')).toBe('Handwerk; arbeiten')
+    expect(meaningForQuiz('groß; in 大夫: Arzt')).toBe('groß; Arzt')
+  })
+
+  it('keeps Latin parentheticals untouched', () => {
+    expect(meaningForQuiz('Person (höflich)')).toBe('Person (höflich)')
+    expect(meaningForQuiz('alt (Adj.)')).toBe('alt (Adj.)')
+  })
+
+  it('leaves a meaning without Chinese leaks unchanged', () => {
+    expect(meaningForQuiz('Pluralpartikel')).toBe('Pluralpartikel')
+    expect(meaningForQuiz('älterer Bruder')).toBe('älterer Bruder')
+  })
+
+  it('handles empty / null', () => {
+    expect(meaningForQuiz('')).toBe('')
+    expect(meaningForQuiz(null)).toBe('')
+    expect(meaningForQuiz(undefined)).toBe('')
   })
 })

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import IMEInput from './IMEInput'
 import SpeakButton from './SpeakButton'
+import MnemonicCard from './MnemonicCard'
 
 const PUNCT = new Set(['。', '！', '？', '，', '、', '：', '；', '"', '"', "'", "'", '.', '!', '?', ',', ';', ':'])
 
@@ -26,6 +27,8 @@ const PUNCT = new Set(['。', '！', '？', '，', '、', '：', '；', '"', '"'
 export default function IMESequenceInput({
   expectedSequence,
   curriculumChars,
+  mnemonics = null,
+  progress = null,
   onComplete,
   disabled = false,
   hintAudioText = null,
@@ -155,6 +158,27 @@ export default function IMESequenceInput({
         </div>
       )}
 
+      {done && !submitted.correct && mnemonics && (
+        <div className="space-y-2">
+          {Array.from(
+            new Set([
+              ...pickReview.filter((p) => !p.ok && p.expected).map((p) => p.expected),
+              ...missingTail,
+            ])
+          )
+            .filter((h) => mnemonics?.[h])
+            .map((h) => (
+              <MnemonicCard
+                key={h}
+                hanzi={h}
+                mnemonics={mnemonics}
+                characters={curriculumChars}
+                progress={progress}
+              />
+            ))}
+        </div>
+      )}
+
       {!done && (
         <>
           {/* Action row: undo + submit + optional audio hint */}
@@ -182,6 +206,7 @@ export default function IMESequenceInput({
 
           <IMEInput
             curriculumChars={curriculumChars}
+            expectedHanzi={expectedPickChars[picked.length]}
             onSelect={handleSelect}
             onEnter={handleSubmit}
             disabled={disabled}

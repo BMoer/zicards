@@ -137,7 +137,9 @@ export const COMMON_CHARS = [
   { hanzi: '老', pinyin_input: 'lao3', freq: 315 },
   { hanzi: '了', pinyin_input: 'le0', freq: 5 },
   { hanzi: '冷', pinyin_input: 'leng3', freq: 720 },
+  { hanzi: '李', pinyin_input: 'li3', freq: 56 },
   { hanzi: '里', pinyin_input: 'li3', freq: 58 },
+  { hanzi: '刘', pinyin_input: 'liu2', freq: 728 },
   { hanzi: '六', pinyin_input: 'liu4', freq: 730 },
   { hanzi: '路', pinyin_input: 'lu4', freq: 325 },
   // m
@@ -209,6 +211,7 @@ export const COMMON_CHARS = [
   { hanzi: '外', pinyin_input: 'wai4', freq: 635 },
   { hanzi: '玩', pinyin_input: 'wan2', freq: 870 },
   { hanzi: '晚', pinyin_input: 'wan3', freq: 645 },
+  { hanzi: '王', pinyin_input: 'wang2', freq: 882 },
   { hanzi: '为', pinyin_input: 'wei4', freq: 36 },
   { hanzi: '问', pinyin_input: 'wen4', freq: 655 },
   { hanzi: '我', pinyin_input: 'wo3', freq: 11 },

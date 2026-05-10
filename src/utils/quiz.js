@@ -1,4 +1,4 @@
-import { isDoubledWord } from './pinyin'
+import { isDoubledWord, meaningForQuiz } from './pinyin'
 
 /**
  * Display value for the `hanzi` field: doubled words (姐姐) instead of the
@@ -38,7 +38,11 @@ export function generateMCOptions(correctChar, allCharacters, field) {
   // Pick distractors: same week first, then others
   const pool = [...shuffle(sameWeek), ...shuffle(otherWeeks)]
 
-  const valueFor = (c) => (field === 'hanzi' ? hanziValue(c) : c[field])
+  // For 'meaning' options, strip Chinese leaks so the answer hanzi is not
+  // visible inside the meaning text (would make MC trivial). For 'hanzi'
+  // options, render the doubled-word form when applicable.
+  const valueFor = (c) =>
+    field === 'hanzi' ? hanziValue(c) : meaningForQuiz(c.meaning)
 
   // Deduplicate by displayed value
   const usedValues = new Set([valueFor(correctChar)])

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { isDoubledWord, displayHanzi } from '../utils/pinyin'
+import { isDoubledWord, displayHanzi, meaningForQuiz } from '../utils/pinyin'
 import { useAudio } from '../hooks/useAudio'
 import SpeakButton from './SpeakButton'
 import MnemonicCard from './MnemonicCard'
@@ -68,7 +68,7 @@ function MCCard({ character, options, quizType, onAnswer }) {
   const [answered, setAnswered] = useState(false)
 
   const isReverse = quizType === 'mc-hanzi'
-  const prompt = isReverse ? character.meaning : displayHanzi(character)
+  const prompt = isReverse ? meaningForQuiz(character.meaning) : displayHanzi(character)
   const promptClass = isReverse ? 'text-2xl font-medium' : 'font-hanzi text-7xl'
 
   // No auto-play on quiz cards – would make it too easy
@@ -127,7 +127,7 @@ function IMECard({ character, characters, onAnswer }) {
   return (
     <div className="text-center py-8">
       <div className="text-sm text-ink/40 mb-2">Tippe Pinyin, wähle Zeichen:</div>
-      <div className="text-2xl font-medium mb-2">{character.meaning}</div>
+      <div className="text-2xl font-medium mb-2">{meaningForQuiz(character.meaning)}</div>
       <GrammarHint meaning={character.meaning} />
 
       <div className="max-w-md mx-auto mt-6">

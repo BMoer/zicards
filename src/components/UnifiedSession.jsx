@@ -331,6 +331,8 @@ export default function UnifiedSession({
             onAnswer={handleAnswer}
             onNext={handleNext}
             characters={characters}
+            mnemonics={mnemonics}
+            progress={charProgress}
           />
         )}
       </div>

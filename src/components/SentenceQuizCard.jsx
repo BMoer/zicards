@@ -3,6 +3,8 @@ import { useAudio } from '../hooks/useAudio'
 import SpeakButton from './SpeakButton'
 import IMESequenceInput from './IMESequenceInput'
 import { getShuffledWords, checkWordOrder } from '../utils/sentenceQuiz'
+import { findSingleMisplacement } from '../utils/wordOrderDiff'
+import { lookupGrammarRule } from '../data/grammarRules'
 
 /**
  * Stufe 0: Show sentence (learn card)
@@ -69,7 +71,18 @@ function WordOrderCard({ sentence, onAnswer }) {
     const userOrder = selected.map((s) => s.word)
     const isCorrect = checkWordOrder(userOrder, sentence.words)
     setResult(isCorrect)
-    onAnswer(isCorrect)
+    if (isCorrect) {
+      onAnswer(true)
+    } else {
+      const punct = new Set(['。', '！', '？', '，', '、'])
+      const correctFiltered = sentence.words.filter((w) => !punct.has(w))
+      const misplacement = findSingleMisplacement(userOrder, correctFiltered)
+      const rule = misplacement ? lookupGrammarRule(misplacement.word) : null
+      const hint = misplacement
+        ? { kind: 'word-order', misplacement, rule }
+        : null
+      onAnswer(false, hint)
+    }
     // No autoSpeak here — SentenceFeedback auto-plays once after answer,
     // calling it twice produces overlapping audio (reported 2026-05-10).
   }
@@ -141,7 +154,7 @@ function WordOrderCard({ sentence, onAnswer }) {
 /**
  * Stufe 2: Fill the gap via IME — type pinyin, pick the missing hànzì.
  */
-function GapCard({ sentence, characters, onAnswer }) {
+function GapCard({ sentence, characters, mnemonics, progress, onAnswer }) {
   const [done, setDone] = useState(false)
   // Intentionally NO autoSpeak on mount: hearing the sentence before the
   // gap is filled would just hand the learner the answer
@@ -186,6 +199,8 @@ function GapCard({ sentence, characters, onAnswer }) {
         <IMESequenceInput
           expectedSequence={sentence.gap_word}
           curriculumChars={characters}
+          mnemonics={mnemonics}
+          progress={progress}
           onComplete={handleComplete}
           disabled={done}
           hintAudioText={sentence.chinese}
@@ -198,7 +213,7 @@ function GapCard({ sentence, characters, onAnswer }) {
 /**
  * Stufe 3: Translate German → Chinese — full sentence via IME, char by char.
  */
-function TranslateCard({ sentence, characters, onAnswer }) {
+function TranslateCard({ sentence, characters, mnemonics, progress, onAnswer }) {
   const [done, setDone] = useState(false)
 
   const handleComplete = (correct) => {
@@ -218,6 +233,8 @@ function TranslateCard({ sentence, characters, onAnswer }) {
         <IMESequenceInput
           expectedSequence={sentence.words}
           curriculumChars={characters}
+          mnemonics={mnemonics}
+          progress={progress}
           onComplete={handleComplete}
           disabled={done}
           hintAudioText={sentence.chinese}
@@ -230,7 +247,30 @@ function TranslateCard({ sentence, characters, onAnswer }) {
 /**
  * Feedback shown after answering
  */
-function SentenceFeedback({ sentence, isCorrect, onNext }) {
+function WordOrderGrammarHint({ hint }) {
+  if (!hint || hint.kind !== 'word-order') return null
+  const { misplacement, rule } = hint
+  return (
+    <div className="mb-3 p-3 bg-paper border border-ink/10 rounded-lg text-sm">
+      <div className="text-ink/70 mb-1">
+        <span className="font-hanzi text-base">{misplacement.word}</span>
+        <span className="text-ink/50"> stand an der falschen Stelle.</span>
+      </div>
+      {rule && (
+        <div className="mt-2 pt-2 border-t border-ink/5">
+          <div className="font-medium text-ink/80 mb-1">{rule.title}</div>
+          <div className="text-ink/70 mb-1">{rule.rule}</div>
+          <div className="text-ink/60">
+            <span className="font-hanzi">{rule.example_zh}</span>
+            <span className="text-ink/40"> — {rule.example_de}</span>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SentenceFeedback({ sentence, isCorrect, hint, onNext }) {
   const timerRef = useRef(null)
   const { autoSpeak } = useAudio()
 
@@ -257,6 +297,7 @@ function SentenceFeedback({ sentence, isCorrect, onNext }) {
         </span>
         <span className="font-medium">{isCorrect ? 'Richtig!' : 'Nicht ganz.'}</span>
       </div>
+      {!isCorrect && <WordOrderGrammarHint hint={hint} />}
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-1">
           <span className="font-hanzi text-xl">{sentence.chinese}</span>
@@ -277,13 +318,15 @@ function SentenceFeedback({ sentence, isCorrect, onNext }) {
 /**
  * Main SentenceQuizCard – delegates to sub-components by quizType
  */
-export default function SentenceQuizCard({ item, onAnswer, onNext, characters }) {
+export default function SentenceQuizCard({ item, onAnswer, onNext, characters, mnemonics, progress }) {
   const [answered, setAnswered] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
+  const [hint, setHint] = useState(null)
 
-  const handleAnswer = (correct) => {
+  const handleAnswer = (correct, answerHint = null) => {
     setAnswered(true)
     setIsCorrect(correct)
+    setHint(answerHint)
     onAnswer(correct)
   }
 
@@ -302,15 +345,16 @@ export default function SentenceQuizCard({ item, onAnswer, onNext, characters })
         <WordOrderCard sentence={item.sentence} onAnswer={handleAnswer} />
       )}
       {item.quizType === 'gap' && (
-        <GapCard sentence={item.sentence} characters={characters} onAnswer={handleAnswer} />
+        <GapCard sentence={item.sentence} characters={characters} mnemonics={mnemonics} progress={progress} onAnswer={handleAnswer} />
       )}
       {item.quizType === 'translate' && (
-        <TranslateCard sentence={item.sentence} characters={characters} onAnswer={handleAnswer} />
+        <TranslateCard sentence={item.sentence} characters={characters} mnemonics={mnemonics} progress={progress} onAnswer={handleAnswer} />
       )}
       {answered && (
         <SentenceFeedback
           sentence={item.sentence}
           isCorrect={isCorrect}
+          hint={hint}
           onNext={() => onNext(false)}
         />
       )}

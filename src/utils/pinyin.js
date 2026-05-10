@@ -40,3 +40,41 @@ export function displayHanzi(character) {
   if (!character) return ''
   return isDoubledWord(character) ? character.word : character.hanzi
 }
+
+const HAN_RE = /[一-鿿]/
+
+/**
+ * The meaning string with all Chinese leaks removed — for use in MC quiz
+ * prompts/options where seeing the answer hanzi inside the meaning text
+ * makes the question trivial.
+ *
+ * Strips:
+ *   • parenthesised groups containing any Hànzì:  "(奥地利)", "(in 德国)"
+ *   • compound-prefix segments:                   "in 工作: …", "in 奥地利: …"
+ *   • leftover trailing/leading punctuation
+ *
+ * Examples:
+ *   "Österreich (奥地利)"               → "Österreich"
+ *   "in 奥地利: Österreich"             → "Österreich"
+ *   "Tugend; (in 德国) Deutschland"     → "Tugend; Deutschland"
+ *   "Handwerk; in 工作: arbeiten"       → "Handwerk; arbeiten"
+ *   "Pluralpartikel"                    → "Pluralpartikel"
+ *
+ * Reported via "trivial" feedback on /learn/1 (2026-05-10): when the MC
+ * prompt contains the answer's hanzi as a parenthetical hint, the quiz
+ * becomes a pattern-match instead of a recall test.
+ */
+export function meaningForQuiz(meaning) {
+  if (!meaning) return ''
+  let s = meaning
+  // Remove parens that contain Chinese chars (keep parens with only Latin text).
+  s = s.replace(/\s*\([^)]*\)/g, (m) => (HAN_RE.test(m) ? '' : m))
+  // Remove "in <…hanzi…>: " segments anywhere in the string.
+  s = s.replace(/in\s+\S*[一-鿿]\S*\s*:\s*/g, '')
+  // Clean up dangling separators left behind by the removals.
+  s = s.replace(/;\s*(?=,|;|$)/g, '')
+  s = s.replace(/^\s*[,;]\s*/, '')
+  s = s.replace(/\s*[,;]\s*$/, '')
+  s = s.replace(/\s+/g, ' ').trim()
+  return s
+}
