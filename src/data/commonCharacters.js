@@ -71,6 +71,7 @@ export const COMMON_CHARS = [
   { hanzi: '法', pinyin_input: 'fa3', freq: 190 },
   { hanzi: '饭', pinyin_input: 'fan4', freq: 440 },
   { hanzi: '飞', pinyin_input: 'fei1', freq: 450 },
+  { hanzi: '夫', pinyin_input: 'fu0', freq: 470 },
   { hanzi: '分', pinyin_input: 'fen1', freq: 35 },
   { hanzi: '风', pinyin_input: 'feng1', freq: 460 },
   // g
@@ -149,6 +150,7 @@ export const COMMON_CHARS = [
   { hanzi: '买', pinyin_input: 'mai3', freq: 355 },
   { hanzi: '卖', pinyin_input: 'mai4', freq: 750 },
   { hanzi: '忙', pinyin_input: 'mang2', freq: 365 },
+  { hanzi: '么', pinyin_input: 'me0', freq: 95 },
   { hanzi: '没', pinyin_input: 'mei2', freq: 68 },
   { hanzi: '美', pinyin_input: 'mei3', freq: 375 },
   { hanzi: '们', pinyin_input: 'men0', freq: 40 },
@@ -278,6 +280,7 @@ export const COMMON_CHARS = [
   { hanzi: '最', pinyin_input: 'zui4', freq: 1055 },
   { hanzi: '昨', pinyin_input: 'zuo2', freq: 1065 },
   { hanzi: '左', pinyin_input: 'zuo3', freq: 1075 },
+  { hanzi: '作', pinyin_input: 'zuo4', freq: 320 },
   { hanzi: '做', pinyin_input: 'zuo4', freq: 1085 },
   { hanzi: '坐', pinyin_input: 'zuo4', freq: 1095 },
 ]
