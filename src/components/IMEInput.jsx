@@ -48,6 +48,11 @@ export default function IMEInput({
     // character without manually erasing — matches how real Pinyin IMEs
     // (Sogou, iOS, etc.) reset after a commit.
     setTyped('')
+    // Refocus the input so the mobile keyboard stays open for the next
+    // character. Without this, picking a candidate dismisses the keyboard
+    // and the user has to tap the input again on every word
+    // (reported 2026-05-10).
+    inputRef.current?.focus()
   }
 
   const handleKeyDown = (e) => {

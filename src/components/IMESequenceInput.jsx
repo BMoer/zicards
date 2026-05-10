@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react'
 import IMEInput from './IMEInput'
+import SpeakButton from './SpeakButton'
 
 const PUNCT = new Set(['。', '！', '？', '，', '、', '：', '；', '"', '"', "'", "'", '.', '!', '?', ',', ';', ':'])
 
@@ -27,6 +28,7 @@ export default function IMESequenceInput({
   curriculumChars,
   onComplete,
   disabled = false,
+  hintAudioText = null,
 }) {
   const expectedChars = useMemo(
     () =>
@@ -155,8 +157,8 @@ export default function IMESequenceInput({
 
       {!done && (
         <>
-          {/* Action row: undo + submit */}
-          <div className="flex gap-2 justify-center">
+          {/* Action row: undo + submit + optional audio hint */}
+          <div className="flex gap-2 justify-center items-center">
             <button
               type="button"
               onClick={handleUndo}
@@ -173,6 +175,9 @@ export default function IMESequenceInput({
             >
               Fertig
             </button>
+            {hintAudioText && (
+              <SpeakButton text={hintAudioText} size="md" />
+            )}
           </div>
 
           <IMEInput

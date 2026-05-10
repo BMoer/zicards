@@ -188,6 +188,7 @@ function GapCard({ sentence, characters, onAnswer }) {
           curriculumChars={characters}
           onComplete={handleComplete}
           disabled={done}
+          hintAudioText={sentence.chinese}
         />
       </div>
     </div>
@@ -219,6 +220,7 @@ function TranslateCard({ sentence, characters, onAnswer }) {
           curriculumChars={characters}
           onComplete={handleComplete}
           disabled={done}
+          hintAudioText={sentence.chinese}
         />
       </div>
     </div>
