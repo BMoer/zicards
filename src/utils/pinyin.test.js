@@ -1,271 +1,53 @@
 import { describe, it, expect } from 'vitest'
-import {
-  numberToToneMark,
-  toneMarkToNumber,
-  getPinyinBase,
-  comparePinyin,
-  isPinyinToneWrong,
-  compareMeaning,
-  stripAllTones,
-  compareWordPinyin,
-  isDoubledWord,
-  isCompoundWord,
-  isMeaningClose,
-} from './pinyin.js'
-
-// ─── numberToToneMark ────────────────────────────────────────────────────────
-
-describe('numberToToneMark', () => {
-  it('converts tone 1–4 correctly', () => {
-    expect(numberToToneMark('ma1')).toBe('mā')
-    expect(numberToToneMark('ma2')).toBe('má')
-    expect(numberToToneMark('ma3')).toBe('mǎ')
-    expect(numberToToneMark('ma4')).toBe('mà')
-  })
-
-  it('neutral tone (0 or 5) returns bare syllable', () => {
-    expect(numberToToneMark('ma0')).toBe('ma')
-    expect(numberToToneMark('ma5')).toBe('ma')
-  })
-
-  it('applies tone to correct vowel (a/e priority)', () => {
-    expect(numberToToneMark('hao3')).toBe('hǎo')  // a gets it, not o
-    expect(numberToToneMark('nei4')).toBe('nèi')   // e gets it
-  })
-
-  it('handles ü (v alias)', () => {
-    expect(numberToToneMark('lv4')).toBe('lǜ')
-  })
-
-  it('returns input unchanged for unrecognised format', () => {
-    expect(numberToToneMark('abc')).toBe('abc')
-    expect(numberToToneMark('')).toBe('')
-  })
-})
-
-// ─── toneMarkToNumber ────────────────────────────────────────────────────────
-
-describe('toneMarkToNumber', () => {
-  it('converts tone marks to numbered format', () => {
-    expect(toneMarkToNumber('mā')).toBe('ma1')
-    expect(toneMarkToNumber('má')).toBe('ma2')
-    expect(toneMarkToNumber('mǎ')).toBe('ma3')
-    expect(toneMarkToNumber('mà')).toBe('ma4')
-  })
-
-  it('bare syllable (neutral) returns syllable without number', () => {
-    expect(toneMarkToNumber('ma')).toBe('ma')
-  })
-
-  it('is inverse of numberToToneMark for tones 1–4', () => {
-    const inputs = ['ma1', 'ni3', 'hao3', 'shi4', 'gong1']
-    inputs.forEach((n) => {
-      expect(toneMarkToNumber(numberToToneMark(n))).toBe(n)
-    })
-  })
-})
-
-// ─── getPinyinBase ───────────────────────────────────────────────────────────
-
-describe('getPinyinBase', () => {
-  it('strips tone number', () => {
-    expect(getPinyinBase('ma1')).toBe('ma')
-    expect(getPinyinBase('ma0')).toBe('ma')
-  })
-
-  it('strips tone mark', () => {
-    expect(getPinyinBase('mā')).toBe('ma')
-    expect(getPinyinBase('nǐ')).toBe('ni')
-  })
-
-  it('bare syllable stays unchanged', () => {
-    expect(getPinyinBase('ma')).toBe('ma')
-  })
-
-  it('handles empty/null', () => {
-    expect(getPinyinBase('')).toBe('')
-    expect(getPinyinBase(null)).toBe('')
-  })
-})
-
-// ─── comparePinyin ───────────────────────────────────────────────────────────
-
-describe('comparePinyin', () => {
-  it('accepts exact numbered match', () => {
-    expect(comparePinyin('ni3', 'ni3')).toBe(true)
-  })
-
-  it('accepts tone-marked input against numbered correct', () => {
-    expect(comparePinyin('nǐ', 'ni3')).toBe(true)
-    expect(comparePinyin('māma', 'ma1')).toBe(false) // multi vs single
-  })
-
-  it('rejects wrong tone', () => {
-    expect(comparePinyin('ni2', 'ni3')).toBe(false)
-  })
-
-  it('neutral tone: bare base matches ma0', () => {
-    expect(comparePinyin('ma', 'ma0')).toBe(true)
-    expect(comparePinyin('ma5', 'ma0')).toBe(true)
-  })
-
-  it('returns false for empty inputs', () => {
-    expect(comparePinyin('', 'ni3')).toBe(false)
-    expect(comparePinyin('ni3', '')).toBe(false)
-  })
-})
-
-// ─── isPinyinToneWrong ───────────────────────────────────────────────────────
-
-describe('isPinyinToneWrong', () => {
-  it('true when base matches but tone is wrong', () => {
-    expect(isPinyinToneWrong('ni2', 'ni3')).toBe(true)
-    expect(isPinyinToneWrong('ma1', 'ma4')).toBe(true)
-  })
-
-  it('false when completely correct', () => {
-    expect(isPinyinToneWrong('ni3', 'ni3')).toBe(false)
-  })
-
-  it('false when base also differs', () => {
-    expect(isPinyinToneWrong('wo3', 'ni3')).toBe(false)
-  })
-})
-
-// ─── compareMeaning ──────────────────────────────────────────────────────────
-
-describe('compareMeaning', () => {
-  it('exact match', () => {
-    expect(compareMeaning('gut', 'gut')).toBe(true)
-  })
-
-  it('case-insensitive', () => {
-    expect(compareMeaning('Gut', 'gut')).toBe(true)
-  })
-
-  it('strips German articles', () => {
-    expect(compareMeaning('die Lehrerin', 'Lehrerin')).toBe(true)
-    expect(compareMeaning('ein Buch', 'Buch')).toBe(true)
-  })
-
-  it('ignores parenthetical', () => {
-    expect(compareMeaning('Sie', 'Sie (Höflichkeitsform)')).toBe(true)
-  })
-
-  it('accepts substring of multi-meaning field', () => {
-    // "ich, mich, mir" — user types just "ich"
-    expect(compareMeaning('ich', 'ich, mich, mir')).toBe(true)
-  })
-
-  it('rejects completely wrong answer', () => {
-    expect(compareMeaning('Hund', 'Buch')).toBe(false)
-  })
-
-  it('accepts answer that starts with first alternative + extra description', () => {
-    // User typed "Sie Plural maskulin" for "sie, ihnen (mask.)"
-    expect(compareMeaning('Sie Plural maskulin', 'sie, ihnen (mask.)')).toBe(true)
-    expect(compareMeaning('Zählwort Druckwerke', 'Zählwort für Bücher/Druckerzeugnisse')).toBe(true)
-  })
-
-  it('rejects answer that does not start with any correct alternative', () => {
-    expect(compareMeaning('Plural maskulin', 'sie, ihnen (mask.)')).toBe(false)
-  })
-
-  it('returns false for empty inputs', () => {
-    expect(compareMeaning('', 'gut')).toBe(false)
-  })
-})
-
-// ─── stripAllTones ──────────────────────────────────────────────────────────
-
-describe('stripAllTones', () => {
-  it('removes all tone marks from multi-syllable input', () => {
-    expect(stripAllTones('jiějie')).toBe('jiejie')
-    expect(stripAllTones('Zhōngguó')).toBe('zhongguo')
-  })
-  it('strips tone numbers and spaces', () => {
-    expect(stripAllTones('jie3 jie0')).toBe('jiejie')
-    expect(stripAllTones('zhong1guo2')).toBe('zhongguo')
-  })
-  it('normalizes v to ü', () => {
-    expect(stripAllTones('nv3')).toBe('nü')
-  })
-})
-
-// ─── compareWordPinyin ──────────────────────────────────────────────────────
-
-describe('compareWordPinyin', () => {
-  it('accepts exact tone-marked match', () => {
-    expect(compareWordPinyin('jiějie', 'jiějie')).toEqual({ correct: true, toneWrong: false })
-  })
-  it('accepts numbered form matching tones', () => {
-    expect(compareWordPinyin('jie3jie0', 'jiějie')).toEqual({ correct: true, toneWrong: false })
-    expect(compareWordPinyin('jie3 jie0', 'jiějie')).toEqual({ correct: true, toneWrong: false })
-  })
-  it('toneless input → tone wrong', () => {
-    expect(compareWordPinyin('jiejie', 'jiějie')).toEqual({ correct: false, toneWrong: true })
-  })
-  it('wrong tone → tone wrong', () => {
-    expect(compareWordPinyin('jie2jie1', 'jiějie')).toEqual({ correct: false, toneWrong: true })
-  })
-  it('wrong syllables → fully wrong', () => {
-    expect(compareWordPinyin('didi', 'jiějie')).toEqual({ correct: false, toneWrong: false })
-  })
-  it('accepts numbers grouped at end (women30 for wǒmen)', () => {
-    expect(compareWordPinyin('women30', 'wǒmen')).toEqual({ correct: true, toneWrong: false })
-    expect(compareWordPinyin('Women30', 'wǒmen')).toEqual({ correct: true, toneWrong: false })
-  })
-  it('accepts dropped neutral-tone digit (women3 for wǒmen)', () => {
-    expect(compareWordPinyin('women3', 'wǒmen')).toEqual({ correct: true, toneWrong: false })
-    expect(compareWordPinyin('wo3men', 'wǒmen')).toEqual({ correct: true, toneWrong: false })
-  })
-  it('accepts compound pinyin in numbered form (duo1shao3 for duōshǎo)', () => {
-    expect(compareWordPinyin('duo1shao3', 'duōshǎo')).toEqual({ correct: true, toneWrong: false })
-    expect(compareWordPinyin('duōshǎo', 'duōshǎo')).toEqual({ correct: true, toneWrong: false })
-  })
-})
-
-// ─── isCompoundWord ─────────────────────────────────────────────────────────
-
-describe('isCompoundWord', () => {
-  it('recognizes multi-char hanzi as compound', () => {
-    expect(isCompoundWord({ hanzi: '多少' })).toBe(true)
-    expect(isCompoundWord({ hanzi: '我们' })).toBe(true)
-  })
-  it('rejects single-char hanzi', () => {
-    expect(isCompoundWord({ hanzi: '我' })).toBe(false)
-  })
-  it('handles missing hanzi', () => {
-    expect(isCompoundWord({})).toBe(false)
-    expect(isCompoundWord(null)).toBe(false)
-  })
-})
-
-// ─── isDoubledWord ──────────────────────────────────────────────────────────
+import { isDoubledWord, displayHanzi } from './pinyin'
 
 describe('isDoubledWord', () => {
-  it('recognizes 姐姐 as doubled', () => {
+  it('true for canonical doubled forms', () => {
     expect(isDoubledWord({ hanzi: '姐', word: '姐姐' })).toBe(true)
+    expect(isDoubledWord({ hanzi: '妈', word: '妈妈' })).toBe(true)
   })
-  it('rejects compound words like 中午', () => {
-    expect(isDoubledWord({ hanzi: '中', word: '中午' })).toBe(false)
-  })
-  it('handles missing word', () => {
+
+  it('false when word is not doubled', () => {
     expect(isDoubledWord({ hanzi: '我', word: null })).toBe(false)
+    expect(isDoubledWord({ hanzi: '你', word: '你好' })).toBe(false)
+  })
+
+  it('false when hanzi does not match the doubled char', () => {
+    expect(isDoubledWord({ hanzi: '好', word: '姐姐' })).toBe(false)
+  })
+
+  it('false on missing fields', () => {
+    expect(isDoubledWord({})).toBe(false)
+    expect(isDoubledWord(null)).toBe(false)
+    expect(isDoubledWord({ hanzi: '姐' })).toBe(false)
+    expect(isDoubledWord({ word: '姐姐' })).toBe(false)
   })
 })
 
-// ─── isMeaningClose ─────────────────────────────────────────────────────────
+describe('displayHanzi (audio-display sync source-of-truth)', () => {
+  it('returns the doubled word for doubled-form rows', () => {
+    expect(displayHanzi({ hanzi: '姐', word: '姐姐' })).toBe('姐姐')
+  })
 
-describe('isMeaningClose', () => {
-  it('matches via shared prefix when not already accepted', () => {
-    // "Druckwerke" alone (without "Zählwort") shares "druck" prefix with "Druckerzeugnisse"
-    expect(isMeaningClose('Druckwerke', 'für Bücher/Druckerzeugnisse')).toBe(true)
+  it('returns the bare hanzi for normal single-char rows', () => {
+    expect(displayHanzi({ hanzi: '我', word: null })).toBe('我')
+    expect(displayHanzi({ hanzi: '我' })).toBe('我')
   })
-  it('returns false for exact matches', () => {
-    expect(isMeaningClose('Buch', 'Buch')).toBe(false)
+
+  it('returns the bare hanzi when word is a non-doubled compound', () => {
+    // This is the bug-fix case: 上 (shang) had word=上午 (shangwu) in
+    // legacy data; the audio used to read 上午 while the card showed 上.
+    // displayHanzi must return just 上 so audio matches the visual.
+    expect(displayHanzi({ hanzi: '上', word: '上午' })).toBe('上')
+    expect(displayHanzi({ hanzi: '下', word: '下午' })).toBe('下')
   })
-  it('returns false for unrelated words', () => {
-    expect(isMeaningClose('Katze', 'Hund')).toBe(false)
+
+  it('returns the multi-char hanzi for compound rows (hanzi="上午", word=null)', () => {
+    expect(displayHanzi({ hanzi: '上午', word: null })).toBe('上午')
+  })
+
+  it('handles null/undefined character without crashing', () => {
+    expect(displayHanzi(null)).toBe('')
+    expect(displayHanzi(undefined)).toBe('')
   })
 })

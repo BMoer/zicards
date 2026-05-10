@@ -1,4 +1,11 @@
-import { stripAllTones } from './pinyin'
+/**
+ * Sentence quiz: session builder + answer checkers.
+ *
+ * Pinyin is no longer accepted as an answer — the learning goal is digital
+ * written communication, so all production-style quizzes (gap, translate)
+ * require the actual Hànzì, produced via the IME picker. Pinyin is only used
+ * as the *input method* in the picker, never as a graded answer.
+ */
 
 /**
  * Shuffle array (Fisher-Yates)
@@ -14,7 +21,8 @@ function shuffle(arr) {
 
 /**
  * Build a sentence learning session with spaced repetition.
- * Level 0 = show (learn), Level 1 = word order, Level 2 = fill gap, Level 3 = translate
+ * Level 0 = show (learn), Level 1 = word order, Level 2 = fill gap (IME),
+ * Level 3 = translate (IME).
  */
 export function buildSentenceSession(sentences, progressMap) {
   if (!sentences || sentences.length === 0) return []
@@ -85,96 +93,26 @@ export function checkWordOrder(userOrder, correctWords) {
 }
 
 /**
- * Extract pinyin for a specific word from full sentence pinyin + words array.
- * Supports two tokenizations: one pinyin token per word (preferred)
- * or one per character. Always returns tone-marked pinyin joined by spaces
- * when the word spans multiple character-level tokens.
+ * Compare user gap answer to correct word — Hànzì only (exact match).
+ * The IME picker produces Hànzì strings; pinyin is the input method,
+ * never the graded answer.
  */
-function extractGapPinyin(words, fullPinyin, gapWord) {
-  const punct = new Set(['。', '！', '？', '，', '、', '；', '：', '.', '!', '?', ',', ';', ':'])
-  const contentWords = words.filter((w) => !punct.has(w))
-  const gapIndex = contentWords.indexOf(gapWord)
-  if (gapIndex === -1) return null
-
-  const pinyinTokens = fullPinyin
-    .split(/\s+/)
-    .map((t) => t.replace(/[。！？，、；：.!?,;:]+$/, ''))
-    .filter(Boolean)
-
-  if (pinyinTokens.length === contentWords.length) {
-    return pinyinTokens[gapIndex].toLowerCase()
-  }
-
-  const totalChars = contentWords.reduce((sum, w) => sum + [...w].length, 0)
-  if (pinyinTokens.length === totalChars) {
-    let tokenIdx = 0
-    for (let i = 0; i < contentWords.length; i++) {
-      const charCount = [...contentWords[i]].length
-      if (i === gapIndex) {
-        return pinyinTokens.slice(tokenIdx, tokenIdx + charCount).join(' ').toLowerCase()
-      }
-      tokenIdx += charCount
-    }
-  }
-
-  return null
-}
-
-/**
- * Compare user gap answer to correct answer.
- * Accepts both Hanzi (exact match) and Pinyin in any form
- * (numbered `zhong1 guo2`, tone-marked `zhōngguó`, toneless `zhongguo`).
- */
-export function checkGapAnswer(userAnswer, correctWord, words, fullPinyin) {
-  const user = userAnswer.trim()
+export function checkGapAnswer(userAnswer, correctWord) {
+  const user = (userAnswer ?? '').trim()
   if (!user) return false
-
-  if (user === correctWord.trim()) return true
-
-  if (words && fullPinyin) {
-    const gapPinyin = extractGapPinyin(words, fullPinyin, correctWord)
-    if (gapPinyin) {
-      return stripAllTones(user) === stripAllTones(gapPinyin)
-    }
-  }
-
-  return false
+  return user === correctWord.trim()
 }
 
+const NORMALIZE_STRIP = /[\s。！？，、.!?,;：；""''《》「」]/g
+
 /**
- * Compare user translation. Accepts Hanzi or Pinyin (numbered or tone-marked).
+ * Compare user translation — Hànzì only.
+ * Normalises away whitespace and punctuation on both sides; otherwise
+ * exact-match.
  */
-export function checkTranslation(userInput, correctChinese, correctPinyin) {
-  const normalize = (s) => s.replace(/[\s。！？，、.!?,;：""'']/g, '')
-  const userNorm = normalize(userInput.trim())
-  if (!userNorm) return false
-
-  // Hanzi exact match
-  if (userNorm === normalize(correctChinese)) return true
-
-  // Pinyin match
-  if (correctPinyin) {
-    const toneCharMap = {}
-    const toneMarks = {
-      a: ['ā', 'á', 'ǎ', 'à'], e: ['ē', 'é', 'ě', 'è'],
-      i: ['ī', 'í', 'ǐ', 'ì'], o: ['ō', 'ó', 'ǒ', 'ò'],
-      u: ['ū', 'ú', 'ǔ', 'ù'], ü: ['ǖ', 'ǘ', 'ǚ', 'ǜ'],
-    }
-    for (const [base, marks] of Object.entries(toneMarks)) {
-      marks.forEach((mark, i) => { toneCharMap[mark] = { base, tone: i + 1 } })
-    }
-
-    const stripTones = (s) => {
-      let result = s.toLowerCase().replace(/v/g, 'ü')
-      for (const [mark, info] of Object.entries(toneCharMap)) {
-        result = result.replace(new RegExp(mark, 'g'), info.base)
-      }
-      return result.replace(/[0-5]/g, '').replace(/[\s。！？，、.!?,;]+/g, '')
-    }
-
-    // Compare stripped pinyin (no tones, no spaces, no punctuation)
-    if (stripTones(userNorm) === stripTones(correctPinyin)) return true
-  }
-
-  return false
+export function checkTranslation(userInput, correctChinese) {
+  const norm = (s) => (s ?? '').replace(NORMALIZE_STRIP, '')
+  const user = norm(userInput)
+  if (!user) return false
+  return user === norm(correctChinese)
 }

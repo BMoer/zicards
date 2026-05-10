@@ -84,8 +84,8 @@ describe('buildSession', () => {
     const session = buildSession(chars, progressMap)
     const byId = Object.fromEntries(session.map((s) => [s.character.id, s]))
     expect(byId['a'].quizType).toBe('mc-meaning')
-    expect(byId['b'].quizType).toBe('freetext')
-    expect(byId['c'].quizType).toBe('mc-hanzi')
+    expect(byId['b'].quizType).toBe('mc-hanzi')
+    expect(byId['c'].quizType).toBe('ime')
   })
 
   it('due cards come before new cards', () => {

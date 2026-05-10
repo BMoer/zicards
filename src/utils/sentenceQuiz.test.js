@@ -53,9 +53,13 @@ describe('checkWordOrder', () => {
 
 // ─── checkGapAnswer ──────────────────────────────────────────────────────────
 
-describe('checkGapAnswer', () => {
+describe('checkGapAnswer (Hànzì-only after IME pivot)', () => {
   it('exact hanzi match', () => {
     expect(checkGapAnswer('不', '不')).toBe(true)
+  })
+
+  it('multi-char hanzi exact match', () => {
+    expect(checkGapAnswer('中国', '中国')).toBe(true)
   })
 
   it('wrong hanzi returns false', () => {
@@ -67,60 +71,43 @@ describe('checkGapAnswer', () => {
     expect(checkGapAnswer('  ', '不')).toBe(false)
   })
 
-  it('pinyin numbered match via sentence context', () => {
-    const words = ['我', '不', '是', '学生']
-    const pinyin = 'wǒ bù shì xuésheng'
-    expect(checkGapAnswer('bu4', '不', words, pinyin)).toBe(true)
+  it('rejects pinyin input — only hanzi accepted now', () => {
+    expect(checkGapAnswer('bu4', '不')).toBe(false)
+    expect(checkGapAnswer('bù', '不')).toBe(false)
+    expect(checkGapAnswer('bu', '不')).toBe(false)
   })
 
-  it('pinyin tone-marked match via sentence context', () => {
-    const words = ['我', '不', '是', '学生']
-    const pinyin = 'wǒ bù shì xuésheng'
-    expect(checkGapAnswer('bù', '不', words, pinyin)).toBe(true)
-  })
-
-  it('wrong pinyin returns false', () => {
-    const words = ['我', '不', '是', '学生']
-    const pinyin = 'wǒ bù shì xuésheng'
-    expect(checkGapAnswer('hao3', '不', words, pinyin)).toBe(false)
-  })
-
-  it('accepts multi-syllable word-level pinyin (中国 / zhongguo)', () => {
-    const words = ['你', '是', '中国', '人', '吗', '？']
-    const pinyin = 'Nǐ shì Zhōngguó rén ma?'
-    expect(checkGapAnswer('Zhong1 guo3', '中国', words, pinyin)).toBe(true)
-    expect(checkGapAnswer('zhongguo', '中国', words, pinyin)).toBe(true)
-    expect(checkGapAnswer('Zhōngguó', '中国', words, pinyin)).toBe(true)
-  })
-
-  it('rejects wrong multi-syllable pinyin', () => {
-    const words = ['你', '是', '中国', '人', '吗', '？']
-    const pinyin = 'Nǐ shì Zhōngguó rén ma?'
-    expect(checkGapAnswer('meiguo', '中国', words, pinyin)).toBe(false)
+  it('trims whitespace', () => {
+    expect(checkGapAnswer(' 不 ', '不')).toBe(true)
   })
 })
 
 // ─── checkTranslation ───────────────────────────────────────────────────────
 
-describe('checkTranslation', () => {
+describe('checkTranslation (Hànzì-only after IME pivot)', () => {
   it('exact hanzi match', () => {
-    expect(checkTranslation('我是学生。', '我是学生。', 'wǒ shì xuésheng')).toBe(true)
+    expect(checkTranslation('我是学生。', '我是学生。')).toBe(true)
   })
 
-  it('hanzi match ignoring punctuation', () => {
-    expect(checkTranslation('我是学生', '我是学生。', 'wǒ shì xuésheng')).toBe(true)
+  it('hanzi match ignoring trailing punctuation', () => {
+    expect(checkTranslation('我是学生', '我是学生。')).toBe(true)
   })
 
-  it('pinyin base match (tones stripped)', () => {
-    expect(checkTranslation('wo shi xuesheng', '我是学生。', 'wǒ shì xuésheng')).toBe(true)
+  it('hanzi match ignoring whitespace', () => {
+    expect(checkTranslation('我 是 学生', '我是学生。')).toBe(true)
+  })
+
+  it('rejects pinyin even when phonetically correct', () => {
+    expect(checkTranslation('wo shi xuesheng', '我是学生。')).toBe(false)
+    expect(checkTranslation('wǒ shì xuésheng', '我是学生。')).toBe(false)
   })
 
   it('wrong answer returns false', () => {
-    expect(checkTranslation('你好', '我是学生。', 'wǒ shì xuésheng')).toBe(false)
+    expect(checkTranslation('你好', '我是学生。')).toBe(false)
   })
 
   it('empty answer returns false', () => {
-    expect(checkTranslation('', '我是学生。', 'wǒ shì xuésheng')).toBe(false)
+    expect(checkTranslation('', '我是学生。')).toBe(false)
   })
 })
 

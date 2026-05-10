@@ -61,6 +61,7 @@ export default function AuthForm({ onSignIn, onSignUp }) {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="E-Mail"
             required
+            style={{ fontSize: '16px' }}
             className="w-full px-4 py-3 border border-ink/20 rounded-lg bg-white focus:outline-none focus:border-ink/40 transition-colors"
           />
         </div>
@@ -72,6 +73,7 @@ export default function AuthForm({ onSignIn, onSignUp }) {
             placeholder="Passwort (min. 6 Zeichen)"
             required
             minLength={6}
+            style={{ fontSize: '16px' }}
             className="w-full px-4 py-3 border border-ink/20 rounded-lg bg-white focus:outline-none focus:border-ink/40 transition-colors"
           />
         </div>

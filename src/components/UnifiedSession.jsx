@@ -4,6 +4,7 @@ import { buildUnifiedSession } from '../utils/unifiedSession'
 import { generateMCOptions } from '../utils/quiz'
 import { saveUnifiedSession, loadUnifiedSession, clearUnifiedSession } from '../utils/sessionStore'
 import { useAudio } from '../hooks/useAudio'
+import { displayHanzi } from '../utils/pinyin'
 import SpeakButton from './SpeakButton'
 import MnemonicCard from './MnemonicCard'
 import QuizCard from './QuizCard'
@@ -15,26 +16,26 @@ import SessionNav from './SessionNav'
 /**
  * Review card for a past character card.
  */
-function CharacterReview({ item, result, characters, progress }) {
+function CharacterReview({ item, result, characters, progress, mnemonics }) {
   const { character } = item
   const { autoSpeak } = useAudio()
 
   useEffect(() => {
-    autoSpeak(character.word || character.hanzi)
+    autoSpeak(displayHanzi(character))
   }, [character.hanzi])
 
   if (result?.isLearn) {
     return (
       <div className="text-center py-8">
         <div className="font-hanzi text-7xl mb-4">{character.hanzi}</div>
-        <div className="mb-4"><SpeakButton text={character.word || character.hanzi} size="md" /></div>
+        <div className="mb-4"><SpeakButton text={displayHanzi(character)} size="md" /></div>
         {character.word && <div className="font-hanzi text-2xl text-ink/60 mb-2">{character.word}</div>}
         <div className="text-lg text-ink/60 mb-1">{character.pinyin}</div>
         {character.pinyin_word && <div className="text-sm text-ink/40 mb-3">{character.pinyin_word}</div>}
         <div className="text-xl font-medium mb-2">{character.meaning}</div>
         {character.radical && <div className="text-sm text-ink/40 mb-4">Radikal: {character.radical}</div>}
         <div className="mt-4">
-          <MnemonicCard hanzi={character.hanzi} characters={characters} progress={progress} />
+          <MnemonicCard hanzi={character.hanzi} mnemonics={mnemonics} characters={characters} progress={progress} />
         </div>
         <div className="text-sm text-ink/30 mt-6">Gelernt ✓</div>
       </div>
@@ -44,7 +45,7 @@ function CharacterReview({ item, result, characters, progress }) {
   return (
     <div className="text-center py-8">
       <div className="font-hanzi text-7xl mb-4">{character.hanzi}</div>
-      <div className="mb-4"><SpeakButton text={character.word || character.hanzi} size="md" /></div>
+      <div className="mb-4"><SpeakButton text={displayHanzi(character)} size="md" /></div>
       {character.word && <div className="font-hanzi text-2xl text-ink/60 mb-2">{character.word}</div>}
       <div className="text-lg text-ink/60 mb-1">{character.pinyin}</div>
       {character.pinyin_word && <div className="text-sm text-ink/40 mb-3">{character.pinyin_word}</div>}
@@ -62,7 +63,7 @@ function CharacterReview({ item, result, characters, progress }) {
 
       {result && !result.isCorrect && (
         <div className="mt-4">
-          <MnemonicCard hanzi={character.hanzi} characters={characters} progress={progress} />
+          <MnemonicCard hanzi={character.hanzi} mnemonics={mnemonics} characters={characters} progress={progress} />
         </div>
       )}
     </div>
@@ -109,6 +110,7 @@ function SentenceReview({ item, result }) {
 export default function UnifiedSession({
   characters, charProgress, updateCharProgress, markCharAsSeen,
   sentences, sentenceProgress, updateSentenceProgress, markSentenceAsSeen,
+  mnemonics,
 }) {
   const { week } = useParams()
   const navigate = useNavigate()
@@ -303,7 +305,7 @@ export default function UnifiedSession({
 
       {/* Review mode */}
       {isReviewing && viewItem.type === 'character' && (
-        <CharacterReview item={viewItem} result={resultMap[viewIndex]} characters={characters} progress={charProgress} />
+        <CharacterReview item={viewItem} result={resultMap[viewIndex]} characters={characters} progress={charProgress} mnemonics={mnemonics} />
       )}
       {isReviewing && viewItem.type === 'sentence' && (
         <SentenceReview item={viewItem} result={resultMap[viewIndex]} />
@@ -320,6 +322,7 @@ export default function UnifiedSession({
             onNext={handleNext}
             characters={characters}
             progress={charProgress}
+            mnemonics={mnemonics}
           />
         ) : (
           <SentenceQuizCard
@@ -327,6 +330,7 @@ export default function UnifiedSession({
             item={currentItem}
             onAnswer={handleAnswer}
             onNext={handleNext}
+            characters={characters}
           />
         )}
       </div>

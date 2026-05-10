@@ -131,7 +131,8 @@ export default function FeedbackButton({ user }) {
                   placeholder="Was läuft nicht? Was könnte besser sein?"
                   rows={4}
                   autoFocus
-                  className="w-full px-3 py-2 border border-ink/20 rounded-lg text-base resize-none focus:outline-none focus:border-ink/40 transition-colors"
+                  style={{ fontSize: '16px' }}
+                  className="w-full px-3 py-2 border border-ink/20 rounded-lg resize-none focus:outline-none focus:border-ink/40 transition-colors"
                 />
 
                 <div className="flex gap-2">

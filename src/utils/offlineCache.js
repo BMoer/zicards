@@ -9,6 +9,7 @@ const KEYS = {
   sentences: 'zicards-cache-sentences',
   charProgress: 'zicards-cache-char-progress',
   sentProgress: 'zicards-cache-sent-progress',
+  mnemonics: 'zicards-cache-mnemonics',
   pendingUpdates: 'zicards-pending-updates',
 }
 
@@ -43,6 +44,17 @@ export function cacheCharProgress(data) {
 export function getCachedCharProgress() {
   try {
     const raw = localStorage.getItem(KEYS.charProgress)
+    return raw ? JSON.parse(raw) : null
+  } catch { return null }
+}
+
+export function cacheMnemonics(data) {
+  try { localStorage.setItem(KEYS.mnemonics, JSON.stringify(data)) } catch {}
+}
+
+export function getCachedMnemonics() {
+  try {
+    const raw = localStorage.getItem(KEYS.mnemonics)
     return raw ? JSON.parse(raw) : null
   } catch { return null }
 }

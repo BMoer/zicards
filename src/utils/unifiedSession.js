@@ -31,8 +31,8 @@ function getQuizType(type, level) {
     switch (level) {
       case 0: return 'learn'
       case 1: return 'mc-meaning'
-      case 2: return 'freetext'
-      case 3: return 'mc-hanzi'
+      case 2: return 'mc-hanzi'
+      case 3: return 'ime'
       default: return 'mc-meaning'
     }
   }

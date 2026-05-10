@@ -109,14 +109,27 @@ function speakViaWebSpeech(text, rate = 0.8) {
  * Speak Chinese text – tries Google TTS first, falls back to Web Speech API.
  * Returns a Promise that resolves when done or rejects if all methods fail.
  *
+ * Cancels any in-flight playback before starting (proxy <audio> AND
+ * speechSynthesis), so two rapid autoSpeak calls don't overlap as
+ * "Doppelton" — reported 2026-05-09 / 2026-05-10.
+ *
+ * Also tracks a session token: a stale promise that resolves later (e.g.
+ * a slow proxy that finally errors after we've already moved on) cannot
+ * trigger a second fallback for an outdated text.
+ *
  * @param {string} text - Chinese text to speak
  * @param {number} rate - Speech rate for Web Speech fallback (default 0.8)
  */
+let speakToken = 0
+
 export async function speakChinese(text, rate = 0.8) {
+  if (!text) return
+  stopSpeaking()
+  const myToken = ++speakToken
   try {
     await speakViaProxy(text)
   } catch {
-    // Proxy TTS failed – try Web Speech API
+    if (myToken !== speakToken) return // newer call superseded us
     await speakViaWebSpeech(text, rate)
   }
 }

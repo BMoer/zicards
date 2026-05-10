@@ -122,10 +122,10 @@ export function buildSession(characters, progressMap) {
         quizType = 'mc-meaning'
         break
       case 2:
-        quizType = 'freetext'
+        quizType = 'mc-hanzi'
         break
       case 3:
-        quizType = 'mc-hanzi'
+        quizType = 'ime'
         break
       default:
         quizType = 'mc-meaning'

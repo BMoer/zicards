@@ -1,23 +1,26 @@
-import { getMnemonic } from '../utils/mnemonics'
-
 /**
  * Shows a mnemonic breakdown for a character.
  * Highlights parts the user already knows (based on progress).
  *
+ * Mnemonic data is read from the `mnemonics` map (passed as prop, sourced
+ * from useMnemonics hook → `public.mnemonics` table). When the prop is
+ * missing or has no entry for the hanzi, the card renders nothing.
+ *
  * @param {string} hanzi - The character to show mnemonic for
+ * @param {Object} mnemonics - { [hanzi]: { mnemonic, parts } }
  * @param {Array} characters - All characters in the system
  * @param {Object} progress - User progress map { characterId: { level, ... } }
  */
-export default function MnemonicCard({ hanzi, characters, progress }) {
-  const data = getMnemonic(hanzi)
+export default function MnemonicCard({ hanzi, mnemonics, characters, progress }) {
+  const data = mnemonics?.[hanzi]
   if (!data) return null
 
   // Build a set of hanzi the user has already learned (level >= 1).
   // Compound rows (hanzi="多少") count as known for each of their components,
   // so a mnemonic for 名字 can highlight 多 / 少 as known.
   const knownHanzi = new Set()
-  for (const char of characters) {
-    const p = progress[char.id]
+  for (const char of characters || []) {
+    const p = progress?.[char.id]
     if (p && p.level >= 1) {
       knownHanzi.add(char.hanzi)
       for (const ch of [...char.hanzi]) {

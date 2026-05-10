@@ -1,25 +1,10 @@
 import { useState, useEffect } from 'react'
-import {
-  comparePinyin,
-  compareMeaning,
-  isPinyinToneWrong,
-  compareWordPinyin,
-  isDoubledWord,
-  isCompoundWord,
-  isMeaningClose,
-} from '../utils/pinyin'
+import { isDoubledWord, displayHanzi } from '../utils/pinyin'
 import { useAudio } from '../hooks/useAudio'
 import SpeakButton from './SpeakButton'
 import MnemonicCard from './MnemonicCard'
 import GrammarHint from './GrammarHint'
-
-/**
- * For characters like 姐 (姐姐 jiějie) the single hànzì form is misleading:
- * the word is always doubled. Use the doubled form as the visual prompt.
- */
-function displayHanzi(character) {
-  return isDoubledWord(character) ? character.word : character.hanzi
-}
+import IMESequenceInput from './IMESequenceInput'
 
 function displayPinyin(character) {
   return isDoubledWord(character) ? character.pinyin_word : character.pinyin
@@ -28,10 +13,10 @@ function displayPinyin(character) {
 /**
  * Stufe 0: Learn card (just display)
  */
-function LearnCard({ character, onNext, characters, progress }) {
+function LearnCard({ character, onNext, characters, progress, mnemonics }) {
   const { autoSpeak } = useAudio()
   useEffect(() => {
-    autoSpeak(character.word || character.hanzi)
+    autoSpeak(displayHanzi(character))
   }, [character.hanzi])
 
   const doubled = isDoubledWord(character)
@@ -40,7 +25,7 @@ function LearnCard({ character, onNext, characters, progress }) {
     <div className="text-center py-8">
       <div className="font-hanzi text-7xl mb-2">{displayHanzi(character)}</div>
       <div className="mb-4">
-        <SpeakButton text={character.word || character.hanzi} size="md" />
+        <SpeakButton text={displayHanzi(character)} size="md" />
       </div>
       {character.word && !doubled && (
         <div className="font-hanzi text-2xl text-ink/60 mb-2">{character.word}</div>
@@ -58,6 +43,7 @@ function LearnCard({ character, onNext, characters, progress }) {
       <div className="mb-6">
         <MnemonicCard
           hanzi={character.hanzi}
+          mnemonics={mnemonics}
           characters={characters}
           progress={progress}
         />
@@ -75,7 +61,7 @@ function LearnCard({ character, onNext, characters, progress }) {
 
 /**
  * Stufe 1: Hànzì → Bedeutung MC
- * Stufe 3: Bedeutung → Hànzì MC
+ * Stufe 2: Bedeutung → Hànzì MC
  */
 function MCCard({ character, options, quizType, onAnswer }) {
   const [selected, setSelected] = useState(null)
@@ -99,7 +85,7 @@ function MCCard({ character, options, quizType, onAnswer }) {
       <div className={`${promptClass} mb-2`}>{prompt}</div>
       {!isReverse && (
         <div className="mb-6">
-          <SpeakButton text={character.word || character.hanzi} size="md" />
+          <SpeakButton text={displayHanzi(character)} size="md" />
         </div>
       )}
       {isReverse && <div className="mb-8" />}
@@ -131,132 +117,38 @@ function MCCard({ character, options, quizType, onAnswer }) {
 }
 
 /**
- * Stufe 2: Hànzì → Pinyin + Bedeutung Freitext
- * Supports "half correct" when only tone is wrong
+ * Stufe 3: Bedeutung → Zeichen via IME-Eingabe.
+ * Delegates to IMESequenceInput which handles single chars and multi-char
+ * compounds (姐姐, 多少) uniformly.
  */
-function FreetextCard({ character, onAnswer }) {
-  const [pinyinInput, setPinyinInput] = useState('')
-  const [meaningInput, setMeaningInput] = useState('')
-  const [result, setResult] = useState(null)
-
-  // No auto-play – hearing the tone gives away the pinyin answer!
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    if (result) return
-
-    let pinyinCorrect, toneWrong
-    if (isDoubledWord(character)) {
-      const res = compareWordPinyin(pinyinInput, character.pinyin_word)
-      pinyinCorrect = res.correct
-      toneWrong = res.toneWrong
-    } else if (isCompoundWord(character)) {
-      const res = compareWordPinyin(pinyinInput, character.pinyin)
-      pinyinCorrect = res.correct
-      toneWrong = res.toneWrong
-    } else {
-      pinyinCorrect = comparePinyin(pinyinInput, character.pinyin_input)
-      toneWrong = !pinyinCorrect && isPinyinToneWrong(pinyinInput, character.pinyin_input)
-    }
-
-    const meaningCorrect = compareMeaning(meaningInput, character.meaning)
-    const meaningClose = !meaningCorrect && isMeaningClose(meaningInput, character.meaning)
-
-    const isCorrect = pinyinCorrect && meaningCorrect
-    // Half correct: partial credit — tone off OR meaning close but not exact
-    const isHalf = !isCorrect && (
-      (meaningCorrect && toneWrong) ||
-      (pinyinCorrect && meaningClose) ||
-      (toneWrong && meaningClose)
-    )
-
-    setResult({ pinyinCorrect, meaningCorrect, meaningClose, toneWrong, isCorrect, isHalf })
-    onAnswer(isCorrect ? true : isHalf ? 'half' : false)
-  }
+function IMECard({ character, characters, onAnswer }) {
+  const expected = displayHanzi(character)
 
   return (
     <div className="text-center py-8">
-      <div className="font-hanzi text-7xl mb-2">{displayHanzi(character)}</div>
-      <div className="mb-6">
-        <SpeakButton text={character.word || character.hanzi} size="md" />
+      <div className="text-sm text-ink/40 mb-2">Tippe Pinyin, wähle Zeichen:</div>
+      <div className="text-2xl font-medium mb-2">{character.meaning}</div>
+      <GrammarHint meaning={character.meaning} />
+
+      <div className="max-w-md mx-auto mt-6">
+        <IMESequenceInput
+          expectedSequence={expected}
+          curriculumChars={characters}
+          onComplete={onAnswer}
+        />
       </div>
-
-      <form onSubmit={handleSubmit} className="space-y-3 max-w-xs mx-auto">
-        <div>
-          <input
-            type="text"
-            value={pinyinInput}
-            onChange={(e) => setPinyinInput(e.target.value)}
-            placeholder="Pinyin (z.B. ma1)"
-            disabled={!!result}
-            autoFocus
-            className={`w-full px-4 py-3 border rounded-lg bg-white focus:outline-none transition-colors ${
-              result
-                ? result.pinyinCorrect
-                  ? 'border-sage bg-sage/5'
-                  : result.toneWrong
-                  ? 'border-amber-400 bg-amber-50'
-                  : 'border-terracotta bg-terracotta/5'
-                : 'border-ink/20 focus:border-ink/40'
-            }`}
-          />
-          {result && !result.pinyinCorrect && (
-            <p className={`text-sm mt-1 text-left ${result.toneWrong ? 'text-amber-600' : 'text-terracotta'}`}>
-              {result.toneWrong ? 'Fast! Richtiger Ton: ' : 'Richtig: '}
-              {isDoubledWord(character)
-                ? character.pinyin_word
-                : isCompoundWord(character)
-                ? character.pinyin
-                : `${character.pinyin_input} (${character.pinyin})`}
-            </p>
-          )}
-        </div>
-        <div>
-          <input
-            type="text"
-            value={meaningInput}
-            onChange={(e) => setMeaningInput(e.target.value)}
-            placeholder="Bedeutung"
-            disabled={!!result}
-            className={`w-full px-4 py-3 border rounded-lg bg-white focus:outline-none transition-colors ${
-              result
-                ? result.meaningCorrect
-                  ? 'border-sage bg-sage/5'
-                  : result.meaningClose
-                  ? 'border-amber-400 bg-amber-50'
-                  : 'border-terracotta bg-terracotta/5'
-                : 'border-ink/20 focus:border-ink/40'
-            }`}
-          />
-          {result && !result.meaningCorrect && (
-            <p className={`text-sm mt-1 text-left ${result.meaningClose ? 'text-amber-600' : 'text-terracotta'}`}>
-              {result.meaningClose ? 'Fast! Genauer: ' : 'Richtig: '}
-              {character.meaning}
-            </p>
-          )}
-        </div>
-
-        {!result && (
-          <button
-            type="submit"
-            className="w-full py-3 bg-ink text-paper rounded-lg font-medium hover:bg-ink/90 transition-colors"
-          >
-            Prüfen
-          </button>
-        )}
-      </form>
     </div>
   )
 }
 
 /**
  * Feedback overlay shown after answering.
- * Auto-advances after 1.5s when correct.
+ * Auto-plays the audio for the character so the learner hears how it sounds.
  */
-function Feedback({ character, isCorrect, isHalf, onNext, characters, progress }) {
+function Feedback({ character, isCorrect, isHalf, onNext, characters, progress, mnemonics }) {
   const { autoSpeak } = useAudio()
   useEffect(() => {
-    autoSpeak(character.word || character.hanzi)
+    autoSpeak(displayHanzi(character))
   }, [character.hanzi])
   // No auto-advance – always show mnemonic so user can read it
 
@@ -272,7 +164,7 @@ function Feedback({ character, isCorrect, isHalf, onNext, characters, progress }
       </div>
       <div className="flex items-center gap-4 mb-4">
         <span className="font-hanzi text-3xl">{displayHanzi(character)}</span>
-        <SpeakButton text={character.word || character.hanzi} size="sm" />
+        <SpeakButton text={displayHanzi(character)} size="sm" />
         <div className="text-sm text-ink/60">
           <div>{displayPinyin(character)}</div>
           <div>{character.meaning}</div>
@@ -294,7 +186,7 @@ function Feedback({ character, isCorrect, isHalf, onNext, characters, progress }
 /**
  * Main QuizCard component – delegates to subcomponents by quizType
  */
-export default function QuizCard({ item, options, onAnswer, onNext, characters, progress }) {
+export default function QuizCard({ item, options, onAnswer, onNext, characters, progress, mnemonics }) {
   const [answered, setAnswered] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
   const [isHalf, setIsHalf] = useState(false)
@@ -317,7 +209,7 @@ export default function QuizCard({ item, options, onAnswer, onNext, characters, 
   }
 
   if (item.quizType === 'learn') {
-    return <LearnCard character={item.character} onNext={handleLearnNext} characters={characters} progress={progress} />
+    return <LearnCard character={item.character} onNext={handleLearnNext} characters={characters} progress={progress} mnemonics={mnemonics} />
   }
 
   return (
@@ -338,8 +230,12 @@ export default function QuizCard({ item, options, onAnswer, onNext, characters, 
           onAnswer={handleAnswer}
         />
       )}
-      {item.quizType === 'freetext' && (
-        <FreetextCard character={item.character} onAnswer={handleAnswer} />
+      {item.quizType === 'ime' && (
+        <IMECard
+          character={item.character}
+          characters={characters}
+          onAnswer={handleAnswer}
+        />
       )}
 
       {answered && (
@@ -350,6 +246,7 @@ export default function QuizCard({ item, options, onAnswer, onNext, characters, 
           onNext={() => onNext(false)}
           characters={characters}
           progress={progress}
+          mnemonics={mnemonics}
         />
       )}
     </div>

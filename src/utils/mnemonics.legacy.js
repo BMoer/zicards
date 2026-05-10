@@ -6,7 +6,7 @@
  * mnemonic: kreativer Merksatz, der die Teile verbindet
  */
 
-const mnemonics = {
+export const MNEMONICS_LEGACY = {
   // === LEKTION 1 ===
   '叫': {
     parts: [{ char: '口', meaning: 'Mund' }, { char: '丩', meaning: 'verschlungen' }],
@@ -451,6 +451,31 @@ const mnemonics = {
     mnemonic: 'Ein fremdes (外) Land (国) – das AUSLAND. 🌍',
   },
 
+  '学习': {
+    parts: [{ char: '学', meaning: 'lernen' }, { char: '习', meaning: 'üben' }],
+    mnemonic: 'Lernen (学) und Üben (习) gehören zusammen – STUDIEREN. 📖',
+  },
+  '汉语': {
+    parts: [{ char: '汉', meaning: 'Han-Volk' }, { char: '语', meaning: 'Sprache' }],
+    mnemonic: 'Die Sprache (语) des Han-Volkes (汉) – CHINESISCH. 🇨🇳',
+  },
+  '百': {
+    parts: [],
+    mnemonic: 'Weiß (白) mit einem Strich oben – HUNDERT Schritte bis zur Spitze. 💯',
+  },
+  '法语': {
+    parts: [{ char: '法', meaning: 'Gesetz/Frankreich' }, { char: '语', meaning: 'Sprache' }],
+    mnemonic: 'Die Sprache (语) Frankreichs (法) – FRANZÖSISCH. 🇫🇷',
+  },
+  '日语': {
+    parts: [{ char: '日', meaning: 'Sonne/Japan' }, { char: '语', meaning: 'Sprache' }],
+    mnemonic: 'Die Sprache (语) der aufgehenden Sonne (日) – JAPANISCH. 🇯🇵',
+  },
+  '德语': {
+    parts: [{ char: '德', meaning: 'Tugend/Deutschland' }, { char: '语', meaning: 'Sprache' }],
+    mnemonic: 'Die Sprache (语) der Tugend (德) – DEUTSCH. 🇩🇪',
+  },
+
   // === LEKTION 5 ===
   '今': {
     parts: [],
@@ -560,11 +585,3 @@ const mnemonics = {
   },
 }
 
-/**
- * Get mnemonic data for a character
- * @param {string} hanzi
- * @returns {{ parts: Array<{char: string, meaning: string}>, mnemonic: string } | null}
- */
-export function getMnemonic(hanzi) {
-  return mnemonics[hanzi] || null
-}

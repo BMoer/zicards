@@ -3,6 +3,7 @@ import { useAuth } from './hooks/useAuth'
 import { useLessons } from './hooks/useLessons'
 import { useProgress } from './hooks/useProgress'
 import { useSentenceProgress } from './hooks/useSentenceProgress'
+import { useMnemonics } from './hooks/useMnemonics'
 import Layout from './components/Layout'
 import AuthForm from './components/AuthForm'
 import UnifiedDashboard from './components/UnifiedDashboard'
@@ -38,6 +39,7 @@ export default function App() {
     updateProgress: updateSentenceProgress,
     markAsSeen: markSentenceAsSeen,
   } = useSentenceProgress(user)
+  const { mnemonics } = useMnemonics()
 
   if (authLoading) {
     return (
@@ -95,6 +97,7 @@ export default function App() {
                   charProgress={charProgress}
                   sentenceProgress={sentenceProgress}
                   characters={characters}
+                  mnemonics={mnemonics}
                 />
               )}
             </ProtectedRoute>
@@ -118,6 +121,7 @@ export default function App() {
                   sentenceProgress={sentenceProgress}
                   updateSentenceProgress={updateSentenceProgress}
                   markSentenceAsSeen={markSentenceAsSeen}
+                  mnemonics={mnemonics}
                 />
               )}
             </ProtectedRoute>

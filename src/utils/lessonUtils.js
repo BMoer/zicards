@@ -1,8 +1,22 @@
 /**
- * Sentence ↔ Character gating logic.
- * A sentence is "unlocked" when all its non-punctuation words
- * have a matching character at level >= 2 in the user's progress.
+ * Sentence ↔ Character gating logic — "1T" rule (one-T, one new item).
+ *
+ * A sentence unlocks when at most ONE of its constituent characters is still
+ * unknown (level 0 or no progress). All others must be at level >= 1
+ * ("introduced" — answered correctly at least once). Comes from the SLA /
+ * extensive-reading consensus (Spoonfed, Refold, Krashen i+1, ER 95% rule):
+ * a sentence is most useful when it has exactly one new piece in a known
+ * context, not when every character is mastered.
+ *
+ * Replaces the prior gate ("all characters at level >= 2") which kept users
+ * out of sentence practice for far too long — confirmed by feedback
+ * "wir sollten mehr Sätze machen, die Zeichen lernt man dann eh mit"
+ * (2026-05-09) and stats showing 4/11 users had char progress but 0
+ * sentence progress under the old gate.
  */
+
+const KNOWN_LEVEL = 1 // level threshold for a char to count as "known"
+const MAX_UNKNOWN = 1 // 1T rule: at most one unknown char per sentence
 
 const PUNCT = new Set(['。', '！', '？', '，', '、', '：', '\u201c', '\u201d', '\u2018', '\u2019'])
 
@@ -48,27 +62,33 @@ export function getSentenceCharIds(sentence, hanziMap) {
 }
 
 /**
- * Check if a sentence is unlocked based on character progress.
- * Unlocked = all matching characters are at level >= 2.
+ * Count chars in a sentence that are still unknown (level 0 / no progress).
+ */
+function countUnknownChars(charIds, charProgress) {
+  return charIds.filter((id) => {
+    const p = charProgress[id]
+    return !p || p.level < KNOWN_LEVEL
+  }).length
+}
+
+/**
+ * Check if a sentence is unlocked under the 1T rule.
+ * Unlocked = at most MAX_UNKNOWN chars are unknown (level < 1).
  */
 export function isSentenceUnlocked(sentence, hanziMap, charProgress) {
   const charIds = getSentenceCharIds(sentence, hanziMap)
   if (charIds.length === 0) return true // no matching chars → unlocked by default
-  return charIds.every((id) => {
-    const p = charProgress[id]
-    return p && p.level >= 2
-  })
+  return countUnknownChars(charIds, charProgress) <= MAX_UNKNOWN
 }
 
 /**
- * For a locked sentence, return the count of characters still needed.
+ * For a locked sentence, return how many chars *beyond* the 1T allowance
+ * are still missing. 0 = unlocked, 1+ = how many more to learn before unlock.
  */
 export function getMissingCharCount(sentence, hanziMap, charProgress) {
   const charIds = getSentenceCharIds(sentence, hanziMap)
-  return charIds.filter((id) => {
-    const p = charProgress[id]
-    return !p || p.level < 2
-  }).length
+  const unknown = countUnknownChars(charIds, charProgress)
+  return Math.max(0, unknown - MAX_UNKNOWN)
 }
 
 /**

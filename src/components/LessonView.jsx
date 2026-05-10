@@ -4,6 +4,7 @@ import SpeakButton from './SpeakButton'
 import MnemonicCard from './MnemonicCard'
 import GrammarHint from './GrammarHint'
 import { buildHanziMap, isSentenceUnlocked, getMissingCharCount } from '../utils/lessonUtils'
+import { displayHanzi } from '../utils/pinyin'
 
 const levelLabels = ['Neu', 'Stufe 1', 'Stufe 2', 'Stufe 3']
 const levelColors = [
@@ -13,7 +14,7 @@ const levelColors = [
   'bg-sage text-white',
 ]
 
-function CharacterRow({ char, level, characters, progress }) {
+function CharacterRow({ char, level, characters, progress, mnemonics }) {
   const [expanded, setExpanded] = useState(false)
 
   return (
@@ -23,7 +24,7 @@ function CharacterRow({ char, level, characters, progress }) {
     >
       <div className="p-4 flex items-center gap-4">
         <div className="font-hanzi text-4xl leading-none">{char.hanzi}</div>
-        <SpeakButton text={char.word || char.hanzi} size="sm" />
+        <SpeakButton text={displayHanzi(char)} size="sm" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-ink/60 text-sm">{char.pinyin}</span>
@@ -45,7 +46,7 @@ function CharacterRow({ char, level, characters, progress }) {
       </div>
       {expanded && (
         <div className="px-4 pb-4" onClick={(e) => e.stopPropagation()}>
-          <MnemonicCard hanzi={char.hanzi} characters={characters} progress={progress} />
+          <MnemonicCard hanzi={char.hanzi} mnemonics={mnemonics} characters={characters} progress={progress} />
         </div>
       )}
     </div>
@@ -80,7 +81,7 @@ function SentenceRow({ sentence, level, unlocked, missingCount }) {
   )
 }
 
-export default function LessonView({ lessons, charProgress, sentenceProgress, characters }) {
+export default function LessonView({ lessons, charProgress, sentenceProgress, characters, mnemonics }) {
   const { week } = useParams()
   const navigate = useNavigate()
   const lesson = lessons.find((l) => l.week === parseInt(week))
@@ -134,6 +135,7 @@ export default function LessonView({ lessons, charProgress, sentenceProgress, ch
               level={level}
               characters={characters}
               progress={charProgress}
+              mnemonics={mnemonics}
             />
           )
         })}

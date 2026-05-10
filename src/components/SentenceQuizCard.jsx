@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAudio } from '../hooks/useAudio'
 import SpeakButton from './SpeakButton'
-import { getShuffledWords, checkWordOrder, checkGapAnswer, checkTranslation } from '../utils/sentenceQuiz'
+import IMESequenceInput from './IMESequenceInput'
+import { getShuffledWords, checkWordOrder } from '../utils/sentenceQuiz'
 
 /**
  * Stufe 0: Show sentence (learn card)
@@ -39,7 +40,6 @@ function SentenceLearnCard({ sentence, onNext }) {
  * Stufe 1: Word Order – arrange words into correct sentence
  */
 function WordOrderCard({ sentence, onAnswer }) {
-  const { autoSpeak } = useAudio()
   const [available, setAvailable] = useState([])
   const [selected, setSelected] = useState([])
   const [trailing, setTrailing] = useState([])
@@ -70,7 +70,8 @@ function WordOrderCard({ sentence, onAnswer }) {
     const isCorrect = checkWordOrder(userOrder, sentence.words)
     setResult(isCorrect)
     onAnswer(isCorrect)
-    if (isCorrect) autoSpeak(sentence.chinese)
+    // No autoSpeak here — SentenceFeedback auto-plays once after answer,
+    // calling it twice produces overlapping audio (reported 2026-05-10).
   }
 
   return (
@@ -138,26 +139,20 @@ function WordOrderCard({ sentence, onAnswer }) {
 }
 
 /**
- * Stufe 2: Fill the gap
+ * Stufe 2: Fill the gap via IME — type pinyin, pick the missing hànzì.
  */
-function GapCard({ sentence, onAnswer }) {
-  const { autoSpeak } = useAudio()
-  const [input, setInput] = useState('')
-  const [result, setResult] = useState(null)
+function GapCard({ sentence, characters, onAnswer }) {
+  const [done, setDone] = useState(false)
+  // Intentionally NO autoSpeak on mount: hearing the sentence before the
+  // gap is filled would just hand the learner the answer
+  // ("eigentlich machts am meisten sinn wenn wir den ton nur abspielen
+  // sobald die eingabe erfolgt ist", 2026-05-10).
 
-  useEffect(() => {
-    autoSpeak(sentence.chinese)
-  }, [sentence.id])
-
-  // Build display with gap
   const gapIndex = sentence.words.indexOf(sentence.gap_word)
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    if (result !== null) return
-    const isCorrect = checkGapAnswer(input, sentence.gap_word, sentence.words, sentence.pinyin)
-    setResult(isCorrect)
-    onAnswer(isCorrect)
+  const handleComplete = (correct) => {
+    setDone(true)
+    onAnswer(correct)
   }
 
   return (
@@ -169,77 +164,46 @@ function GapCard({ sentence, onAnswer }) {
           {sentence.words.map((w, i) => {
             if (i === gapIndex) {
               return (
-                <span key={i} className={`inline-block min-w-[3em] border-b-2 text-center mx-0.5 ${
-                  result === null
-                    ? 'border-terracotta/50'
-                    : result
-                    ? 'border-sage text-sage'
-                    : 'border-terracotta text-terracotta'
-                }`}>
-                  {result !== null ? sentence.gap_word : '___'}
+                <span
+                  key={i}
+                  className={`inline-block min-w-[3em] border-b-2 text-center mx-0.5 ${
+                    done ? 'border-ink/30 text-ink/50' : 'border-terracotta/50'
+                  }`}
+                >
+                  {done ? sentence.gap_word : '___'}
                 </span>
               )
             }
             return <span key={i}>{w}</span>
           })}
         </div>
-        {sentence.gap_hint && result === null && (
+        {sentence.gap_hint && !done && (
           <div className="text-xs text-ink/30 mt-2">Hinweis: {sentence.gap_hint}</div>
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="max-w-xs mx-auto">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="汉字 oder Pinyin (z.B. bu4)"
-          disabled={result !== null}
-          autoFocus
-          autoComplete="off"
-          autoCorrect="off"
-          spellCheck="false"
-          className={`w-full px-4 py-3 border rounded-lg bg-white focus:outline-none text-center font-hanzi text-lg transition-colors ${
-            result === null
-              ? 'border-ink/20 focus:border-ink/40'
-              : result
-              ? 'border-sage bg-sage/5'
-              : 'border-terracotta bg-terracotta/5'
-          }`}
+      <div className="max-w-md mx-auto">
+        <IMESequenceInput
+          expectedSequence={sentence.gap_word}
+          curriculumChars={characters}
+          onComplete={handleComplete}
+          disabled={done}
         />
-        {result !== null && !result && (
-          <p className="text-sm text-terracotta mt-2 text-center">
-            Richtig: <span className="font-hanzi">{sentence.gap_word}</span>
-          </p>
-        )}
-        {result === null && (
-          <button
-            type="submit"
-            className="w-full mt-3 py-3 bg-ink text-paper rounded-lg font-medium hover:bg-ink/90 transition-colors"
-          >
-            Prüfen
-          </button>
-        )}
-      </form>
+      </div>
     </div>
   )
 }
 
 /**
- * Stufe 3: Translate German → Chinese
+ * Stufe 3: Translate German → Chinese — full sentence via IME, char by char.
  */
-function TranslateCard({ sentence, onAnswer }) {
-  const [input, setInput] = useState('')
-  const [result, setResult] = useState(null)
-  const { autoSpeak } = useAudio()
+function TranslateCard({ sentence, characters, onAnswer }) {
+  const [done, setDone] = useState(false)
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    if (result !== null) return
-    const isCorrect = checkTranslation(input, sentence.chinese, sentence.pinyin)
-    setResult(isCorrect)
-    onAnswer(isCorrect)
-    if (isCorrect) autoSpeak(sentence.chinese)
+  const handleComplete = (correct) => {
+    setDone(true)
+    onAnswer(correct)
+    // No autoSpeak here — SentenceFeedback handles it on mount.
   }
 
   return (
@@ -249,36 +213,14 @@ function TranslateCard({ sentence, onAnswer }) {
         <div className="text-xl font-medium">{sentence.german}</div>
       </div>
 
-      <form onSubmit={handleSubmit} className="max-w-xs mx-auto">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="汉字 oder Pinyin (z.B. ni3 hao3)"
-          disabled={result !== null}
-          autoFocus
-          className={`w-full px-4 py-3 border rounded-lg bg-white focus:outline-none text-center font-hanzi text-lg transition-colors ${
-            result === null
-              ? 'border-ink/20 focus:border-ink/40'
-              : result
-              ? 'border-sage bg-sage/5'
-              : 'border-terracotta bg-terracotta/5'
-          }`}
+      <div className="max-w-md mx-auto">
+        <IMESequenceInput
+          expectedSequence={sentence.words}
+          curriculumChars={characters}
+          onComplete={handleComplete}
+          disabled={done}
         />
-        {result !== null && !result && (
-          <p className="text-sm text-terracotta mt-2 text-center">
-            Richtig: <span className="font-hanzi">{sentence.chinese}</span>
-          </p>
-        )}
-        {result === null && (
-          <button
-            type="submit"
-            className="w-full mt-3 py-3 bg-ink text-paper rounded-lg font-medium hover:bg-ink/90 transition-colors"
-          >
-            Prüfen
-          </button>
-        )}
-      </form>
+      </div>
     </div>
   )
 }
@@ -288,6 +230,14 @@ function TranslateCard({ sentence, onAnswer }) {
  */
 function SentenceFeedback({ sentence, isCorrect, onNext }) {
   const timerRef = useRef(null)
+  const { autoSpeak } = useAudio()
+
+  // Always play the audio after answering — fulfils the
+  // "Ich hätte gerne den Sound gehört wenn ich die Frage beantwortet habe"
+  // feedback (2026-04-30) and supports passive tone learning.
+  useEffect(() => {
+    autoSpeak(sentence.chinese)
+  }, [sentence.id])
 
   // Auto-advance when correct
   useEffect(() => {
@@ -325,7 +275,7 @@ function SentenceFeedback({ sentence, isCorrect, onNext }) {
 /**
  * Main SentenceQuizCard – delegates to sub-components by quizType
  */
-export default function SentenceQuizCard({ item, onAnswer, onNext }) {
+export default function SentenceQuizCard({ item, onAnswer, onNext, characters }) {
   const [answered, setAnswered] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
 
@@ -350,10 +300,10 @@ export default function SentenceQuizCard({ item, onAnswer, onNext }) {
         <WordOrderCard sentence={item.sentence} onAnswer={handleAnswer} />
       )}
       {item.quizType === 'gap' && (
-        <GapCard sentence={item.sentence} onAnswer={handleAnswer} />
+        <GapCard sentence={item.sentence} characters={characters} onAnswer={handleAnswer} />
       )}
       {item.quizType === 'translate' && (
-        <TranslateCard sentence={item.sentence} onAnswer={handleAnswer} />
+        <TranslateCard sentence={item.sentence} characters={characters} onAnswer={handleAnswer} />
       )}
       {answered && (
         <SentenceFeedback
