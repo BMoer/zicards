@@ -9,6 +9,11 @@ import { getUnlockedSentences } from './lessonUtils'
 const SESSION_SIZE = 15
 const MAX_NEW_CHARS = 5
 const MAX_NEW_SENTENCES = 3
+// Reserve a minimum number of sentence slots so a power user — whose char
+// queue is dense with not-due reviews — never gets a session of pure chars
+// while sentences are sitting in the (lower-priority) not-due bucket.
+// Reported 2026-05-11: "Lektion 1 vorausgewählt, keine Sätze zum üben".
+const MIN_SENTS_PER_SESSION = 4
 
 function annotateCharacter(char, progressMap) {
   const p = progressMap[char.id]
@@ -80,19 +85,39 @@ export function buildUnifiedSession(characters, charProgress, sentences, sentenc
   const notDueChars = chars.filter((a) => a.level > 0 && !a.isDue).sort((a, b) => a.nextReview - b.nextReview)
   const notDueSents = sents.filter((a) => a.level > 0 && !a.isDue).sort((a, b) => a.nextReview - b.nextReview)
 
-  // Build session by priority
+  // Build session by priority. Chars share a budget that leaves at least
+  // MIN_SENTS_PER_SESSION slots for sentences when any sentences are
+  // available — without this cap, a saturated not-due char queue silently
+  // crowds out the entire sentence queue.
   const selected = []
-  const add = (pool, max) => {
+  const targetSents = Math.min(MIN_SENTS_PER_SESSION, sents.length)
+  const charBudget = SESSION_SIZE - targetSents
+  let charsSelected = 0
+
+  const addChars = (pool, max) => {
+    const remaining = Math.min(
+      max,
+      SESSION_SIZE - selected.length,
+      charBudget - charsSelected
+    )
+    if (remaining <= 0) return
+    const picked = pool.slice(0, remaining)
+    selected.push(...picked)
+    charsSelected += picked.length
+  }
+
+  const addSents = (pool, max) => {
     const remaining = Math.min(max, SESSION_SIZE - selected.length)
+    if (remaining <= 0) return
     selected.push(...pool.slice(0, remaining))
   }
 
-  add(dueChars, SESSION_SIZE)
-  add(dueSents, SESSION_SIZE)
-  add(newChars, MAX_NEW_CHARS)
-  add(newSents, MAX_NEW_SENTENCES)
-  add(notDueChars, SESSION_SIZE)
-  add(notDueSents, SESSION_SIZE)
+  addChars(dueChars, SESSION_SIZE)
+  addSents(dueSents, SESSION_SIZE)
+  addChars(newChars, MAX_NEW_CHARS)
+  addSents(newSents, MAX_NEW_SENTENCES)
+  addChars(notDueChars, SESSION_SIZE)
+  addSents(notDueSents, SESSION_SIZE)
 
   return selected.slice(0, SESSION_SIZE).map(({ type, item, level }) => ({
     type,
