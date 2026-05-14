@@ -4,7 +4,7 @@ import SpeakButton from './SpeakButton'
 import MnemonicCard from './MnemonicCard'
 import GrammarHint from './GrammarHint'
 import { buildHanziMap, isSentenceUnlocked, getMissingCharCount } from '../utils/lessonUtils'
-import { displayHanzi } from '../utils/pinyin'
+import { displayHanzi, displayPinyin, usesCompoundForm } from '../utils/pinyin'
 
 const levelLabels = ['Neu', 'Stufe 1', 'Stufe 2', 'Stufe 3']
 const levelColors = [
@@ -23,12 +23,12 @@ function CharacterRow({ char, level, characters, progress, mnemonics }) {
       onClick={() => setExpanded(!expanded)}
     >
       <div className="p-4 flex items-center gap-4">
-        <div className="font-hanzi text-4xl leading-none">{char.hanzi}</div>
+        <div className="font-hanzi text-4xl leading-none">{displayHanzi(char)}</div>
         <SpeakButton text={displayHanzi(char)} size="sm" />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-ink/60 text-sm">{char.pinyin}</span>
-            {char.word && (
+            <span className="text-ink/60 text-sm">{displayPinyin(char)}</span>
+            {char.word && !usesCompoundForm(char) && (
               <span className="text-ink/40 text-sm">
                 {char.word} ({char.pinyin_word})
               </span>

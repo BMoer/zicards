@@ -42,6 +42,13 @@ describe('displayHanzi (audio-display sync source-of-truth)', () => {
     expect(displayHanzi({ hanzi: '下', word: '下午' })).toBe('下')
   })
 
+  it('returns the compound for chars with ambiguous standalone TTS reading', () => {
+    // 觉 reads as "jué" alone (觉得) but "jiào" in 睡觉. Without this branch
+    // Google TTS would speak "jué" while the card teaches "jiào / Schlaf".
+    // Reported by Karl 2026-05-13.
+    expect(displayHanzi({ hanzi: '觉', word: '睡觉' })).toBe('睡觉')
+  })
+
   it('returns the multi-char hanzi for compound rows (hanzi="上午", word=null)', () => {
     expect(displayHanzi({ hanzi: '上午', word: null })).toBe('上午')
   })

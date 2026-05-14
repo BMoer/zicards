@@ -1,14 +1,10 @@
 import { useState, useEffect } from 'react'
-import { isDoubledWord, displayHanzi, meaningForQuiz } from '../utils/pinyin'
+import { displayHanzi, displayPinyin, usesCompoundForm, meaningForQuiz } from '../utils/pinyin'
 import { useAudio } from '../hooks/useAudio'
 import SpeakButton from './SpeakButton'
 import MnemonicCard from './MnemonicCard'
 import GrammarHint from './GrammarHint'
 import IMESequenceInput from './IMESequenceInput'
-
-function displayPinyin(character) {
-  return isDoubledWord(character) ? character.pinyin_word : character.pinyin
-}
 
 /**
  * Stufe 0: Learn card (just display)
@@ -19,7 +15,7 @@ function LearnCard({ character, onNext, characters, progress, mnemonics }) {
     autoSpeak(displayHanzi(character))
   }, [character.hanzi])
 
-  const doubled = isDoubledWord(character)
+  const showsCompound = usesCompoundForm(character)
 
   return (
     <div className="text-center py-8">
@@ -27,11 +23,11 @@ function LearnCard({ character, onNext, characters, progress, mnemonics }) {
       <div className="mb-4">
         <SpeakButton text={displayHanzi(character)} size="md" />
       </div>
-      {character.word && !doubled && (
+      {character.word && !showsCompound && (
         <div className="font-hanzi text-2xl text-ink/60 mb-2">{character.word}</div>
       )}
       <div className="text-lg text-ink/60 mb-1">{displayPinyin(character)}</div>
-      {character.pinyin_word && !doubled && (
+      {character.pinyin_word && !showsCompound && (
         <div className="text-sm text-ink/40 mb-3">{character.pinyin_word}</div>
       )}
       <div className="text-xl font-medium mb-2">{character.meaning}</div>

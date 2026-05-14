@@ -4,7 +4,7 @@ import { buildUnifiedSession } from '../utils/unifiedSession'
 import { generateMCOptions } from '../utils/quiz'
 import { saveUnifiedSession, loadUnifiedSession, clearUnifiedSession } from '../utils/sessionStore'
 import { useAudio } from '../hooks/useAudio'
-import { displayHanzi } from '../utils/pinyin'
+import { displayHanzi, displayPinyin, usesCompoundForm } from '../utils/pinyin'
 import SpeakButton from './SpeakButton'
 import MnemonicCard from './MnemonicCard'
 import QuizCard from './QuizCard'
@@ -24,14 +24,16 @@ function CharacterReview({ item, result, characters, progress, mnemonics }) {
     autoSpeak(displayHanzi(character))
   }, [character.hanzi])
 
+  const showsCompound = usesCompoundForm(character)
+
   if (result?.isLearn) {
     return (
       <div className="text-center py-8">
-        <div className="font-hanzi text-7xl mb-4">{character.hanzi}</div>
+        <div className="font-hanzi text-7xl mb-4">{displayHanzi(character)}</div>
         <div className="mb-4"><SpeakButton text={displayHanzi(character)} size="md" /></div>
-        {character.word && <div className="font-hanzi text-2xl text-ink/60 mb-2">{character.word}</div>}
-        <div className="text-lg text-ink/60 mb-1">{character.pinyin}</div>
-        {character.pinyin_word && <div className="text-sm text-ink/40 mb-3">{character.pinyin_word}</div>}
+        {character.word && !showsCompound && <div className="font-hanzi text-2xl text-ink/60 mb-2">{character.word}</div>}
+        <div className="text-lg text-ink/60 mb-1">{displayPinyin(character)}</div>
+        {character.pinyin_word && !showsCompound && <div className="text-sm text-ink/40 mb-3">{character.pinyin_word}</div>}
         <div className="text-xl font-medium mb-2">{character.meaning}</div>
         {character.radical && <div className="text-sm text-ink/40 mb-4">Radikal: {character.radical}</div>}
         <div className="mt-4">
@@ -44,11 +46,11 @@ function CharacterReview({ item, result, characters, progress, mnemonics }) {
 
   return (
     <div className="text-center py-8">
-      <div className="font-hanzi text-7xl mb-4">{character.hanzi}</div>
+      <div className="font-hanzi text-7xl mb-4">{displayHanzi(character)}</div>
       <div className="mb-4"><SpeakButton text={displayHanzi(character)} size="md" /></div>
-      {character.word && <div className="font-hanzi text-2xl text-ink/60 mb-2">{character.word}</div>}
-      <div className="text-lg text-ink/60 mb-1">{character.pinyin}</div>
-      {character.pinyin_word && <div className="text-sm text-ink/40 mb-3">{character.pinyin_word}</div>}
+      {character.word && !showsCompound && <div className="font-hanzi text-2xl text-ink/60 mb-2">{character.word}</div>}
+      <div className="text-lg text-ink/60 mb-1">{displayPinyin(character)}</div>
+      {character.pinyin_word && !showsCompound && <div className="text-sm text-ink/40 mb-3">{character.pinyin_word}</div>}
       <div className="text-xl font-medium mb-4">{character.meaning}</div>
 
       {result && (
