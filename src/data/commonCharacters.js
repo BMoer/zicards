@@ -254,6 +254,7 @@ export const COMMON_CHARS = [
   { hanzi: '用', pinyin_input: 'yong4', freq: 66 },
   { hanzi: '邮', pinyin_input: 'you2', freq: 855 },
   { hanzi: '游', pinyin_input: 'you2', freq: 865 },
+  { hanzi: '友', pinyin_input: 'you3', freq: 460 },
   { hanzi: '有', pinyin_input: 'you3', freq: 13 },
   { hanzi: '右', pinyin_input: 'you4', freq: 875 },
   { hanzi: '雨', pinyin_input: 'yu3', freq: 885 },
