@@ -96,7 +96,11 @@ export function useSentenceProgress(user) {
           }
       const oldLevel = record.level
 
-      if (isCorrect) {
+      // 'half' = correct-but-hint-assisted: neutral, no streak change.
+      // Mirrors useProgress.js for characters.
+      if (isCorrect === 'half') {
+        // Don't touch streaks
+      } else if (isCorrect) {
         record.correct_streak = (record.correct_streak || 0) + 1
         record.incorrect_streak = 0
       } else {
@@ -117,7 +121,9 @@ export function useSentenceProgress(user) {
       record.last_practiced = new Date().toISOString()
 
       // Spaced repetition
-      if (isCorrect) {
+      if (isCorrect === 'half') {
+        // Keep current next_review (don't push out, don't reset)
+      } else if (isCorrect) {
         record.next_review = calculateNextReview(record.correct_streak)
       } else {
         record.next_review = calculateNextReview(0)

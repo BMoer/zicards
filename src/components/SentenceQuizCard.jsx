@@ -46,6 +46,7 @@ function WordOrderCard({ sentence, onAnswer }) {
   const [selected, setSelected] = useState([])
   const [trailing, setTrailing] = useState([])
   const [result, setResult] = useState(null)
+  const [hintUsed, setHintUsed] = useState(false)
 
   useEffect(() => {
     const { shuffled, trailing: t } = getShuffledWords(sentence.words)
@@ -53,6 +54,7 @@ function WordOrderCard({ sentence, onAnswer }) {
     setSelected([])
     setTrailing(t)
     setResult(null)
+    setHintUsed(false)
   }, [sentence.id])
 
   const handleSelect = (item) => {
@@ -72,7 +74,7 @@ function WordOrderCard({ sentence, onAnswer }) {
     const isCorrect = checkWordOrder(userOrder, sentence.words)
     setResult(isCorrect)
     if (isCorrect) {
-      onAnswer(true)
+      onAnswer(hintUsed ? 'half' : true)
     } else {
       const punct = new Set(['。', '！', '？', '，', '、'])
       const correctFiltered = sentence.words.filter((w) => !punct.has(w))
@@ -133,6 +135,26 @@ function WordOrderCard({ sentence, onAnswer }) {
         ))}
       </div>
 
+      {result === null && (
+        <div className="flex flex-col items-center gap-2 mb-2">
+          <SpeakButton
+            text={sentence.chinese}
+            size="md"
+            onPlay={() => setHintUsed(true)}
+            title={
+              hintUsed
+                ? 'Audio gehört (zählt als Hilfe — max. neutral statt richtig)'
+                : 'Audio als Hilfe anhören (zählt dann nicht als richtig)'
+            }
+          />
+          {hintUsed && (
+            <div className="text-xs text-amber-700/70">
+              Audio gehört — wird als neutral statt richtig gewertet.
+            </div>
+          )}
+        </div>
+      )}
+
       {result === null && selected.length > 0 && available.length === 0 && (
         <button
           onClick={handleCheck}
@@ -163,9 +185,10 @@ function GapCard({ sentence, characters, mnemonics, progress, onAnswer }) {
 
   const gapIndex = sentence.words.indexOf(sentence.gap_word)
 
-  const handleComplete = (correct) => {
+  const handleComplete = (correct, hintUsed) => {
     setDone(true)
-    onAnswer(correct)
+    if (!correct) onAnswer(false)
+    else onAnswer(hintUsed ? 'half' : true)
   }
 
   return (
@@ -216,9 +239,10 @@ function GapCard({ sentence, characters, mnemonics, progress, onAnswer }) {
 function TranslateCard({ sentence, characters, mnemonics, progress, onAnswer }) {
   const [done, setDone] = useState(false)
 
-  const handleComplete = (correct) => {
+  const handleComplete = (correct, hintUsed) => {
     setDone(true)
-    onAnswer(correct)
+    if (!correct) onAnswer(false)
+    else onAnswer(hintUsed ? 'half' : true)
     // No autoSpeak here — SentenceFeedback handles it on mount.
   }
 
@@ -270,7 +294,7 @@ function WordOrderGrammarHint({ hint }) {
   )
 }
 
-function SentenceFeedback({ sentence, isCorrect, hint, onNext }) {
+function SentenceFeedback({ sentence, isCorrect, isHalf, hint, onNext }) {
   const timerRef = useRef(null)
   const { autoSpeak } = useAudio()
 
@@ -281,23 +305,30 @@ function SentenceFeedback({ sentence, isCorrect, hint, onNext }) {
     autoSpeak(sentence.chinese)
   }, [sentence.id])
 
-  // Auto-advance when correct
+  // Auto-advance when correct (or half-credit — answer was right, just
+  // hint-assisted, no need to dwell on the reveal).
   useEffect(() => {
-    if (isCorrect) {
+    if (isCorrect || isHalf) {
       timerRef.current = setTimeout(() => onNext(), 1800)
     }
     return () => clearTimeout(timerRef.current)
-  }, [isCorrect])
+  }, [isCorrect, isHalf])
+
+  const statusIcon = isCorrect ? '✓' : isHalf ? '~' : '✗'
+  const statusColor = isCorrect ? 'text-sage' : isHalf ? 'text-amber-500' : 'text-terracotta'
+  const statusText = isCorrect
+    ? 'Richtig!'
+    : isHalf
+    ? 'Richtig — mit Audio-Hilfe (zählt neutral).'
+    : 'Nicht ganz.'
 
   return (
     <div className="mt-6 p-4 border border-ink/10 rounded-lg">
       <div className="flex items-center gap-3 mb-3">
-        <span className={`text-2xl ${isCorrect ? 'text-sage' : 'text-terracotta'}`}>
-          {isCorrect ? '✓' : '✗'}
-        </span>
-        <span className="font-medium">{isCorrect ? 'Richtig!' : 'Nicht ganz.'}</span>
+        <span className={`text-2xl ${statusColor}`}>{statusIcon}</span>
+        <span className="font-medium">{statusText}</span>
       </div>
-      {!isCorrect && <WordOrderGrammarHint hint={hint} />}
+      {!isCorrect && !isHalf && <WordOrderGrammarHint hint={hint} />}
       <div className="mb-4">
         <div className="flex items-center gap-2 mb-1">
           <span className="font-hanzi text-xl">{sentence.chinese}</span>
@@ -306,7 +337,7 @@ function SentenceFeedback({ sentence, isCorrect, hint, onNext }) {
         <div className="text-sm text-ink/50">{sentence.pinyin}</div>
         <div className="text-sm text-ink/60">{sentence.german}</div>
       </div>
-      {isCorrect ? (
+      {(isCorrect || isHalf) ? (
         <p className="text-center text-xs text-ink/30 mt-3">Automatisch weiter…</p>
       ) : (
         <p className="text-center text-xs text-ink/30 mt-3">Swipe oder → für weiter</p>
@@ -321,11 +352,18 @@ function SentenceFeedback({ sentence, isCorrect, hint, onNext }) {
 export default function SentenceQuizCard({ item, onAnswer, onNext, characters, mnemonics, progress }) {
   const [answered, setAnswered] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
+  const [isHalf, setIsHalf] = useState(false)
   const [hint, setHint] = useState(null)
 
   const handleAnswer = (correct, answerHint = null) => {
     setAnswered(true)
-    setIsCorrect(correct)
+    if (correct === 'half') {
+      setIsCorrect(false)
+      setIsHalf(true)
+    } else {
+      setIsCorrect(!!correct)
+      setIsHalf(false)
+    }
     setHint(answerHint)
     onAnswer(correct)
   }
@@ -354,6 +392,7 @@ export default function SentenceQuizCard({ item, onAnswer, onNext, characters, m
         <SentenceFeedback
           sentence={item.sentence}
           isCorrect={isCorrect}
+          isHalf={isHalf}
           hint={hint}
           onNext={() => onNext(false)}
         />

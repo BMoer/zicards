@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { isDoubledWord, displayHanzi, meaningForQuiz } from './pinyin'
+import { isDoubledWord, displayHanzi, meaningForQuiz, hasCompoundOnlyMeaning } from './pinyin'
 
 describe('isDoubledWord', () => {
   it('true for canonical doubled forms', () => {
@@ -53,9 +53,51 @@ describe('displayHanzi (audio-display sync source-of-truth)', () => {
     expect(displayHanzi({ hanzi: '上午', word: null })).toBe('上午')
   })
 
+  it('returns the compound for chars whose meaning belongs to the compound', () => {
+    // Curated set: 昨/明 alone don't bear the German meaning
+    // ("gestern"/"morgen" are 昨天/明天). Quizzing the bare single char
+    // produced wrong-feeling cards (reported 2026-05-18).
+    expect(displayHanzi({ hanzi: '昨', word: '昨天', meaning: 'gestern' })).toBe('昨天')
+    expect(displayHanzi({ hanzi: '明', word: '明天', meaning: 'morgen' })).toBe('明天')
+    // Auto-detected via "in <hanzi-word>:" prefix in meaning
+    expect(
+      displayHanzi({ hanzi: '奥', word: '奥地利', meaning: 'in 奥地利: Österreich' })
+    ).toBe('奥地利')
+  })
+
   it('handles null/undefined character without crashing', () => {
     expect(displayHanzi(null)).toBe('')
     expect(displayHanzi(undefined)).toBe('')
+  })
+})
+
+describe('hasCompoundOnlyMeaning', () => {
+  it('true for curated compound-only chars', () => {
+    expect(hasCompoundOnlyMeaning({ hanzi: '昨', word: '昨天', meaning: 'gestern' })).toBe(true)
+    expect(hasCompoundOnlyMeaning({ hanzi: '明', word: '明天', meaning: 'morgen' })).toBe(true)
+  })
+
+  it('true when meaning starts with "in <hanzi-word>:" prefix', () => {
+    expect(
+      hasCompoundOnlyMeaning({ hanzi: '奥', word: '奥地利', meaning: 'in 奥地利: Österreich' })
+    ).toBe(true)
+  })
+
+  it('false for plain single-char meanings', () => {
+    expect(hasCompoundOnlyMeaning({ hanzi: '我', word: null, meaning: 'ich' })).toBe(false)
+    expect(hasCompoundOnlyMeaning({ hanzi: '上', word: '上午', meaning: 'Vormittag' })).toBe(false)
+    expect(hasCompoundOnlyMeaning({ hanzi: '多', word: '多少', meaning: 'wie viel' })).toBe(false)
+  })
+
+  it('false when hanzi equals word (e.g. multi-char compound row)', () => {
+    expect(
+      hasCompoundOnlyMeaning({ hanzi: '昨', word: '昨', meaning: 'gestern' })
+    ).toBe(false)
+  })
+
+  it('false on missing fields', () => {
+    expect(hasCompoundOnlyMeaning({})).toBe(false)
+    expect(hasCompoundOnlyMeaning(null)).toBe(false)
   })
 })
 

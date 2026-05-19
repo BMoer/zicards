@@ -62,6 +62,7 @@ function LearnCard({ character, onNext, characters, progress, mnemonics }) {
 function MCCard({ character, options, quizType, onAnswer }) {
   const [selected, setSelected] = useState(null)
   const [answered, setAnswered] = useState(false)
+  const [hintUsed, setHintUsed] = useState(false)
 
   const isReverse = quizType === 'mc-hanzi'
   const prompt = isReverse ? meaningForQuiz(character.meaning) : displayHanzi(character)
@@ -73,7 +74,8 @@ function MCCard({ character, options, quizType, onAnswer }) {
     if (answered) return
     setSelected(option)
     setAnswered(true)
-    onAnswer(option.isCorrect ? true : false)
+    if (!option.isCorrect) onAnswer(false)
+    else onAnswer(hintUsed ? 'half' : true)
   }
 
   return (
@@ -84,7 +86,25 @@ function MCCard({ character, options, quizType, onAnswer }) {
           <SpeakButton text={displayHanzi(character)} size="md" />
         </div>
       )}
-      {isReverse && <div className="mb-8" />}
+      {isReverse && (
+        <div className="mb-6 flex flex-col items-center gap-1">
+          <SpeakButton
+            text={displayHanzi(character)}
+            size="md"
+            onPlay={() => setHintUsed(true)}
+            title={
+              hintUsed
+                ? 'Audio gehört (zählt als Hilfe — max. neutral statt richtig)'
+                : 'Audio als Hilfe anhören (zählt dann nicht als richtig)'
+            }
+          />
+          {hintUsed && (
+            <div className="text-xs text-amber-700/70">
+              Audio gehört — wird als neutral statt richtig gewertet.
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3">
         {options.map((opt, i) => {
@@ -120,6 +140,11 @@ function MCCard({ character, options, quizType, onAnswer }) {
 function IMECard({ character, characters, onAnswer }) {
   const expected = displayHanzi(character)
 
+  const handleComplete = (correct, hintUsed) => {
+    if (!correct) onAnswer(false)
+    else onAnswer(hintUsed ? 'half' : true)
+  }
+
   return (
     <div className="text-center py-8">
       <div className="text-sm text-ink/40 mb-2">Tippe Pinyin, wähle Zeichen:</div>
@@ -130,7 +155,8 @@ function IMECard({ character, characters, onAnswer }) {
         <IMESequenceInput
           expectedSequence={expected}
           curriculumChars={characters}
-          onComplete={onAnswer}
+          onComplete={handleComplete}
+          hintAudioText={expected}
         />
       </div>
     </div>
@@ -170,6 +196,7 @@ function Feedback({ character, isCorrect, isHalf, onNext, characters, progress, 
 
       <MnemonicCard
         hanzi={character.hanzi}
+        mnemonics={mnemonics}
         characters={characters}
         progress={progress}
       />

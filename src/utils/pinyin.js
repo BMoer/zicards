@@ -43,6 +43,31 @@ export function hasAmbiguousStandaloneReading(character) {
 }
 
 /**
+ * Characters where the German meaning belongs to the compound, not the
+ * single character — quizzing the bare hanzi creates wrong-feeling cards
+ * because the morpheme alone doesn't bear that meaning. Examples:
+ *   昨 alone ≠ "gestern" (only 昨天 means "yesterday")
+ *   明 alone ≠ "morgen" (明 = bright; 明天 = tomorrow)
+ *   奥 alone ≠ "Österreich" (clipped form; 奥地利 is the country name)
+ *
+ * The 奥 case is already self-marked via the "in 奥地利:" prefix in the
+ * meaning column, so we auto-detect that. For 昨/明 the meaning is just
+ * the bare German word, so we maintain a curated set.
+ *
+ * Reported via screenshot feedback 2026-05-18.
+ */
+const COMPOUND_ONLY_MEANING_HANZI = new Set(['昨', '明'])
+const MEANING_IN_COMPOUND_PREFIX = /^in\s+\S*[一-鿿]\S*\s*:/
+
+export function hasCompoundOnlyMeaning(character) {
+  if (!character?.hanzi || !character?.word) return false
+  if (character.hanzi === character.word) return false
+  if (COMPOUND_ONLY_MEANING_HANZI.has(character.hanzi)) return true
+  if (character.meaning && MEANING_IN_COMPOUND_PREFIX.test(character.meaning)) return true
+  return false
+}
+
+/**
  * The string that should be both *displayed* and *spoken* for a character row.
  * Single source of truth — used by every SpeakButton, autoSpeak, and visual
  * prompt to keep audio in sync with what the learner sees on screen.
@@ -69,7 +94,11 @@ export function displayHanzi(character) {
  * form, or because its standalone TTS reading is ambiguous.
  */
 export function usesCompoundForm(character) {
-  return isDoubledWord(character) || hasAmbiguousStandaloneReading(character)
+  return (
+    isDoubledWord(character) ||
+    hasAmbiguousStandaloneReading(character) ||
+    hasCompoundOnlyMeaning(character)
+  )
 }
 
 /**

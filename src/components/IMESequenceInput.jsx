@@ -16,13 +16,19 @@ const PUNCT = new Set(['。', '！', '？', '，', '、', '：', '；', '"', '"'
  * 2026-05-10).
  *
  * Props:
- *   expectedSequence - string of hànzì OR array (sentence words). Punctuation
- *                      is stripped from comparison and re-added in the
- *                      reveal display.
- *   curriculumChars  - characters table rows; used both as IME candidates
- *                      and to look up meanings of mis-picks.
- *   onComplete(ok)   - called once when the user submits.
+ *   expectedSequence    - string of hànzì OR array (sentence words). Punctuation
+ *                         is stripped from comparison and re-added in the
+ *                         reveal display.
+ *   curriculumChars     - characters table rows; used both as IME candidates
+ *                         and to look up meanings of mis-picks.
+ *   onComplete(ok, hintUsed) - called once when the user submits. hintUsed
+ *                         is true when the audio-hint button was played
+ *                         before submit; the parent should downgrade a
+ *                         correct answer to half-credit.
  *   disabled
+ *   hintAudioText       - if set, renders a SpeakButton beside Fertig that
+ *                         plays this text. Marks the answer as
+ *                         hint-assisted when used.
  */
 export default function IMESequenceInput({
   expectedSequence,
@@ -33,6 +39,7 @@ export default function IMESequenceInput({
   disabled = false,
   hintAudioText = null,
 }) {
+  const [hintUsed, setHintUsed] = useState(false)
   const expectedChars = useMemo(
     () =>
       Array.isArray(expectedSequence)
@@ -66,7 +73,7 @@ export default function IMESequenceInput({
       picked.length === expectedPickChars.length &&
       picked.every((p, i) => p === expectedPickChars[i])
     setSubmitted({ correct })
-    onComplete(correct)
+    onComplete(correct, hintUsed)
   }
 
   // Look up meaning of a hanzi from curriculumChars (search both single
@@ -200,9 +207,23 @@ export default function IMESequenceInput({
               Fertig
             </button>
             {hintAudioText && (
-              <SpeakButton text={hintAudioText} size="md" />
+              <SpeakButton
+                text={hintAudioText}
+                size="md"
+                onPlay={() => setHintUsed(true)}
+                title={
+                  hintUsed
+                    ? 'Audio gehört (zählt als Hilfe — max. neutral statt richtig)'
+                    : 'Audio als Hilfe anhören (zählt dann nicht als richtig)'
+                }
+              />
             )}
           </div>
+          {hintUsed && (
+            <div className="text-xs text-amber-700/70 text-center">
+              Audio gehört — wird als neutral statt richtig gewertet.
+            </div>
+          )}
 
           <IMEInput
             curriculumChars={curriculumChars}

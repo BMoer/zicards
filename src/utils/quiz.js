@@ -1,11 +1,12 @@
-import { isDoubledWord, meaningForQuiz } from './pinyin'
+import { displayHanzi, meaningForQuiz } from './pinyin'
 
 /**
- * Display value for the `hanzi` field: doubled words (姐姐) instead of the
- * bare single character when applicable.
+ * Display value for an MC option when the field is `hanzi`. Mirrors what
+ * the user will see as the question prompt (doubled words like 姐姐 and
+ * compound-only-meaning chars like 昨天 instead of the bare hanzi).
  */
 function hanziValue(character) {
-  return isDoubledWord(character) ? character.word : character.hanzi
+  return displayHanzi(character)
 }
 
 /**
