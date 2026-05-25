@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useAudio } from '../hooks/useAudio'
 import SpeakButton from './SpeakButton'
 import IMESequenceInput from './IMESequenceInput'
-import { getShuffledWords, checkWordOrder } from '../utils/sentenceQuiz'
+import { getShuffledWords, checkWordOrder, findGapSpan } from '../utils/sentenceQuiz'
 import { findSingleMisplacement } from '../utils/wordOrderDiff'
 import { lookupGrammarRule } from '../data/grammarRules'
 
@@ -183,7 +183,10 @@ function GapCard({ sentence, characters, mnemonics, progress, onAnswer }) {
   // ("eigentlich machts am meisten sinn wenn wir den ton nur abspielen
   // sobald die eingabe erfolgt ist", 2026-05-10).
 
-  const gapIndex = sentence.words.indexOf(sentence.gap_word)
+  // gap_word may be a single token in words[] (词典) or split across single-char
+  // tokens (全 + 班); findGapSpan locates the inclusive range either way. A
+  // single blank covers the whole span, so the answer is never shown.
+  const gapSpan = findGapSpan(sentence.words, sentence.gap_word)
 
   const handleComplete = (correct, hintUsed) => {
     setDone(true)
@@ -191,27 +194,32 @@ function GapCard({ sentence, characters, mnemonics, progress, onAnswer }) {
     else onAnswer(hintUsed ? 'half' : true)
   }
 
+  const renderBlank = (key) => (
+    <span
+      key={key}
+      className={`inline-block min-w-[3em] border-b-2 text-center mx-0.5 ${
+        done ? 'border-ink/30 text-ink/50' : 'border-terracotta/50'
+      }`}
+    >
+      {done ? sentence.gap_word : '___'}
+    </span>
+  )
+
   return (
     <div className="py-8">
       <div className="text-center mb-6">
         <div className="text-sm text-ink/40 uppercase tracking-wider mb-2">Fülle die Lücke</div>
         <div className="text-sm text-ink/50 mb-3">{sentence.german}</div>
         <div className="flex flex-wrap justify-center items-center gap-1 font-hanzi text-2xl leading-relaxed">
-          {sentence.words.map((w, i) => {
-            if (i === gapIndex) {
-              return (
-                <span
-                  key={i}
-                  className={`inline-block min-w-[3em] border-b-2 text-center mx-0.5 ${
-                    done ? 'border-ink/30 text-ink/50' : 'border-terracotta/50'
-                  }`}
-                >
-                  {done ? sentence.gap_word : '___'}
-                </span>
-              )
-            }
-            return <span key={i}>{w}</span>
-          })}
+          {gapSpan
+            ? sentence.words.map((w, i) => {
+                if (i === gapSpan.start) return renderBlank(i)
+                if (i > gapSpan.start && i <= gapSpan.end) return null // covered by the blank
+                return <span key={i}>{w}</span>
+              })
+            : // Defensive: gap_word not locatable in words[] — show only a blank
+              // rather than leak the full sentence.
+              renderBlank('gap')}
         </div>
         {sentence.gap_hint && !done && (
           <div className="text-xs text-ink/30 mt-2">Hinweis: {sentence.gap_hint}</div>

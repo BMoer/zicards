@@ -93,6 +93,36 @@ export function checkWordOrder(userOrder, correctWords) {
 }
 
 /**
+ * Locate the span of `words` tokens that together spell `gapWord`.
+ *
+ * `gap_word` is a *semantic* word (词典, 全班) while `words` may tokenise it as
+ * one entry (照片, 我们) OR split it across single-char tokens (全 + 班).
+ * Returns an inclusive { start, end } over `words`, or null when the gap word
+ * can't be located.
+ *
+ * Why this exists: GapCard previously did `words.indexOf(gap_word)`, which
+ * returns -1 for the split case (gap_word '全班' vs words ['全','班']). With
+ * gapIndex === -1 no token was ever replaced by a blank, so the FULL sentence
+ * rendered and handed the learner the answer — reported "Aufgabe ist verbuggt
+ * … voller Satz steht bereits dort" (2026-05-23).
+ */
+export function findGapSpan(words, gapWord) {
+  if (!Array.isArray(words) || !gapWord) return null
+  const single = words.indexOf(gapWord)
+  if (single !== -1) return { start: single, end: single }
+  // Multi-token: find the contiguous run whose concatenation equals gapWord.
+  for (let i = 0; i < words.length; i++) {
+    let acc = ''
+    for (let j = i; j < words.length; j++) {
+      acc += words[j]
+      if (acc === gapWord) return { start: i, end: j }
+      if (!gapWord.startsWith(acc)) break // prune: this start can't reach gapWord
+    }
+  }
+  return null
+}
+
+/**
  * Compare user gap answer to correct word — Hànzì only (exact match).
  * The IME picker produces Hànzì strings; pinyin is the input method,
  * never the graded answer.

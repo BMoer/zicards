@@ -5,6 +5,7 @@ import {
   checkGapAnswer,
   checkTranslation,
   buildSentenceSession,
+  findGapSpan,
 } from './sentenceQuiz.js'
 
 // ─── getShuffledWords ────────────────────────────────────────────────────────
@@ -108,6 +109,37 @@ describe('checkTranslation (Hànzì-only after IME pivot)', () => {
 
   it('empty answer returns false', () => {
     expect(checkTranslation('', '我是学生。')).toBe(false)
+  })
+})
+
+// ─── findGapSpan ─────────────────────────────────────────────────────────────
+
+describe('findGapSpan', () => {
+  it('locates a gap_word that is a single token', () => {
+    expect(findGapSpan(['这', '是', '词典', '。'], '词典')).toEqual({ start: 2, end: 2 })
+  })
+
+  it('locates a gap_word split across multiple single-char tokens', () => {
+    // 这是我们全班的照片。— words tokenise 全班 as ['全','班']; gap_word is '全班'.
+    // Regression for "Aufgabe ist verbuggt … voller Satz steht bereits dort" (2026-05-23):
+    // the old words.indexOf('全班') === -1 and the whole sentence rendered with no blank.
+    const words = ['这', '是', '我们', '全', '班', '的', '照片', '。']
+    expect(findGapSpan(words, '全班')).toEqual({ start: 3, end: 4 })
+  })
+
+  it('returns null when the gap_word is not present', () => {
+    expect(findGapSpan(['我', '是'], '你')).toBeNull()
+  })
+
+  it('does not partial-match a shorter prefix', () => {
+    // '全部' must not match against the '全' token alone.
+    expect(findGapSpan(['全', '部', '人'], '全班')).toBeNull()
+  })
+
+  it('handles missing/empty inputs defensively', () => {
+    expect(findGapSpan(['我'], null)).toBeNull()
+    expect(findGapSpan(null, '我')).toBeNull()
+    expect(findGapSpan(['我'], '')).toBeNull()
   })
 })
 
