@@ -112,7 +112,7 @@ describe('buildUnifiedSession — sentence quota', () => {
     gap_word: '是',
   })
 
-  it('reserves at least 4 sentence slots when sentences are available', () => {
+  it('reserves at least 8 sentence slots when sentences are available', () => {
     const chars = Array.from({ length: 30 }, (_, i) => mkChar(i))
     const sents = Array.from({ length: 30 }, (_, i) => mkSent(i))
     const charProgress = Object.fromEntries(
@@ -124,7 +124,7 @@ describe('buildUnifiedSession — sentence quota', () => {
     const session = buildUnifiedSession(chars, charProgress, sents, sentProgress)
     expect(session).toHaveLength(15)
     const sentCount = session.filter((i) => i.type === 'sentence').length
-    expect(sentCount).toBeGreaterThanOrEqual(4)
+    expect(sentCount).toBeGreaterThanOrEqual(8)
   })
 
   it('still produces a full session of chars when no sentences exist', () => {

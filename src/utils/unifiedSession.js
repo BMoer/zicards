@@ -1,19 +1,25 @@
 /**
  * Build a unified learning session mixing characters and unlocked sentences.
- * Priority: due chars → due sentences → new chars (max 5) → new sentences (max 3) → not-due filler.
+ * Priority: due chars → due sentences → new chars (max 3) → new sentences (max 6) → not-due filler.
  * Total session size: 15 items.
  */
 
 import { getUnlockedSentences } from './lessonUtils'
 
 const SESSION_SIZE = 15
-const MAX_NEW_CHARS = 5
-const MAX_NEW_SENTENCES = 3
+// Focus deliberately tilted toward sentences over single chars (2026-05-25):
+// "mehr Sätze machen, die Zeichen lernt man dann eh mit". New intake strongly
+// favours sentences (6) over chars (3); the per-session floor below reserves
+// most slots for sentences. New chars trickle in slowly but keep the 1T
+// sentence-unlock pipeline fed.
+const MAX_NEW_CHARS = 3
+const MAX_NEW_SENTENCES = 6
 // Reserve a minimum number of sentence slots so a power user — whose char
 // queue is dense with not-due reviews — never gets a session of pure chars
 // while sentences are sitting in the (lower-priority) not-due bucket.
 // Reported 2026-05-11: "Lektion 1 vorausgewählt, keine Sätze zum üben".
-const MIN_SENTS_PER_SESSION = 4
+// Raised 4 → 8 on 2026-05-25 to push the sentence-first focus.
+const MIN_SENTS_PER_SESSION = 8
 
 function annotateCharacter(char, progressMap) {
   const p = progressMap[char.id]
