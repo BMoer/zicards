@@ -59,7 +59,7 @@ function LearnCard({ character, onNext, characters, progress, mnemonics }) {
  * Stufe 1: Hànzì → Bedeutung MC
  * Stufe 2: Bedeutung → Hànzì MC
  */
-function MCCard({ character, options, quizType, onAnswer }) {
+function MCCard({ character, options, quizType, onAnswer, mnemonics, characters, progress }) {
   const [selected, setSelected] = useState(null)
   const [answered, setAnswered] = useState(false)
   const [hintUsed, setHintUsed] = useState(false)
@@ -67,6 +67,13 @@ function MCCard({ character, options, quizType, onAnswer }) {
   const isReverse = quizType === 'mc-hanzi'
   const prompt = isReverse ? meaningForQuiz(character.meaning) : displayHanzi(character)
   const promptClass = isReverse ? 'text-2xl font-medium' : 'font-hanzi text-7xl'
+
+  // Bedeutung → Hànzì: the useful pre-answer hint is the character's
+  // mnemonic, not its audio. Hearing the pinyin doesn't tell you which of the
+  // four glyphs to pick (feedback Lukas, 2026-05-27); the Eselsbrücke does.
+  // Revealing it downgrades a correct pick to half-credit — same "used a hint,
+  // so no progression" rule the audio button enforces on production cards.
+  const hasMnemonicHint = isReverse && !!mnemonics?.[character.hanzi]
 
   // No auto-play on quiz cards – would make it too easy
 
@@ -87,20 +94,28 @@ function MCCard({ character, options, quizType, onAnswer }) {
         </div>
       )}
       {isReverse && (
-        <div className="mb-6 flex flex-col items-center gap-1">
-          <SpeakButton
-            text={displayHanzi(character)}
-            size="md"
-            onPlay={() => setHintUsed(true)}
-            title={
-              hintUsed
-                ? 'Audio gehört (zählt als Hilfe — max. neutral statt richtig)'
-                : 'Audio als Hilfe anhören (zählt dann nicht als richtig)'
-            }
-          />
-          {hintUsed && (
-            <div className="text-xs text-amber-700/70">
-              Audio gehört — wird als neutral statt richtig gewertet.
+        <div className="mb-6">
+          {hasMnemonicHint && !answered && !hintUsed && (
+            <button
+              type="button"
+              onClick={() => setHintUsed(true)}
+              className="text-sm text-amber-700/80 border border-amber-300/70 rounded-full px-4 py-1.5 hover:bg-amber-50 transition-colors"
+              title="Eselsbrücke zeigen — zählt dann nicht als richtig"
+            >
+              💡 Eselsbrücke zeigen
+            </button>
+          )}
+          {hasMnemonicHint && !answered && hintUsed && (
+            <div className="max-w-md mx-auto">
+              <MnemonicCard
+                hanzi={character.hanzi}
+                mnemonics={mnemonics}
+                characters={characters}
+                progress={progress}
+              />
+              <div className="text-xs text-amber-700/70 mt-1">
+                Eselsbrücke genutzt — wird als neutral statt richtig gewertet.
+              </div>
             </div>
           )}
         </div>
@@ -251,6 +266,9 @@ export default function QuizCard({ item, options, onAnswer, onNext, characters, 
           options={options}
           quizType="mc-hanzi"
           onAnswer={handleAnswer}
+          mnemonics={mnemonics}
+          characters={characters}
+          progress={progress}
         />
       )}
       {item.quizType === 'ime' && (
