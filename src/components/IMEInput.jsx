@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { getIMECandidates } from '../utils/imeCandidates'
+import { extractDirectHanzi } from '../utils/directHanzi'
 import { COMMON_CHARS } from '../data/commonCharacters'
 
 /**
@@ -7,6 +8,11 @@ import { COMMON_CHARS } from '../data/commonCharacters'
  * User types pinyin (e.g. "hao") → candidate list of characters appears →
  * user clicks a candidate or presses 1-9 to select. The selected hanzi is
  * the answer; the parent decides whether it's correct.
+ *
+ * Direct Hànzì entry: if the field already contains Han characters (the user
+ * typed them with their device's own Chinese keyboard / handwriting), we skip
+ * the pinyin candidate list and let them commit those characters straight away
+ * — the harder, no-elimination mode requested by Lukas Feuchter 2026-05-31.
  *
  * Props:
  *   curriculumChars   array of character rows from Supabase (primary candidates)
@@ -24,7 +30,7 @@ export default function IMEInput({
   onEnter,
   disabled = false,
   selectedHanzi = null,
-  placeholder = 'Pinyin tippen, dann Zeichen wählen…',
+  placeholder = 'Pinyin tippen + wählen — oder Zeichen direkt eingeben',
   autoFocus = true,
 }) {
   const [typed, setTyped] = useState('')
@@ -36,9 +42,17 @@ export default function IMEInput({
     }
   }, [autoFocus, disabled])
 
+  // If the user typed Hànzì directly (device IME / handwriting), we bypass the
+  // pinyin candidate list entirely and let them commit those characters.
+  const directHanzi = useMemo(() => extractDirectHanzi(typed), [typed])
+  const hasDirectHanzi = directHanzi.length > 0
+
   const candidates = useMemo(
-    () => getIMECandidates(typed, curriculumChars, COMMON_CHARS, { expectedHanzi, max: 9 }),
-    [typed, curriculumChars, expectedHanzi]
+    () =>
+      hasDirectHanzi
+        ? []
+        : getIMECandidates(typed, curriculumChars, COMMON_CHARS, { expectedHanzi, max: 9 }),
+    [typed, curriculumChars, expectedHanzi, hasDirectHanzi]
   )
 
   const handleSelect = (hanzi) => {
@@ -55,8 +69,27 @@ export default function IMEInput({
     inputRef.current?.focus()
   }
 
+  // Commit every directly-typed Hànzì in order, then reset like a candidate
+  // pick would. Punctuation/pinyin already stripped by extractDirectHanzi.
+  const commitDirect = () => {
+    if (disabled || !hasDirectHanzi) return
+    directHanzi.forEach((hanzi) => onSelect(hanzi))
+    setTyped('')
+    inputRef.current?.focus()
+  }
+
   const handleKeyDown = (e) => {
     if (disabled) return
+    // With Hànzì in the buffer, Enter/Space commit the typed characters rather
+    // than picking a pinyin candidate or submitting the sequence. A second
+    // Enter on an empty buffer then submits via onEnter, as usual.
+    if (hasDirectHanzi) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        commitDirect()
+      }
+      return
+    }
     // Enter submits the whole sequence ("Fertig"). Reserved for desktop
     // keyboard use — mobile users tap the button.
     if (e.key === 'Enter' && onEnter) {
@@ -97,7 +130,19 @@ export default function IMEInput({
         className="w-full px-4 py-3 border rounded-lg bg-white border-ink/20 focus:border-ink/40 focus:outline-none disabled:opacity-60"
       />
 
-      {typed && candidates.length === 0 && (
+      {hasDirectHanzi && (
+        <button
+          type="button"
+          onClick={commitDirect}
+          disabled={disabled}
+          className="w-full flex items-center justify-center gap-2 px-3 py-3 border border-ink rounded-lg bg-ink/5 hover:bg-ink/10 transition-colors disabled:opacity-60"
+        >
+          <span className="font-hanzi text-2xl">{directHanzi.join('')}</span>
+          <span className="text-xs text-ink/50">direkt übernehmen ⏎</span>
+        </button>
+      )}
+
+      {!hasDirectHanzi && typed && candidates.length === 0 && (
         <p className="text-sm text-ink/40 italic">
           Keine Zeichen gefunden für „{typed}". Anders tippen?
         </p>
