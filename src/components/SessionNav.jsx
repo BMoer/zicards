@@ -40,6 +40,15 @@ export default function SessionNav({ canGoNext, canGoBack, onNext, onBack, child
   const touchRef = useRef(null)
 
   const handleTouchStart = (e) => {
+    // Ignore multi-touch and any gesture that begins on an interactive control
+    // (pinyin input, candidate buttons, rails). On IME cards, focusing the input
+    // / tapping candidates while the soft keyboard slid in produced stray
+    // horizontal deltas that were read as swipes and bounced the user back a
+    // card — "springt auf die letzte Seite", reported 2026-05-31.
+    if (e.touches.length > 1 || e.target.closest?.('input, textarea, select, button, [role="listbox"]')) {
+      touchRef.current = null
+      return
+    }
     touchRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
   }
 
