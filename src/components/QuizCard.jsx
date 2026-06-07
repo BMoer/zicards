@@ -164,7 +164,11 @@ function IMECard({ character, characters, onAnswer }) {
     <div className="text-center py-8">
       <div className="text-sm text-ink/40 mb-2">Tippe Pinyin, wähle Zeichen:</div>
       <div className="text-2xl font-medium mb-2">{meaningForQuiz(character.meaning)}</div>
-      <GrammarHint meaning={character.meaning} />
+      {/* No GrammarHint here: on a production card its example sentences
+          contain the target character (子 → 桌子/杯子, 吗 → 你好吗？), so it
+          leaks the answer before the user types. The hint still shows on the
+          learn card and the post-answer feedback, where nothing is given away
+          (reported 2026-06-07: "der Hinweis ist komisch"). */}
 
       <div className="max-w-md mx-auto mt-6">
         <IMESequenceInput
