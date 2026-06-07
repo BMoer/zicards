@@ -133,6 +133,12 @@ export default function IMEInput({
       {hasDirectHanzi && (
         <button
           type="button"
+          // Prevent the button from stealing focus from the input. Without
+          // this, tapping it blurs the field → Android Chrome dismisses the
+          // soft keyboard and a later programmatic focus() won't reopen it,
+          // so the user has to re-tap the input for every character
+          // (reported 2026-06-07: "verliert den Fokus … bricht den Fluss").
+          onMouseDown={(e) => e.preventDefault()}
           onClick={commitDirect}
           disabled={disabled}
           className="w-full flex items-center justify-center gap-2 px-3 py-3 border border-ink rounded-lg bg-ink/5 hover:bg-ink/10 transition-colors disabled:opacity-60"
@@ -160,6 +166,9 @@ export default function IMEInput({
               <button
                 key={c.hanzi}
                 type="button"
+                // Keep the input focused (keyboard open) when picking a
+                // candidate — see commitDirect button above.
+                onMouseDown={(e) => e.preventDefault()}
                 onClick={() => handleSelect(c.hanzi)}
                 disabled={disabled}
                 className={`${baseClass} ${stateClass}`}
