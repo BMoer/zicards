@@ -9,6 +9,7 @@ import AuthForm from './components/AuthForm'
 import UnifiedDashboard from './components/UnifiedDashboard'
 import LessonView from './components/LessonView'
 import UnifiedSession from './components/UnifiedSession'
+import DeepLearning from './components/DeepLearning'
 import AdminDashboard from './components/AdminDashboard'
 import AdminUserDetail from './components/AdminUserDetail'
 import { useAdmin } from './hooks/useAdmin'
@@ -121,6 +122,24 @@ export default function App() {
                   sentenceProgress={sentenceProgress}
                   updateSentenceProgress={updateSentenceProgress}
                   markSentenceAsSeen={markSentenceAsSeen}
+                  mnemonics={mnemonics}
+                />
+              )}
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Deep-learning (Vertiefen) — deliberate review of hard words + grammar */}
+        <Route
+          path="/vertiefen"
+          element={
+            <ProtectedRoute user={user}>
+              {loading ? (
+                <div className="text-center py-12 text-ink/40">Laden...</div>
+              ) : (
+                <DeepLearning
+                  characters={characters}
+                  charProgress={charProgress}
                   mnemonics={mnemonics}
                 />
               )}

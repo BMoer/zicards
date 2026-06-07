@@ -5,6 +5,8 @@ import DueCounter from './DueCounter'
 import ReminderToggle from './ReminderToggle'
 import ProgressBar from './ProgressBar'
 import { buildHanziMap, isSentenceUnlocked } from '../utils/lessonUtils'
+import { getCompletedSessions } from '../utils/sessionStore'
+import { getDifficultChars, shouldOfferDeepLearning } from '../utils/deepLearning'
 
 function LessonCard({ lesson, charProgress, sentenceProgress, hanziMap }) {
   const navigate = useNavigate()
@@ -90,6 +92,15 @@ export default function UnifiedDashboard({
   const navigate = useNavigate()
   const hanziMap = useMemo(() => buildHanziMap(characters), [characters])
 
+  const difficultCount = useMemo(
+    () => getDifficultChars(characters, charProgress).length,
+    [characters, charProgress]
+  )
+  const offerDeepLearning = shouldOfferDeepLearning(
+    getCompletedSessions(),
+    difficultCount
+  )
+
   return (
     <div>
       <GlobalProgress
@@ -108,10 +119,31 @@ export default function UnifiedDashboard({
 
       <button
         onClick={() => navigate('/learn')}
-        className="w-full py-4 bg-terracotta text-white rounded-lg font-medium text-lg hover:bg-terracotta/90 transition-colors mb-8"
+        className="w-full py-4 bg-terracotta text-white rounded-lg font-medium text-lg hover:bg-terracotta/90 transition-colors mb-3"
       >
         Lernen starten
       </button>
+
+      {offerDeepLearning ? (
+        <button
+          onClick={() => navigate('/vertiefen')}
+          className="w-full p-4 border border-amber-300/70 bg-amber-50 rounded-lg text-left hover:bg-amber-100/70 transition-colors mb-8"
+        >
+          <div className="font-medium text-amber-900">
+            🧠 Zeit zum Vertiefen
+          </div>
+          <div className="text-sm text-amber-800/80">
+            Du hast {difficultCount} {difficultCount === 1 ? 'schwieriges Wort' : 'schwierige Wörter'} — geh sie gezielt durch und frische die Grammatik auf.
+          </div>
+        </button>
+      ) : (
+        <button
+          onClick={() => navigate('/vertiefen')}
+          className="w-full py-2.5 border border-ink/20 rounded-lg text-sm font-medium hover:border-ink/30 transition-colors mb-8"
+        >
+          Vertiefen
+        </button>
+      )}
 
       <h2 className="text-sm font-medium text-ink/50 uppercase tracking-wider mb-4">
         Lektionen

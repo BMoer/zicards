@@ -1,7 +1,15 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { incrementCompletedSessions } from '../utils/sessionStore'
 
 export default function UnifiedSessionResult({ results, onRestart }) {
   const navigate = useNavigate()
+
+  // One completed session = this screen mounting once. Used to decide when
+  // to proactively offer the deep-learning mode on the dashboard.
+  useEffect(() => {
+    incrementCompletedSessions()
+  }, [])
 
   const correct = results.filter((r) => r.isCorrect).length
   const half = results.filter((r) => r.isHalf).length

@@ -9,7 +9,9 @@ const SENT_SESSION_KEY = 'zicards-sent-session'
 export function saveCharSession(state) {
   try {
     sessionStorage.setItem(CHAR_SESSION_KEY, JSON.stringify(state))
-  } catch {}
+  } catch {
+    /* sessionStorage unavailable (private mode / quota) — ignore */
+  }
 }
 
 export function loadCharSession() {
@@ -28,7 +30,9 @@ export function clearCharSession() {
 export function saveSentenceSession(state) {
   try {
     sessionStorage.setItem(SENT_SESSION_KEY, JSON.stringify(state))
-  } catch {}
+  } catch {
+    /* sessionStorage unavailable (private mode / quota) — ignore */
+  }
 }
 
 export function loadSentenceSession() {
@@ -50,7 +54,9 @@ const UNIFIED_SESSION_KEY = 'zicards-unified-session'
 export function saveUnifiedSession(state) {
   try {
     sessionStorage.setItem(UNIFIED_SESSION_KEY, JSON.stringify(state))
-  } catch {}
+  } catch {
+    /* sessionStorage unavailable (private mode / quota) — ignore */
+  }
 }
 
 export function loadUnifiedSession() {
@@ -64,4 +70,27 @@ export function loadUnifiedSession() {
 
 export function clearUnifiedSession() {
   sessionStorage.removeItem(UNIFIED_SESSION_KEY)
+}
+
+// Count of completed learning sessions — persisted in localStorage so it
+// survives across days/tabs (used to proactively offer the deep-learning
+// mode after a handful of rounds).
+const COMPLETED_SESSIONS_KEY = 'zicards-completed-sessions'
+
+export function getCompletedSessions() {
+  try {
+    return parseInt(localStorage.getItem(COMPLETED_SESSIONS_KEY) || '0', 10) || 0
+  } catch {
+    return 0
+  }
+}
+
+export function incrementCompletedSessions() {
+  try {
+    const next = getCompletedSessions() + 1
+    localStorage.setItem(COMPLETED_SESSIONS_KEY, String(next))
+    return next
+  } catch {
+    return 0
+  }
 }
