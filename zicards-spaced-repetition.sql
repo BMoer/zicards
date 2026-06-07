@@ -58,3 +58,8 @@ BEGIN
      WHERE user_id = p_user_id AND next_review <= now()) AS due_sentences;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- 5. Data-API GRANTs (siehe supabase/grants-2026-05-28-api-default-change.sql)
+GRANT SELECT, INSERT, UPDATE ON TABLE public.user_settings TO authenticated;
+GRANT ALL                    ON TABLE public.user_settings TO service_role;
+GRANT EXECUTE ON FUNCTION public.get_due_counts(uuid) TO authenticated, service_role;

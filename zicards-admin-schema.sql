@@ -211,6 +211,15 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 6. INSERT YOUR ADMIN USER HERE
+-- 6. Data-API GRANTs (siehe supabase/grants-2026-05-28-api-default-change.sql)
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+GRANT SELECT ON TABLE public.admin_users TO authenticated;
+GRANT ALL    ON TABLE public.admin_users TO service_role;
+GRANT EXECUTE ON FUNCTION public.is_admin()                     TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_get_users()              TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_get_user_chars(uuid)     TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_get_user_sentences(uuid) TO authenticated;
+
+-- 7. INSERT YOUR ADMIN USER HERE
 -- Replace with the actual admin user UUID from auth.users
 -- INSERT INTO public.admin_users (user_id) VALUES ('YOUR-ADMIN-UUID-HERE');

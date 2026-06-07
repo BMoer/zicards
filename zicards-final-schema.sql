@@ -62,6 +62,13 @@ create trigger user_progress_updated_at
   before update on public.user_progress
   for each row execute function update_updated_at();
 
+-- 3b. Data-API GRANTs (siehe supabase/grants-2026-05-28-api-default-change.sql)
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+GRANT SELECT                 ON TABLE public.characters    TO anon, authenticated;
+GRANT INSERT, UPDATE, DELETE ON TABLE public.characters    TO service_role;
+GRANT SELECT, INSERT, UPDATE ON TABLE public.user_progress TO authenticated;
+GRANT ALL                    ON TABLE public.user_progress TO service_role;
+
 -- 4. Seed: Lektion 1 (25 Zeichen)
 insert into public.characters (hanzi, word, pinyin, pinyin_word, pinyin_input, meaning, radical, week, lesson)
 values

@@ -51,6 +51,12 @@ create trigger sentence_progress_updated_at
   before update on public.sentence_progress
   for each row execute function update_updated_at();
 
+-- 3b. Data-API GRANTs (siehe supabase/grants-2026-05-28-api-default-change.sql)
+GRANT SELECT                 ON TABLE public.sentences         TO anon, authenticated;
+GRANT INSERT, UPDATE, DELETE ON TABLE public.sentences         TO service_role;
+GRANT SELECT, INSERT, UPDATE ON TABLE public.sentence_progress TO authenticated;
+GRANT ALL                    ON TABLE public.sentence_progress TO service_role;
+
 -- 4. Seed: Lektion 1 Sätze
 insert into public.sentences (chinese, pinyin, german, words, gap_word, gap_hint, week, lesson)
 values

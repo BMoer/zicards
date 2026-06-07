@@ -36,3 +36,7 @@ drop trigger if exists mnemonics_updated_at on public.mnemonics;
 create trigger mnemonics_updated_at
   before update on public.mnemonics
   for each row execute function public.mnemonics_set_updated_at();
+
+-- Data-API GRANTs (siehe supabase/grants-2026-05-28-api-default-change.sql)
+GRANT SELECT                 ON TABLE public.mnemonics TO anon, authenticated;
+GRANT INSERT, UPDATE, DELETE ON TABLE public.mnemonics TO service_role;
