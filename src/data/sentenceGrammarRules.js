@@ -126,6 +126,81 @@ export const SENTENCE_GRAMMAR_RULES = [
       },
     ],
   },
+  {
+    id: 'date-expression',
+    title: 'Datum ausdrücken',
+    summary:
+      'Ein Datum wird groß nach klein genannt: Jahr → Monat → Tag → Wochentag (二〇二六年五月九号，星期五). Solche Sätze haben ein nominales Prädikat — 是 wird im Bejahungssatz oft weggelassen (今天五月九号). Verneint wird mit 不是 vor dem Prädikat (今天不是五月九号).',
+    examples: [
+      { zh: '今天五月九号，星期五。', de: 'Heute ist Freitag, der 9. Mai.', correct: true },
+      { zh: '今天不是星期五。', de: 'Heute ist nicht Freitag.', correct: true },
+      {
+        zh: '今天星期五，五月九号。',
+        note: 'Reihenfolge groß → klein: erst Monat und Tag, dann der Wochentag.',
+        correct: false,
+      },
+    ],
+  },
+  {
+    id: 'adjective-predicate',
+    title: 'Adjektiv als Prädikat',
+    summary:
+      'Steht ein Adjektiv als Prädikat, kommt KEIN 是 zwischen Subjekt und Adjektiv (我高兴, nicht 我是高兴). Im Bejahungssatz steht meist unbetontes 很 vor dem Adjektiv — es markiert kein Maß, sondern macht den Satz neutral; ohne 很 schwingt ein Vergleich mit (他高兴，我不高兴). Verneint wird mit 不 vor dem Adjektiv (我不高兴).',
+    examples: [
+      { zh: '我很高兴。', de: 'Ich bin froh.', correct: true },
+      { zh: '我不高兴。', de: 'Ich bin nicht froh.', correct: true },
+      {
+        zh: '我是高兴。',
+        note: 'Adjektiv-Prädikat ohne 是: 我很高兴.',
+        correct: false,
+      },
+    ],
+  },
+  {
+    id: 'time-expression',
+    title: 'Uhrzeit ausdrücken',
+    summary:
+      'Die Uhrzeit wird groß nach klein genannt: erst die Stunde mit 点, dann Minuten 分 / Viertel 刻 / 半. Bei Minuten unter 10 steht 零 (八点零五分). „2 Uhr" heißt 两点, nicht 二点. Beispiele: 八点 (8:00), 八点一刻 (8:15), 八点半 (8:30), 差五分九点 (8:55).',
+    examples: [
+      { zh: '现在八点十分。', de: 'Es ist 8:10 Uhr.', correct: true },
+      { zh: '现在两点半。', de: 'Es ist halb drei.', correct: true },
+      {
+        zh: '现在十分八点。',
+        note: 'Die Stunde 点 steht zuerst, dann die Minuten: 八点十分.',
+        correct: false,
+      },
+    ],
+  },
+  {
+    id: 'shenme-shihou-jidian',
+    title: '什么时候 oder 几点',
+    summary:
+      '什么时候 fragt allgemein „wann" (Tag, Tageszeit, Uhrzeit), 几点 fragt konkret „um wie viel Uhr". Beide stehen — wie alle Zeitangaben — vor dem Verb, nie danach.',
+    examples: [
+      { zh: '你什么时候上课？', de: 'Wann hast du Unterricht?', correct: true },
+      { zh: '你几点起床？', de: 'Um wie viel Uhr stehst du auf?', correct: true },
+      {
+        zh: '你上课什么时候？',
+        note: 'Die Zeitfrage steht vor dem Verb: 你什么时候上课？',
+        correct: false,
+      },
+    ],
+  },
+  {
+    id: 'time-word-adverbial',
+    title: 'Zeitangabe vor dem Verb',
+    summary:
+      'Eine Zeitangabe ist ein Adverbial und steht vor dem Verb: Subjekt + Zeit + Verb (我晚上十点睡觉). Zur Betonung der Zeit kann sie an den Satzanfang rücken: Zeit + Subjekt + Verb (晚上我十点睡觉). Sie steht nie nach dem Verb.',
+    examples: [
+      { zh: '我晚上十点睡觉。', de: 'Ich gehe abends um zehn schlafen.', correct: true },
+      { zh: '安妮早上七点起床。', de: 'Anni steht morgens um sieben auf.', correct: true },
+      {
+        zh: '我睡觉晚上十点。',
+        note: 'Die Zeitangabe steht vor dem Verb, nicht danach.',
+        correct: false,
+      },
+    ],
+  },
 ]
 
 /**
