@@ -132,11 +132,11 @@ values
 -- 6. Seed: Lektion 3 Sätze
 insert into public.sentences (chinese, pinyin, german, words, gap_word, gap_hint, week, lesson)
 values
-  ('你家有几个人？', 'Nǐ jiā yǒu jǐ gè rén?', 'Wie viele Personen hat deine Familie?',
-   '["你","家","有","几","个","人","？"]', '家', 'Familie', 3, 'Lektion 3'),
+  ('你家有几口人？', 'Nǐ jiā yǒu jǐ kǒu rén?', 'Wie viele Personen hat deine Familie?',
+   '["你","家","有","几","口","人","？"]', '几', 'wie viele (unter 10)', 3, 'Lektion 3'),
 
-  ('我家有五个人。', 'Wǒ jiā yǒu wǔ gè rén.', 'Meine Familie hat fünf Personen.',
-   '["我","家","有","五","个","人","。"]', '五', 'fünf', 3, 'Lektion 3'),
+  ('我家有五口人。', 'Wǒ jiā yǒu wǔ kǒu rén.', 'Meine Familie hat fünf Personen.',
+   '["我","家","有","五","口","人","。"]', '五', 'fünf', 3, 'Lektion 3'),
 
   ('我有一个哥哥。', 'Wǒ yǒu yí gè gēge.', 'Ich habe einen älteren Bruder.',
    '["我","有","一","个","哥哥","。"]', '哥哥', 'älterer Bruder', 3, 'Lektion 3'),

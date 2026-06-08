@@ -163,6 +163,7 @@ export const COMMON_CHARS = [
   { hanzi: '男', pinyin_input: 'nan2', freq: 415 },
   { hanzi: '难', pinyin_input: 'nan2', freq: 770 },
   { hanzi: '能', pinyin_input: 'neng2', freq: 52 },
+  { hanzi: '妮', pinyin_input: 'ni2', freq: 900 }, // Name-Zeichen (安妮 = Annie); nur IME-Pool, kein Lernziel
   { hanzi: '你', pinyin_input: 'ni3', freq: 425 },
   { hanzi: '年', pinyin_input: 'nian2', freq: 435 },
   { hanzi: '您', pinyin_input: 'nin2', freq: 780 },
