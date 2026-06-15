@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import IMEInput from './IMEInput'
 import SpeakButton from './SpeakButton'
 import MnemonicCard from './MnemonicCard'
+import { matchesAnySequence } from '../utils/sentenceQuiz'
 
 const PUNCT = new Set(['。', '！', '？', '，', '、', '：', '；', '"', '"', "'", "'", '.', '!', '?', ',', ';', ':'])
 
@@ -19,6 +20,12 @@ const PUNCT = new Set(['。', '！', '？', '，', '、', '：', '；', '"', '"'
  *   expectedSequence    - string of hànzì OR array (sentence words). Punctuation
  *                         is stripped from comparison and re-added in the
  *                         reveal display.
+ *   acceptedVariants    - optional list of additional equally-correct
+ *                         sequences (each a string OR word array). Any one
+ *                         matching counts as correct — e.g. a contrastive
+ *                         clause with or without the repeated subject pronoun.
+ *                         The reveal/hint always uses `expectedSequence` as the
+ *                         canonical form.
  *   curriculumChars     - characters table rows; used both as IME candidates
  *                         and to look up meanings of mis-picks.
  *   onComplete(ok, hintUsed) - called once when the user submits. hintUsed
@@ -32,6 +39,7 @@ const PUNCT = new Set(['。', '！', '？', '，', '、', '：', '；', '"', '"'
  */
 export default function IMESequenceInput({
   expectedSequence,
+  acceptedVariants = [],
   curriculumChars,
   mnemonics = null,
   progress = null,
@@ -69,9 +77,8 @@ export default function IMESequenceInput({
 
   const handleSubmit = () => {
     if (done || disabled || picked.length === 0) return
-    const correct =
-      picked.length === expectedPickChars.length &&
-      picked.every((p, i) => p === expectedPickChars[i])
+    // Accept the canonical sequence OR any equally-correct variant.
+    const correct = matchesAnySequence(picked, [expectedSequence, ...acceptedVariants])
     setSubmitted({ correct })
     onComplete(correct, hintUsed)
   }

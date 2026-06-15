@@ -6,6 +6,8 @@ import {
   checkTranslation,
   buildSentenceSession,
   findGapSpan,
+  wordsToPickChars,
+  matchesAnySequence,
 } from './sentenceQuiz.js'
 
 // ─── getShuffledWords ────────────────────────────────────────────────────────
@@ -109,6 +111,47 @@ describe('checkTranslation (Hànzì-only after IME pivot)', () => {
 
   it('empty answer returns false', () => {
     expect(checkTranslation('', '我是学生。')).toBe(false)
+  })
+})
+
+// ─── wordsToPickChars / matchesAnySequence ──────────────────────────────────
+
+describe('wordsToPickChars', () => {
+  it('flattens word tokens into chars, dropping punctuation', () => {
+    expect(wordsToPickChars(['他', '是', '法国', '人', '。'])).toEqual(
+      ['他', '是', '法', '国', '人']
+    )
+  })
+
+  it('accepts a plain Hànzì string too', () => {
+    expect(wordsToPickChars('你好！')).toEqual(['你', '好'])
+  })
+})
+
+describe('matchesAnySequence', () => {
+  const withSubject = ['他', '不', '是', '中国', '人', '，', '他', '是', '法国', '人', '。']
+  const withoutSubject = ['他', '不', '是', '中国', '人', '，', '是', '法国', '人', '。']
+
+  it('matches the canonical (subject-dropped) form', () => {
+    expect(
+      matchesAnySequence(wordsToPickChars(withoutSubject), [withoutSubject, withSubject])
+    ).toBe(true)
+  })
+
+  it('matches the variant (subject-repeated) form', () => {
+    expect(
+      matchesAnySequence(wordsToPickChars(withSubject), [withoutSubject, withSubject])
+    ).toBe(true)
+  })
+
+  it('rejects an answer that matches neither', () => {
+    const wrong = wordsToPickChars(['他', '是', '中国', '人', '。'])
+    expect(matchesAnySequence(wrong, [withoutSubject, withSubject])).toBe(false)
+  })
+
+  it('single accepted sequence behaves like exact match (picked is per-char)', () => {
+    expect(matchesAnySequence(['我', '是', '学', '生'], [['我', '是', '学生', '。']])).toBe(true)
+    expect(matchesAnySequence(['是', '我', '学', '生'], [['我', '是', '学生', '。']])).toBe(false)
   })
 })
 

@@ -133,6 +133,45 @@ export function checkGapAnswer(userAnswer, correctWord) {
   return user === correctWord.trim()
 }
 
+// Punctuation that is never part of a graded answer — stripped before any
+// character-by-character comparison. Mirrors IMESequenceInput's PUNCT set so
+// grading there and here agree.
+const PUNCT = new Set([
+  '。', '！', '？', '，', '、', '：', '；', '"', '"', "'", "'",
+  '.', '!', '?', ',', ';', ':', '《', '》', '「', '」',
+])
+
+/**
+ * Flatten a sequence (array of word tokens OR a plain Hànzì string) into the
+ * ordered list of pick-relevant characters, dropping punctuation.
+ *   ['他','是','法国','人','。'] → ['他','是','法','国','人']
+ */
+export function wordsToPickChars(sequence) {
+  const chars = Array.isArray(sequence)
+    ? sequence.flatMap((w) => [...w])
+    : [...(sequence ?? '')]
+  return chars.filter((c) => !PUNCT.has(c))
+}
+
+/**
+ * True when the user's picked characters exactly match (order + content,
+ * punctuation ignored) at least ONE of the accepted sequences.
+ *
+ * Lets a single sentence accept several equally-correct phrasings — e.g. a
+ * contrastive clause with or without the repeated subject pronoun
+ * (他不是中国人，他是法国人。 vs. 他不是中国人，是法国人。). Both are
+ * grammatical; graders should not punish either (2026-06-15).
+ */
+export function matchesAnySequence(pickedChars, acceptedSequences) {
+  return acceptedSequences.some((seq) => {
+    const expected = wordsToPickChars(seq)
+    return (
+      pickedChars.length === expected.length &&
+      pickedChars.every((p, i) => p === expected[i])
+    )
+  })
+}
+
 const NORMALIZE_STRIP = /[\s。！？，、.!?,;：；""''《》「」]/g
 
 /**

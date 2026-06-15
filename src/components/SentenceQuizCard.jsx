@@ -264,6 +264,7 @@ function TranslateCard({ sentence, characters, mnemonics, progress, onAnswer }) 
       <div className="max-w-md mx-auto">
         <IMESequenceInput
           expectedSequence={sentence.words}
+          acceptedVariants={sentence.accepted_variants ?? []}
           curriculumChars={characters}
           mnemonics={mnemonics}
           progress={progress}
