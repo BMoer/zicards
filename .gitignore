@@ -27,5 +27,9 @@ dist-ssr
 supabase/.temp/
 
 # Local tooling / assistant workspace (not part of the app)
-.claude/
+# .claude/* statt .claude/ — bei einem ignorierten VERZEICHNIS betritt git es gar
+# nicht erst, eine Ausnahme darin wuerde nie greifen. Lokales Werkzeug bleibt ignoriert,
+# nur das checkin-Profil (Registrierung fuer den globalen /checkin) gehoert ins Repo.
+.claude/*
+!.claude/checkin.md
 .pi/
