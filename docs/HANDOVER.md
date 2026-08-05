@@ -1,5 +1,16 @@
 # zicards — Handover
 
+> **Richtigstellung 2026-08-05 (von Ben):** Das Abschalten der Supabase-Instanz war **kein Ausfall,
+> sondern eine bewusste Sommerpause** — sie war so geplant und gegenüber den Nutzern im Zweifel auch
+> kommuniziert. Alle Stellen weiter unten, die von „Ausfall", „nicht erreichbar" oder „tot" sprechen
+> (Check-ins vom 04. und 05.08.), beschreiben die Messung korrekt, aber die Ursache falsch: gemessen
+> wurde eine geplante Abschaltung, nicht ein Defekt. Seit 05.08. läuft die Instanz wieder, die Daten
+> sind vollständig (172 Zeichen, 188 Sätze, 177 Mnemonics, 1.368 Fortschritts- und 975
+> Satz-Fortschritts-Einträge, REST-API 3× HTTP 200). Eine Entwarnungsmail an die 12 Nutzer liegt als
+> **Die Mail an die 12 Nutzer (Rueckkehr aus der Sommerpause, Betreff «zicards ist wieder offen»)
+> ist am 05.08. verschickt.**
+
+
 ## Was live / fertig
 - Frontend erreichbar auf beiden Domains: `https://zicards.moerzinger.eu/` → 200,
   `https://zicards.vercel.app/` → 200 (curl, 2026-08-05 09:2x CEST — erneut geprüft,
