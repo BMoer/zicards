@@ -153,6 +153,33 @@ describe('matchesAnySequence', () => {
     expect(matchesAnySequence(['我', '是', '学', '生'], [['我', '是', '学生', '。']])).toBe(true)
     expect(matchesAnySequence(['是', '我', '学', '生'], [['我', '是', '学生', '。']])).toBe(false)
   })
+
+  // Zählwort (measure-word) variants — lufeuchter feedback 2026-06-20.
+  // Single-object sentences accept both the measure-word and the dropped form.
+  describe('measure-word (Zählwort) variants', () => {
+    it('accepts the dropped form when canonical carries 一个 (我有一个本子)', () => {
+      const canonical = ['我', '有', '一', '个', '本子', '。']
+      const dropped = ['我', '有', '本子', '。']
+      const variants = [canonical, dropped]
+      expect(matchesAnySequence(wordsToPickChars(canonical), variants)).toBe(true)
+      expect(matchesAnySequence(wordsToPickChars(dropped), variants)).toBe(true)
+    })
+
+    it('accepts the 一个-inserted form when canonical drops it (她也有本子)', () => {
+      const canonical = ['她', '也', '有', '本子', '。']
+      const inserted = ['她', '也', '有', '一', '个', '本子', '。']
+      const variants = [canonical, inserted]
+      expect(matchesAnySequence(wordsToPickChars(canonical), variants)).toBe(true)
+      expect(matchesAnySequence(wordsToPickChars(inserted), variants)).toBe(true)
+    })
+
+    it('still rejects a wrong measure word (一本本子 is not accepted)', () => {
+      const canonical = ['我', '有', '一', '个', '本子', '。']
+      const dropped = ['我', '有', '本子', '。']
+      const wrongMw = wordsToPickChars(['我', '有', '一', '本', '本子', '。'])
+      expect(matchesAnySequence(wrongMw, [canonical, dropped])).toBe(false)
+    })
+  })
 })
 
 // ─── findGapSpan ─────────────────────────────────────────────────────────────
