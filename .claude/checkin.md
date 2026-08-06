@@ -37,18 +37,21 @@ one_liner: Chinesisch-Lern-App (React/Vite auf Vercel, Supabase als Backend) mit
 
 ## open_points
   - Offene Feedback-Einträge (oben) sind der faktische Backlog dieses Projekts
-  - `rg -n "^\s*- \[ \]" zicards-spec.md CLAUDE.md` — geplante, noch offene Punkte
-  - Dieses Repo hat **kein** `docs/HANDOVER.md` (siehe handover unten)
+  - `rg -n "^\s*- \[ \]" zicards-spec.md CLAUDE.md` — Achtung: CLAUDE.md-Treffer sind
+    fast immer die generische Grant-Checkliste (Vorlage, keine echten offenen Punkte) —
+    gegenprüfen, nicht blind zählen.
+  - Offene Punkte stehen primär in `docs/HANDOVER.md` → `## Offene Punkte (nächste Session)`
 
 ## vault
-area_key:     (keiner angelegt — Vorschlag: Page `zicards` als Area, beim ersten
-  substanziellen Fund über die Haupt-Session anlegen, typisiert und beidseitig verlinkt)
-backlog_key:  (keiner)
-known_issues: (keine)
+area_key:     `zicards` (existiert bereits, zuletzt aktualisiert 2026-07-13 — Stand
+  Sommerpause/offline; seit der Reaktivierung 05.08. veraltet, siehe vault_vorschlag)
+backlog_key:  (keiner eigener — Backlog lebt in docs/HANDOVER.md)
+known_issues: (keine eigene Page — offene Themen stehen in der `zicards`-Page unter
+  „Open Questions" / „Next Steps")
 
 ## handover
-file:         docs/HANDOVER.md (**existiert noch nicht** — beim ersten Schreiben aus der
-  close-session-Vorlage anlegen: `## Was live / fertig` · `## prod ≠ live` ·
+file:         docs/HANDOVER.md (existiert seit 2026-08-04, wird bei jedem Check-in
+  fortgeschrieben: `## Was live / fertig` · `## prod ≠ live` ·
   `## Offene Punkte (nächste Session)` · `## Session-Log (letzte 3)`)
 checkin_note: docs/HANDOVER.md → Sektion `## Aus dem globalen Check-in (<Datum>)`.
   Wird bei jedem Lauf ersetzt.
@@ -65,8 +68,13 @@ checkin_note: docs/HANDOVER.md → Sektion `## Aus dem globalen Check-in (<Datum
   - Dieses Projekt hat noch **kein close-session-Profil**. Solange das fehlt, ist der
     Check-in die einzige Stelle, die den Stand einsammelt — entsprechend gründlicher
     ins Handover schreiben.
-  - Letzter Commit war 2026-06-18: das Projekt liegt länger still. Ein ruhiger Check-in
-    ist hier der Normalfall, **eine leere Feedback-Liste aber trotzdem eine gute Nachricht**
-    (die App läuft weiter, ohne dass jemand meckert) — nicht als „nichts passiert" abtun.
+  - Das Projekt war von 2026-06-18 bis 2026-08-04 (Wiederaufnahme-Check-in) commit-still;
+    seit 04.08. wieder aktive Check-in-Session je Tag. Ein ruhiger Check-in bleibt der
+    Normalfall, **eine leere Feedback-Liste ist trotzdem eine gute Nachricht**
+    (die App läuft, ohne dass jemand meckert) — nicht als „nichts passiert" abtun.
+  - Supabase war 04.–05.08. fälschlich als „Ausfall" gemessen (NXDOMAIN) — laut Ben
+    (Richtigstellung, HANDOVER.md) war das die geplante Sommerpause, keine Störung.
+    Seit 05.08. wieder erreichbar. Bei zukünftigen DNS-Fehlern hier zuerst prüfen, ob
+    eine geplante Pause dahintersteckt, bevor „Ausfall" gemeldet wird.
   - Die Skills `check-feedback`, `pi-metrics`, `pi-findings` liegen im Repo und machen
     genau diese Messungen. Der Agent nutzt sie, statt die Kommandos nachzubauen.

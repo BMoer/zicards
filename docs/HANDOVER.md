@@ -13,50 +13,43 @@
 
 ## Was live / fertig
 - Frontend erreichbar auf beiden Domains: `https://zicards.moerzinger.eu/` → 200,
-  `https://zicards.vercel.app/` → 200 (curl, 2026-08-05 09:2x CEST — erneut geprüft,
-  unverändert zu 04.08.).
+  `https://zicards.vercel.app/` → 200 (curl, 2026-08-06 08:2x CEST).
+- **Supabase-Backend wieder erreichbar** — REST-API `${VITE_SUPABASE_URL}/rest/v1/`
+  → 200 (curl, 2026-08-06). Login, Fortschritt speichern und der Feedback-Knopf
+  funktionieren wieder für echte Nutzer. Löst den 🔴 vom 04./05.08. ab (Ursache war
+  laut Ben eine geplante Sommerpause, siehe Richtigstellung oben).
+- **Echte Nutzung seit der Rückkehr-Mail (05.08.) bestätigt, aber kleiner als der
+  Mail-Rücklauf vermuten lässt:** von 13 registrierten Accounts hat genau **1**
+  seit 05.08. eingeloggt (`last_sign_in_at` 2026-08-05T09:18:17Z), mit durchgehender
+  Session-Aktivität 09:25–10:14 UTC in `user_progress`/`sentence_progress`. Die
+  restlichen 12 Accounts haben ihren letzten Login vor dem 05.08. (nächstjüngster:
+  21.06.). Zwei Dankesmails ⇒ mindestens ein zweiter Nutzer hat reagiert, aber
+  (noch) nicht im Produkt gemessen — per E-Mail antworten zählt nicht als Login.
 - Testsuite grün: `npx vitest run` → 13 Testdateien, 167 Tests, alle bestanden
-  (2026-08-05, erneut gelaufen). `npm run build` (vite) läuft sauber durch (441ms,
-  nur eine Chunk-Size-Warnung >500kB, kein Fehler).
-- Letzter gepushter Stand auf `origin/main`: `4cdd512` (checkin-Profil + erstes
-  Handover). `053319f` (backfill subject-kept Varianten) ist entgegen dem Stand vom
-  04.08. inzwischen ebenfalls auf `origin/main` — der offene Punkt „053319f pushen"
-  ist damit erledigt, ohne dass diese Session gepusht hat.
+  (2026-08-06, erneut gelaufen, unverändert zu 05.08.). `npm run build` (vite) läuft
+  sauber durch (368ms, nur die bekannte Chunk-Size-Warnung >500kB, kein Fehler).
+- Lint unverändert: `npm run lint` → 23 Fehler / 12 Warnungen (2026-08-06, exakt
+  wie 05.08. — keine Regression, aber auch keine Besserung).
+- `git status`: sauber bis auf 1 unstaged Datei (siehe unten), kein unpushter
+  Commit (`git log origin/main..HEAD` leer).
 - Grant-Pattern für neue Supabase-Tabellen dokumentiert und im Bestand angewendet
   (`CLAUDE.md`, Referenz-Migration `supabase/grants-2026-05-28-api-default-change.sql`).
-- Neu committet (lokal, **nicht gepusht**, `5c79401`): 3 Tests in
-  `src/utils/sentenceQuiz.test.js` für die Zählwort-Varianten (optional/eingefügt/
-  weggelassen + Ablehnung des falschen Zählworts) — reine Testdokumentation, keine
-  Implementierungsänderung, 167/167 grün. Schließt den Handover-Punkt vom 04.08.
 
 ## prod ≠ live
-- **Supabase-Backend weiterhin nicht erreichbar — Status vom 04.08. unverändert, erneut
-  gemessen am 05.08. 09:2x CEST.** `obpgcttudogwfobjwjgk.supabase.co` (aus `.env`)
-  liefert weiterhin **NXDOMAIN** — heute erneut über zwei unabhängige Resolver
-  bestätigt (`dig @1.1.1.1` und `dig @8.8.8.8` beide `status: NXDOMAIN`, AUTHORITY
-  SECTION liefert nur die SOA von `supabase.co` selbst, kein A-Record). `curl` auf
-  `${VITE_SUPABASE_URL}/rest/v1/` schlägt weiter mit „Could not resolve host" fehl
-  (exit 6, HTTP 000). Die Apex-Domain `supabase.co` selbst löst normal auf
-  (`76.76.21.21`) — das Problem bleibt spezifisch dieses Projekt-Ref, seit
-  mindestens 04.08., jetzt seit ≥2 Tagen bestätigt.
-  **Konsequenz unverändert: Login, Fortschritt speichern, Content-Laden und der
-  Feedback-Knopf funktionieren für echte Nutzer weiterhin nicht** — die Seite selbst
-  liefert weiter 200 (statische SPA), das Backend dahinter ist tot.
-  **Weiterhin nicht prüfbar:** offenes Nutzer-Feedback (KPI-Kernzahl), `feedback`-
-  Tabelle allgemein — `check-feedback`-Skill schlägt mit demselben DNS-Fehler fehl.
-  → **Braucht weiterhin Ben:** Supabase-Dashboard-Zugriff, um zu klären, ob das
-  Projekt existiert. Kein Agent kann das von hier aus lösen oder umgehen.
-- ~~Ein Commit lokal, nicht auf `origin/main`: `053319f`~~ — erledigt, ist jetzt auf
-  `origin/main` (siehe oben).
-- ~~Uncommitted: `src/utils/sentenceQuiz.test.js`~~ — erledigt, lokal committet
-  (`5c79401`, nicht gepusht).
-- Weiterhin unstaged: `supabase/sentence-zaehlwort-variants-2026-06-20.sql`
-  (Policy-Migration von Ben, 2026-06-20: Zählwort optional bei Einzelobjekt-Sätzen).
-  **Ob diese Migration bereits gegen die Produktions-DB gelaufen ist, ist weiterhin
-  unklar** — anders als die Vorgänger-Migration (`sentence-accepted-variants-2026-06-18.sql`,
-  deren Commit-Message „Backfilled … in prod" explizit bestätigt), fehlt hier ein
-  solcher Vermerk, und die DB ist weiterhin nicht erreichbar, um es zu prüfen. Blockiert
-  auf denselben Supabase-Ausfall wie oben.
+- **Offenes Nutzer-Feedback: 0.** Geprüft direkt gegen die `feedback`-Tabelle
+  (2026-08-06, jetzt wieder erreichbar) — `resolved_at IS NULL` liefert eine leere
+  Liste. Letzter Feedback-Eintrag überhaupt: 2026-05-25 (resolved). Seit der
+  Rückkehr am 05.08. ist noch kein neues Feedback eingegangen — bei nur 1 aktivem
+  Nutzer seit gestern keine Überraschung, aber die KPI-Kernzahl ist jetzt wieder
+  messbar statt blockiert.
+- `supabase/sentence-zaehlwort-variants-2026-06-20.sql` weiterhin **unstaged/nicht
+  committet** — aber jetzt geklärt: **die Migration lief bereits gegen die
+  Produktions-DB.** Stichprobe verifiziert (2026-08-06): `我有一个本子。` hat in
+  `sentences.accepted_variants` exakt den Wert, den das Skript setzt
+  (`[["我","有","本子","。"]]`). Die Datei dokumentiert also einen bereits live
+  angewendeten Stand, ist aber nicht ins Repo eingecheckt — reine Doku-Lücke, kein
+  Datenrisiko. Fehlt: `git add` + Commit (bewusst nicht von dieser Session gemacht,
+  siehe Offene Punkte).
 
 ## Aus dem globalen Check-in (2026-08-04)
 
@@ -64,40 +57,58 @@
 - Bens Woche ist voll (Mo+Di 10./11.08. Monos vor Ort; die zwei Gridbert-Termine am 10.08. sind am 04.08. zur Verschiebung angeboten) → dieser Punkt darf trotzdem nicht hinter das ruhige Projekt-Image rutschen; er ist der einzige mit direkt betroffenen Nutzern. [Quelle: Kalender 04.-11.08.]
 
 ## Offene Punkte (nächste Session)
-- [ ] **Supabase-Projekt-Status klären (Dashboard, nicht per curl lösbar)** — existiert
-      `obpgcttudogwfobjwjgk` noch? Falls ja: warum kein DNS? Falls nein: neues Projekt
-      + `.env`/Vercel-Env aktualisieren + alle Migrationen neu einspielen. **Seit ≥2
-      Tagen bestätigt tot (04.08. + 05.08.), nur Ben kann das lösen.**
-- [ ] Nach Klärung: prüfen, ob `sentence-zaehlwort-variants-2026-06-20.sql` schon lief;
-      falls nicht, einspielen (Grant-Check entfällt, nur bestehende Spalte).
-- [x] `053319f` pushen — bereits auf `origin/main` (verifiziert 05.08., `git log
-      origin/main..HEAD` leer für diesen Commit; nicht durch diese Session gepusht).
-- [x] `sentenceQuiz.test.js`-Änderung committen — erledigt 05.08. (`5c79401`, lokal,
-      167/167 Tests grün, nicht gepusht).
-- [ ] Offenes Nutzer-Feedback nachholen, sobald Supabase wieder erreichbar ist
-      (`check-feedback`-Skill; erneut fehlgeschlagen 05.08., exit 6/HTTP 000).
+- [x] Supabase-Projekt-Status klären — **von selbst gelöst**: seit 05.08. wieder
+      erreichbar (200 auf REST-API, 2026-08-06 verifiziert), war laut Ben eine
+      geplante Sommerpause, kein Defekt.
+- [x] Prüfen, ob `sentence-zaehlwort-variants-2026-06-20.sql` schon lief — **ja**,
+      Stichprobe gegen `sentences.accepted_variants` bestätigt (05.08.-Migration ist
+      live). Offen bleibt nur der `git commit` der Datei — siehe unten.
+- [ ] **`supabase/sentence-zaehlwort-variants-2026-06-20.sql` committen.** Datei ist
+      bereits gegen prod gelaufen (verifiziert 06.08.), liegt aber unstaged im Repo.
+      Reine Doku-Nachziehung (`git add` + Commit), kein fachlicher Entscheid — bewusst
+      nicht automatisch committet, siehe Projektregel „nur auf Bens Wunsch committen".
+- [x] Offenes Nutzer-Feedback nachholen, sobald Supabase wieder erreichbar ist —
+      erledigt (06.08.): **0 offene Einträge**, letzter Feedback-Eintrag 25.05.
+- [ ] **Nur 1 von 13 Accounts seit der Rückkehr-Mail (05.08.) aktiv eingeloggt.**
+      Zwei Dankesmails kamen zurück, aber nur ein Login ist messbar. Kein akuter
+      Fehler (die eine Session lief sauber durch), aber falls in den nächsten Tagen
+      noch mehr Logins erwartet werden: beobachten, ob die anderen Mail-Antworter
+      tatsächlich einsteigen oder nur höflich geantwortet haben.
 - [ ] pi-lens `knip.json` reparieren — Parse schlägt weiterhin fehl (`success:false`,
-      Cache-Stand 13.04., ~3,5 Monate alt). `npx knip` direkt läuft aber sauber durch
-      und findet 9 Issues (u.a. `src/utils/mnemonics.legacy.js` als unused file) —
-      das eigentliche Tool funktioniert, nur der pi-lens-Wrapper-Cache ist tot/veraltet.
+      Cache-Stand 13.04., ~4 Monate alt). `npx knip` direkt läuft sauber durch und
+      findet aktuell **5 unused files, 1 unused dep (`pg`), 8 unused exports**
+      (06.08., neu gezählt — mehr als die 9 vom 05.08., weil diesmal alle drei
+      Kategorien statt nur „files" gezählt wurden). Das Tool funktioniert, nur der
+      pi-lens-Wrapper-Cache ist tot.
 - [ ] **pi-lens-Cache insgesamt veraltet** (`.pi-lens/metrics-history.json`,
       `jscpd.json`, `turn-end-findings-last.json` alle Stand 13./14.04., committet in
-      git) — die Komplexitäts-Zahlen unten sind älter als mehrere Commits, die diese
-      Dateien seither verändert haben. Nicht dringend, aber die nächste Session, die
-      an einer der Dateien unten arbeitet, sollte die Zahlen neu erheben statt dem
-      Cache blind trauen.
+      git) — die Komplexitäts-Zahlen unten sind älter als mehrere Commits seither.
+      Ein Turn-End-Fund im Cache referenziert sogar eine nicht mehr existierende
+      Datei (`AdminFeedback.jsx`, nie im Git-Verlauf) — Beleg dafür, dass der Cache
+      Datenmüll enthält, nicht nur alt ist. Nicht dringend, aber neu erheben statt
+      dem Cache trauen, sobald jemand an einer der Dateien unten arbeitet.
 - [ ] `useProgress.js` (MI 30.5, kognitive Komplexität 85) und `AdminDashboard.jsx`
       (Komplexität 42) sind laut (veraltetem) `.pi-lens/metrics-history.json` die zwei
       größten Komplexitäts-Ausreißer — keine akute Störung, aber die mit Abstand am
       schwersten wartbaren Dateien im Bestand. `AuthForm.jsx` (MI 33, Komplexität 25)
-      steht dort zusätzlich auf Trend „regressing".
-- [ ] Lint hat 23 Fehler / 12 Warnungen (`npm run lint`, 05.08.) — u.a. mehrere
-      `react-hooks/set-state-in-effect` in `useSettings.js`/ähnlichen Hooks und 6×
-      `no-empty` in `src/utils/offlineCache.js`. Blockiert Build/Deploy nicht (Vite-
-      Build läuft unabhängig sauber durch), aber bisher nicht im Handover erfasst —
-      Umfang einschätzen, ob eigene Session wert.
+      steht dort zusätzlich auf Trend „regressing". Zahlen sind ~4 Monate alt (s.o.).
+- [ ] Lint weiterhin 23 Fehler / 12 Warnungen (`npm run lint`, 06.08., unverändert seit
+      05.08.) — u.a. mehrere `react-hooks/set-state-in-effect` in
+      `useSettings.js`/ähnlichen Hooks und 6× `no-empty` in `src/utils/offlineCache.js`.
+      Blockiert Build/Deploy nicht, aber Umfang einschätzen, ob eigene Session wert.
 
 ## Session-Log (letzte 3)
+- **2026-08-06** — Projekt-Check-in. Supabase-„Ausfall" ist vorbei: App + Supabase-
+  REST-API beide 200. Echte Nutzung seit der Rückkehr-Mail geprüft statt angenommen:
+  von 13 Accounts genau 1 seit 05.08. eingeloggt (Sign-in 09:18 UTC, Session
+  09:25–10:14 UTC in den Progress-Tabellen) — die zwei Dankesmails sind (noch) nicht
+  gleichbedeutend mit mehreren aktiven Nutzern. Offenes Feedback wieder messbar: 0.
+  Zählwort-Migration (`sentence-zaehlwort-variants-2026-06-20.sql`) als bereits live
+  angewendet verifiziert (Stichprobenquery gegen `accepted_variants`) — fehlt nur
+  noch der Commit. Tests (167/167), Build und Lint (23/12) erneut gegen den aktuellen
+  Stand gefahren, alle unverändert zu 05.08. `npx knip` direkt neu gezählt (5 unused
+  files, 1 unused dep, 8 unused exports) — bestätigt weiterhin: Tool ok, nur der
+  pi-lens-Cache ist tot (findet zusätzlich eine Phantom-Datei im Turn-End-Cache).
 - **2026-08-05** — Projekt-Check-in. Supabase-Ausfall erneut gemessen (weiterhin
   NXDOMAIN über beide Resolver, ≥2 Tage bestätigt) — Ursache des 🔴 vom 04.08. bleibt
   bestehen, keine Besserung, kein Agent kann das lösen. Testsuite (167/167) + Build
@@ -109,6 +120,3 @@
   close-session-Profil). Health gemessen, Supabase-Ausfall entdeckt und mit zwei
   unabhängigen DNS-Resolvern verifiziert, Testsuite + Lint gegen den lokalen Stand
   gefahren, `docs/HANDOVER.md` erstmals angelegt.
-- **2026-06-18** (`053319f`, `d22d33c`) — Zwei Runden Backfill für
-  `accepted_variants` bei kontrastiven „不是 X，是 Y"-Sätzen; Grader akzeptierte
-  die subjekt-erhaltende Umformulierung nicht.
