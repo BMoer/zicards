@@ -1,7 +1,6 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { speakChinese, isSpeechAvailable } from '../utils/audio'
-
-const AudioContext = createContext()
+import { AudioContext, useAudio } from './audioContext'
 
 const STORAGE_KEY = 'zicards-audio-enabled'
 
@@ -30,10 +29,6 @@ export function AudioProvider({ children }) {
       {children}
     </AudioContext.Provider>
   )
-}
-
-export function useAudio() {
-  return useContext(AudioContext)
 }
 
 /**

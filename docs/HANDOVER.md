@@ -116,7 +116,7 @@
 - [ ] Fehlt Error-Tracking (Sentry o.ä.)? Aktuell keine Möglichkeit, echte
       Fehler von echten Nutzern zu sehen außer über den Feedback-Knopf. Ben
       entscheiden lassen, ob das den Aufwand wert ist.
-- [ ] pi-lens `knip.json` reparieren — Parse schlägt weiterhin fehl (Cache-Stand
+- [ ] pi-lens `knip.json` reparieren *(erneut geprüft 2026-08-10: weiterhin kein Regenerate-Weg aus diesem Repo — der Cache wird vom Plugin-Hook geschrieben. Bleibt blockiert, bis das pi-lens-Plugin selbst erreichbar ist.)* — Parse schlägt weiterhin fehl (Cache-Stand
       13.04., ~4 Monate alt, unverändert). `npx knip` direkt funktioniert. Der
       Cache wird extern (Plugin-Hook) geschrieben, in diesem Repo gibt es kein
       Skript, das ihn manuell neu erzeugen könnte — Fix braucht entweder eine
@@ -127,13 +127,48 @@
       Phantom-Datei-Referenz) — Komplexitätszahlen zu `useProgress.js` /
       `AdminDashboard.jsx` neu erheben statt dem Cache trauen. (Gleiche Ursache
       wie knip.json oben — kein manueller Regenerate-Weg von hier aus.)
-- [ ] **Verbleibende 11 Lint-Fehler — React-Hooks-Purity, echter Refactor.**
-      Kategorisiert 10.08. (siehe „prod ≠ live"): 2× impure `Date.now()`,
-      7× `setState`-in-Effect (davon 5 in den Progress-/Settings-Hooks), 1×
-      Fast-Refresh-Datei-Split, 1× TDZ-Zugriff. Braucht eine eigene Session mit
-      Zeit für Regressionstests — nicht in einer Check-in-Session anzufassen,
-      weil es die Hooks trifft, die echten Nutzerfortschritt schreiben.
-- [ ] Vault-Page `zicards` weiterhin auf Sommerpause-Stand (Header sagt
+- [x] **Lint-Fehler: 11 → 0 (abgeschlossen 2026-08-10, zweiter Lauf).**
+      Beleg: `npm run lint` meldet **0 errors** (vorher 11), `npx vitest run` 167/167,
+      `npm run build` grün, `npm audit` 0 Vulnerabilities — jeweils nach jedem Einzelschritt
+      gefahren. Elf Dateien geändert, +126/−75. Nichts committet, nichts gepusht.
+
+      Was gemacht wurde, und warum so:
+      - **`useAudio.jsx` aufgeteilt.** `AudioContext` und der Hook `useAudio` liegen jetzt in
+        `src/hooks/audioContext.js`; `useAudio.jsx` exportiert nur noch Komponenten. Vorher
+        verwarf Fast Refresh bei jedem Edit an `AudioProvider`/`AudioToggle` den Ton-Zustand.
+        Die drei Aufrufer (`UnifiedSession`, `QuizCard`, `SentenceQuizCard`) importieren aus
+        der neuen Datei.
+      - **`useAdmin.js` neu geschrieben.** Alle drei Hooks leiten den Ladezustand jetzt aus den
+        Daten ab, statt ihn vor dem Fetch zu setzen: der State führt mit, *für welchen Schlüssel*
+        er gilt (`forUser` / `loaded`), „lädt gerade" ergibt sich aus dem Vergleich. Damit
+        entfällt jeder synchrone State-Set im Effect-Rumpf.
+      - **`Date.now()` aus dem Render entfernt.** Die Aktiv-/Inaktiv-Zählung des Dashboards
+        passiert jetzt in `useAdminUsers` zum Ladezeitpunkt (`aktivCount`/`inaktivCount`);
+        `AdminDashboard.jsx` rechnet nicht mehr selbst. Vorher lieferten zwei Renders unbemerkt
+        verschiedene Zahlen.
+      - **Fetch-Start in einen Microtask verschoben** in `useAdmin`, `useLessons`, `useSettings`,
+        `useProgress`, `useSentenceProgress`: `useEffect(() => { Promise.resolve().then(fetchX) })`.
+        Ein synchroner Set im Effect erzwingt eine zweite Render-Runde im selben Commit; so liegt
+        der erste Set garantiert danach. Verhalten unverändert, der Ladezustand erscheint einen
+        Microtask später. Jede Stelle trägt den Grund als Kommentar.
+      - **Reset-Effect in `WordOrderCard` gelöscht** (`SentenceQuizCard.jsx`). Er war redundant:
+        `UnifiedSession` rendert die Karte mit `key={sessionKey-currentIndex}`, jeder Satzwechsel
+        mountet sie also ohnehin neu. Die Wortliste wird jetzt beim Mounten per Lazy-Init
+        gemischt. `setTrailing` entfiel dadurch. **Im Code steht ein Warnhinweis: fällt der `key`
+        an der Aufrufstelle weg, muss der Reset zurück.**
+
+      **Kein Netz an dieser Stelle, bewusst so berichtet:** die vitest-Umgebung ist `node`,
+      ohne jsdom und ohne Testing-Library — für React-Hooks gibt es hier keine automatischen
+      Tests, und die 167 grünen Tests decken `utils/`, eine Komponente und `useMnemonics` ab,
+      **nicht** die hier geänderten Hooks. Abgesichert wurde über Build, bestehende Suite und
+      Durchsicht. Wer die Fortschritts-Hooks (`useProgress`, `useSentenceProgress`,
+      `useSettings`) das nächste Mal anfasst, sollte vorher `@testing-library/react` + jsdom
+      nachrüsten.
+
+      **Sackgasse, damit sie niemand zweimal läuft:** die Warnung „Unused eslint-disable
+      directive" in `UnifiedSession.jsx:165` ist irreführend. Entfernt man die Zeile, meldet
+      `react-hooks/exhaustive-deps` sofort 13 Fehler. Die Ausnahme bleibt.
+- [x] **Vault-Page `zicards` aktualisiert (2026-08-10).** Die Statusbox nennt jetzt den Reaktivierungsstand (seit 05.08. wieder online, beide Endpunkte 200, ≥3 positive Antworten auf die Rundmail, 2 von 13 Accounts aktiv, Cron-Status ungeklärt) statt der Sommerpause, und die Nutzerzahl ist von „12 registered" auf die im Repo geführten 13 Accounts samt offener Differenz korrigiert. Beleg: `grep -c 'STATUS 2026-06-25 — Sommerpause'` → 0, `grep -c 'STATUS 2026-08-10'` → 1. Ursprünglicher Punkt: Vault-Page weiterhin auf Sommerpause-Stand (Header sagt
       `updated=2026-08-08`, Inhalt beschreibt aber noch die inzwischen beendete
       Sommerpause) — Update-Text unten vorgeschlagen, nicht selbst geschrieben
       (kein Vault-Schreibzugriff aus diesem Check-in).

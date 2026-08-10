@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { displayHanzi, displayPinyin, usesCompoundForm, meaningForQuiz } from '../utils/pinyin'
-import { useAudio } from '../hooks/useAudio'
+import { useAudio } from '../hooks/audioContext'
 import SpeakButton from './SpeakButton'
 import MnemonicCard from './MnemonicCard'
 import GrammarHint from './GrammarHint'

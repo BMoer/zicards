@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { useAudio } from '../hooks/useAudio'
+import { useAudio } from '../hooks/audioContext'
 import SpeakButton from './SpeakButton'
 import IMESequenceInput from './IMESequenceInput'
 import { getShuffledWords, checkWordOrder, findGapSpan } from '../utils/sentenceQuiz'
@@ -42,20 +42,23 @@ function SentenceLearnCard({ sentence, onNext }) {
  * Stufe 1: Word Order – arrange words into correct sentence
  */
 function WordOrderCard({ sentence, onAnswer }) {
-  const [available, setAvailable] = useState([])
+  // Gemischt wird einmal beim Mounten, nicht in einem Effect. Der Effect war
+  // redundant: `UnifiedSession` rendert die Karte mit
+  // `key={sessionKey-currentIndex}`, jeder Satzwechsel mountet sie also neu und
+  // setzt den State ohnehin zurueck. Als Effect setzte er beim Mounten fuenfmal
+  // synchron State und erzwang damit eine zweite Render-Runde.
+  // ACHTUNG: Faellt der `key` an der Aufrufstelle weg, bleibt beim Satzwechsel
+  // die alte Wortliste stehen — dann muss der Reset hier wieder rein.
+  const [start] = useState(() => getShuffledWords(sentence.words))
+  const [available, setAvailable] = useState(() =>
+    start.shuffled.map((w, i) => ({ word: w, id: i }))
+  )
   const [selected, setSelected] = useState([])
-  const [trailing, setTrailing] = useState([])
+  // `trailing` (Satzzeichen am Ende) aendert sich innerhalb einer Karte nie —
+  // seit dem Wegfall des Reset-Effects braucht es keinen Setter mehr.
+  const [trailing] = useState(start.trailing)
   const [result, setResult] = useState(null)
   const [hintUsed, setHintUsed] = useState(false)
-
-  useEffect(() => {
-    const { shuffled, trailing: t } = getShuffledWords(sentence.words)
-    setAvailable(shuffled.map((w, i) => ({ word: w, id: i })))
-    setSelected([])
-    setTrailing(t)
-    setResult(null)
-    setHintUsed(false)
-  }, [sentence.id])
 
   const handleSelect = (item) => {
     if (result) return

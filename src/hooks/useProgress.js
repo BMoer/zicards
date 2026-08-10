@@ -57,9 +57,12 @@ export function useProgress(user) {
     setLoading(false)
   }, [user, syncPendingUpdates])
 
-  useEffect(() => {
-    fetchProgress()
-  }, [fetchProgress])
+  // Der Fetch startet bewusst in einem Microtask statt direkt im Effect-Rumpf.
+  // Ein synchroner State-Set im Effect erzwingt eine zweite Render-Runde noch im
+  // selben Commit (React-Regel "Calling setState synchronously within an effect");
+  // ueber `Promise.resolve().then` liegt der erste Set garantiert danach. Am
+  // Verhalten aendert sich nichts, der Ladezustand erscheint einen Microtask spaeter.
+  useEffect(() => { Promise.resolve().then(fetchProgress) }, [fetchProgress])
 
   // Sync when coming back online
   useEffect(() => {

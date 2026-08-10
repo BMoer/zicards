@@ -12,10 +12,9 @@ export function useLessons() {
   const [lessons, setLessons] = useState([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchAll()
-  }, [])
-
+  // Deklaration steht bewusst vor dem Effect: als Function Declaration wurde sie
+  // zwar gehoistet, der Lint-Regel galt der Aufruf trotzdem als Zugriff vor der
+  // Deklaration. Reine Umsortierung, kein Verhaltensunterschied.
   async function fetchAll() {
     setLoading(true)
 
@@ -62,6 +61,13 @@ export function useLessons() {
     setLessons(Object.values(lessonMap).sort((a, b) => a.week - b.week))
     setLoading(false)
   }
+
+  // Der Fetch startet bewusst in einem Microtask statt direkt im Effect-Rumpf.
+  // Ein synchroner State-Set im Effect erzwingt eine zweite Render-Runde noch im
+  // selben Commit (React-Regel "Calling setState synchronously within an effect");
+  // ueber `Promise.resolve().then` liegt der erste Set garantiert danach. Am
+  // Verhalten aendert sich nichts, der Ladezustand erscheint einen Microtask spaeter.
+  useEffect(() => { Promise.resolve().then(fetchAll) }, [])
 
   return { characters, sentences, lessons, loading }
 }

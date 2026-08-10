@@ -71,7 +71,7 @@ function OverallProgress({ user }) {
 }
 
 export default function AdminDashboard() {
-  const { users, loading, error } = useAdminUsers()
+  const { users, loading, error, aktivCount, inaktivCount } = useAdminUsers()
   const navigate = useNavigate()
 
   if (loading) return <div className="text-center py-12 text-ink/40">Laden...</div>
@@ -89,19 +89,15 @@ export default function AdminDashboard() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-3 gap-3 mb-6">
+        {/* Gezählt wird in `useAdminUsers` zum Ladezeitpunkt — `Date.now()` im
+            Render ist unrein und liefert je Render andere Zahlen. */}
         <SummaryCard
-          value={users.filter(u => {
-            if (!u.last_activity) return false
-            return (Date.now() - new Date(u.last_activity).getTime()) / 86400000 <= 7
-          }).length}
+          value={aktivCount}
           label="Aktiv (7 Tage)"
           total={users.length}
         />
         <SummaryCard
-          value={users.filter(u => {
-            if (!u.last_activity) return true
-            return (Date.now() - new Date(u.last_activity).getTime()) / 86400000 > 7
-          }).length}
+          value={inaktivCount}
           label="Inaktiv"
           total={users.length}
           warn
