@@ -2,35 +2,40 @@
 
 ## Was live / fertig
 - Frontend erreichbar auf beiden Domains: `https://zicards.moerzinger.eu/` → 200,
-  `https://zicards.vercel.app/` → 200 (curl, 2026-08-09).
+  `https://zicards.vercel.app/` → 200 (curl, 2026-08-10).
 - Supabase-Backend erreichbar — REST-API `${VITE_SUPABASE_URL}/rest/v1/` → 200
-  (curl, 2026-08-09). Login, Fortschritt speichern, Feedback-Knopf funktionieren.
-- **`npm-audit`-Fix (`d86fa63`) ist jetzt live.** Ben hat gepusht (zwischen 08.08.
-  und 09.08.) — `d86fa63` und der Handover-Commit `d63987b` stehen beide auf
-  `origin/main` (`git log --oneline origin/main..HEAD` → leer, `git status` sauber).
-  `npm audit` gegen den aktuellen Working Tree erneut gefahren: **0 Vulnerabilities**
-  (09.08., bestätigt). Der gestrige offene Punkt „Ben muss pushen" ist damit erledigt.
-- Testsuite grün: `npx vitest run` → 13 Testdateien, 167 Tests (2026-08-09,
-  unverändert seit 05.08.). Lint unverändert: `npm run lint` → 23 Fehler /
-  12 Warnungen (2026-08-09, exakt wie 05.–08.08. — keine Regression, keine
-  Besserung). Build weiterhin sauber (`npm run build`, 458ms, nur die bekannte
+  (curl, 2026-08-10). Login, Fortschritt speichern, Feedback-Knopf funktionieren.
+- **`npm-audit`-Fix (`d86fa63`) weiterhin live**, `npm audit` erneut 0
+  Vulnerabilities (10.08.). `git status` sauber, nichts unpushed vor der
+  heutigen Session.
+- Testsuite grün: `npx vitest run` → 13 Testdateien, 167 Tests (2026-08-10,
+  unverändert seit 05.08., auch nach den heutigen Lint-Fixes erneut grün).
+  **Lint verbessert:** `npm run lint` → **11 Fehler / 12 Warnungen** (vorher
+  23/12) — Commit `c5eb8e8` behebt 12 rein mechanische Fehler (tote
+  `onNext`-Prop in `QuizCard.jsx`, ungenutzte Imports in `useAudio.jsx` /
+  `useMnemonics.test.js` / `wordOrderDiff.test.js`, 6 leere `catch{}` in
+  `offlineCache.js` jetzt mit Kommentar dokumentiert statt stillschweigend
+  leer). Keine Verhaltensänderung, Tests vorher/nachher 167/167, Build vorher/
+  nachher sauber. Details zu den verbleibenden 11 unter „Offene Punkte".
+  Build weiterhin sauber (`npm run build`, ~330ms, nur die bekannte
   Chunk-Size-Warnung).
 - Offenes Nutzer-Feedback: **0**. Seit 2026-08-01 ist überhaupt kein neuer
   Feedback-Eintrag eingegangen (Tabellen-Gesamtstand unverändert 41, letzter
-  Eintrag 25.05.) — geprüft mit und ohne `resolved_at`-Filter, erneut 09.08.
+  Eintrag 25.05.) — geprüft mit und ohne `resolved_at`-Filter, erneut 10.08.
 
 ## prod ≠ live
-- **Zweiter Account seit der Reaktivierung aktiv geworden.** Gemessen gegen
+- **Weiterhin 2 von 13 Accounts aktiv, kein dritter seit 08.08.** Gemessen gegen
   `user_progress`, `sentence_progress` (Query gegen `auth.users` selbst scheitert
   für service_role an der `is_admin()`-RLS-Prüfung der `admin_get_users()`-RPC —
   Proxy über die Progress-Tabellen bleibt der einzig mögliche Weg von diesem Repo
-  aus): jetzt **2 von 13 Accounts** seit 05.08. aktiv — User `055164cb…` (erste
-  Aktivität 05.08. 09:20 UTC, weiterhin aktiv, zuletzt 09.08. 09:46 UTC) und neu
-  User `e1554433…` (erste Aktivität 08.08. 13:00 UTC, in beiden Tabellen). Drei
-  Tage stand es bei 1/13 (05.–07.08.), seit 08.08. bei 2/13 — geprüft 09.08. Die
-  Rundmail „zicards läuft wieder" (05.08., BCC an die Lerngruppe, ≥3 positive
-  Antworten) zeigt sich damit erstmals in echter Nutzung, wenn auch verzögert und
-  bei einem Bruchteil der Angeschriebenen.
+  aus): User `055164cb…` (aktiv seit 05.08., zuletzt 09.08. 12:29 UTC) und
+  `e1554433…` (aktiv seit 08.08. 13:00 UTC, zuletzt unverändert). Ein dritter,
+  nur in `sentence_progress` sichtbarer Account (`ba343729…`) ist **kein** neuer
+  Login — letzte Aktivität dort 22.06., also vor der Reaktivierung. Stand bleibt
+  2/13 (geprüft 10.08., ~11:15 Uhr — Ben's Tag ist da erst angelaufen, spätere
+  Logins heute nicht ausgeschlossen). Die Rundmail „zicards läuft wieder" (05.08.,
+  BCC an die Lerngruppe, ≥3 positive Antworten) zeigt sich damit weiterhin nur bei
+  einem Bruchteil der Angeschriebenen.
 - **Cron-Job „daily-reminders" (jobid 6) — Status nicht von hier verifizierbar.**
   Laut Vault war er seit 25.06. für die Sommerpause deaktiviert
   (`active = false`), Reaktivierung sollte laut Vault-Notiz ein manueller Schritt
@@ -44,10 +49,20 @@
   Vercel-Function-Logs). Einzige Proxy-Signale: App + Supabase-API beide 200,
   0 neue Feedback-Einträge seit 01.08. Eine echte Fehlerquote lässt sich damit
   nicht beziffern — nur „keine gemeldeten Fehler". Unverändert seit 07.08.
+- **Verbleibende 11 Lint-Fehler sind React-Hooks-Purity-Regeln, kein
+  mechanischer Fix.** Kategorisiert 10.08.: 2× impure `Date.now()` während
+  Render (`AdminDashboard.jsx:95,103`), 7× `setState` synchron in einem Effect
+  (`useAdmin.js:12,44,56`, `useProgress.js:61`, `useSentenceProgress.js:58`,
+  `useSettings.js:29`, `SentenceQuizCard.jsx:53`) — letztere in genau den
+  Hooks, die den echten Nutzerfortschritt schreiben, also nicht blind in einer
+  Check-in-Session anzufassen. Dazu 1× Fast-Refresh-Verstoß (`useAudio.jsx:35`,
+  Datei exportiert Komponente + Hook gemischt) und 1× „Cannot access variable
+  before it is declared" (`useLessons.js:16`). Braucht eine eigene Session mit
+  Zeit für Regressionstests an den Progress-Hooks.
 - pi-lens-Cache weiterhin auf Stand 13./14.04. (`.pi-lens/metrics-history.json`,
   `jscpd.json`, `turn-end-findings-last.json`), `knip.json`-Wrapper weiterhin
-  `success:false`. Direkter `npx knip`-Lauf (09.08.) bestätigt erneut identisch zu
-  06.–08.08.: 5 unused files, 1 unused dep (`pg`), 8 unused exports. Turn-End-Cache
+  `success:false`. Direkter `npx knip`-Lauf (10.08.) bestätigt erneut identisch zu
+  06.–09.08.: 5 unused files, 1 unused dep (`pg`), 8 unused exports. Turn-End-Cache
   referenziert weiterhin die nie im Git-Verlauf existierende `AdminFeedback.jsx`
   (erneut verifiziert: `git log --all -- '**/AdminFeedback.jsx'` → leer, Datei
   existiert im Working Tree nicht).
@@ -61,16 +76,17 @@
   (Komplexität 42) weiterhin laut (veraltetem) Cache die größten
   Komplexitäts-Ausreißer — Zahlen sind ~4 Monate alt, nicht neu erhoben.
 
-## Aus dem globalen Check-in (2026-08-07)
-- Bens Kapazität bis 24.08. ist knapp: Mo–Di 10./11.08. Kunde Schweiz, Mi 12.08.
-  komplett voll (6 Termine), Do–So 13.–16.08. Sommerlager (privat, weg), Mo–Do
-  17.–20.08. einzige freie Arbeitswoche, Fr–So 21.–23.08. Junggesellenabschied
-  (privat, weg), Mo 24.08. Workshop Heidenheim. zicards konkurriert diese und
-  nächste Woche mit zwei Kundenterminen und einem Workshop um Zeit — realistisch
-  kein Fenster für größere zicards-Arbeit vor dem 17.08.
+## Aus dem globalen Check-in (2026-08-10)
+- Bens Woche ist von Kundenprojekten belegt: Mo/Di (heute/morgen) Monos/Meier
+  Tobler in Zürich, Mi 12.08. sechs Kundentermine, Do–So 13.–16.08. weg
+  (AI-for-Founders-Workshop + Sommerlager), 21.–23.08. Junggesellenabschied,
+  24.08. Workshop bei Voith. Diese Woche bleibt für zicards realistisch keine
+  Zeit — Empfehlungen unten entsprechend klein gehalten oder gleich selbst
+  erledigt statt vorgelegt.
 - Rundmail „zicards läuft wieder" (05.08., BCC an die Lerngruppe) hat mind. 3
   positive Rückmeldungen erzeugt (u.a. aus Japan, vom Konfuzius-Institut) — aber
-  siehe „prod ≠ live" oben: das schlägt sich (noch) nicht in echten Logins nieder.
+  siehe „prod ≠ live" oben: das schlägt sich weiterhin nur bei einem Bruchteil
+  der Angeschriebenen in echten Logins nieder (2/13, unverändert seit 08.08.).
 
 ## Offene Punkte (nächste Session)
 - [x] `sentence-zaehlwort-variants-2026-06-20.sql` committen — bereits am 06.08.
@@ -83,33 +99,64 @@
 - [x] **`d86fa63` (npm-audit-Fix) pushen.** War als Ben-Punkt offen — 09.08.
       geprüft: liegt bereits auf `origin/main` (Ben hat zwischen 08.08. und 09.08.
       gepusht), `npm audit` im Working Tree bestätigt 0 Vulnerabilities.
+- [x] **12 mechanische Lint-Fehler behoben** (10.08., Commit `c5eb8e8`): tote
+      `onNext`-Prop, ungenutzte Imports/Testvariablen entfernt, 6 leere
+      `catch{}` in `offlineCache.js` mit Kommentar dokumentiert statt still
+      leer. 23 → 11 Fehler, 12 Warnungen unverändert. Tests 167/167 und Build
+      vor/nach unverändert grün — keine Verhaltensänderung.
 - [ ] **Cron-Job „daily-reminders" (jobid 6) reaktiviert?** Braucht Supabase-
       Dashboard-Zugang oder ein Management-API-Token — kann von diesem Repo aus
       nicht geprüft werden. Ben.
-- [ ] **Weiter beobachten: bleibt es bei 2/13 aktiven Accounts?** 05.–07.08. war
-      es bei 1/13, seit 08.08. 13:00 UTC ist ein zweiter Account aktiv (2/13,
-      bestätigt 09.08.). Kein akuter Fehler, aber die Rückkehr-Rate bleibt
-      deutlich kleiner als die ≥3 positiven Mail-Antworten vermuten lassen —
-      falls es bei 2/13 stehen bleibt, wäre das ein Signal für Ben, aktiv
-      nachzufassen statt nur zu beobachten.
+- [ ] **Weiter beobachten: bleibt es bei 2/13 aktiven Accounts?** Seit 08.08.
+      13:00 UTC unverändert 2/13 (erneut geprüft 10.08., ~11:15 Uhr — heute war
+      bis dahin noch kein neuer Login zu erwarten). Kein akuter Fehler, aber die
+      Rückkehr-Rate bleibt deutlich kleiner als die ≥3 positiven Mail-Antworten
+      vermuten lassen — falls es bei 2/13 stehen bleibt, wäre das ein Signal für
+      Ben, aktiv nachzufassen statt nur zu beobachten.
 - [ ] Fehlt Error-Tracking (Sentry o.ä.)? Aktuell keine Möglichkeit, echte
       Fehler von echten Nutzern zu sehen außer über den Feedback-Knopf. Ben
       entscheiden lassen, ob das den Aufwand wert ist.
 - [ ] pi-lens `knip.json` reparieren — Parse schlägt weiterhin fehl (Cache-Stand
-      13.04., ~4 Monate alt, unverändert). `npx knip` direkt funktioniert. Geprüft
-      08.08.: der Cache wird extern (Plugin-Hook) geschrieben, in diesem Repo gibt
-      es kein Skript, das ihn manuell neu erzeugen könnte — Fix braucht entweder
-      eine echte Coding-Session an den betroffenen Dateien oder Zugriff auf das
+      13.04., ~4 Monate alt, unverändert). `npx knip` direkt funktioniert. Der
+      Cache wird extern (Plugin-Hook) geschrieben, in diesem Repo gibt es kein
+      Skript, das ihn manuell neu erzeugen könnte — Fix braucht entweder eine
+      echte Coding-Session an den betroffenen Dateien oder Zugriff auf das
       pi-lens-Plugin selbst.
 - [ ] pi-lens-Cache insgesamt erneuern (`metrics-history.json`, `jscpd.json`,
       `turn-end-findings-last.json` alle Stand 13./14.04., enthält auch eine
       Phantom-Datei-Referenz) — Komplexitätszahlen zu `useProgress.js` /
       `AdminDashboard.jsx` neu erheben statt dem Cache trauen. (Gleiche Ursache
       wie knip.json oben — kein manueller Regenerate-Weg von hier aus.)
-- [ ] Lint weiterhin 23 Fehler / 12 Warnungen — Umfang einschätzen, ob eigene
-      Session wert (blockiert Build/Deploy nicht).
+- [ ] **Verbleibende 11 Lint-Fehler — React-Hooks-Purity, echter Refactor.**
+      Kategorisiert 10.08. (siehe „prod ≠ live"): 2× impure `Date.now()`,
+      7× `setState`-in-Effect (davon 5 in den Progress-/Settings-Hooks), 1×
+      Fast-Refresh-Datei-Split, 1× TDZ-Zugriff. Braucht eine eigene Session mit
+      Zeit für Regressionstests — nicht in einer Check-in-Session anzufassen,
+      weil es die Hooks trifft, die echten Nutzerfortschritt schreiben.
+- [ ] Vault-Page `zicards` weiterhin auf Sommerpause-Stand (Header sagt
+      `updated=2026-08-08`, Inhalt beschreibt aber noch die inzwischen beendete
+      Sommerpause) — Update-Text unten vorgeschlagen, nicht selbst geschrieben
+      (kein Vault-Schreibzugriff aus diesem Check-in).
 
 ## Session-Log (letzte 3)
+- **2026-08-10** — Projekt-Check-in. Health erneut 200/200/200 (App × 2,
+  Supabase), Tests 167/167, Build sauber, `git status` sauber vor Sessionstart.
+  **Lint verbessert:** 12 von 23 Fehlern behoben (Commit `c5eb8e8`) — tote
+  `onNext`-Prop in `QuizCard.jsx`, ungenutzte Imports/Testvariablen entfernt,
+  6 leere `catch{}` in `offlineCache.js` jetzt mit Kommentar statt still leer.
+  23 → 11 Fehler, keine Verhaltensänderung (Tests/Build vor und nach identisch
+  grün). Die verbleibenden 11 sind React-Hooks-Purity-Regeln (impure
+  `Date.now`, `setState`-in-Effect, Fast-Refresh-Split, TDZ) und kategorisiert
+  als „braucht eigene Session" statt weiter blind angefasst zu werden — 5 der
+  7 setState-Fälle liegen in den Progress-Hooks, dort ist ein blinder Fix zu
+  riskant für eine Check-in-Session. Login-Rücklauf unverändert: weiterhin
+  2/13 Accounts aktiv, kein dritter seit 08.08. (ein dritter, nur in
+  `sentence_progress` sichtbarer Account ist ein Alt-Login von 22.06., kein
+  neuer). Offenes Feedback weiter 0, Tabellen-Gesamtstand unverändert 41.
+  `npx knip` direkt erneut identisch (5/1/8), pi-lens-Cache weiterhin Stand
+  13./14.04. Vault-Page `zicards` weiterhin auf Sommerpause-Stand (Header
+  `updated=2026-08-08`, Inhalt aber unverändert) — Update-Vorschlag erneut
+  nicht selbst geschrieben (kein Vault-Schreibzugriff aus diesem Check-in).
 - **2026-08-09** — Projekt-Check-in. Health erneut 200/200/200 (App × 2,
   Supabase), Tests 167/167, Lint 23/12 unverändert, Build sauber. **`d86fa63`
   (npm-audit-Fix) ist jetzt live** — Ben hat zwischen 08.08. und 09.08. gepusht,
@@ -137,15 +184,3 @@
   mit geklärter Ursache statt wiederholter Vermutung. `npx knip` direkt erneut
   identisch (5/1/8) bestätigt. Vault-Page `zicards` weiterhin auf Sommerpause-
   Stand (13.07.) — Update-Vorschlag erneut nicht selbst geschrieben.
-- **2026-08-07** — Projekt-Check-in. Health erneut 200/200/200 (App × 2,
-  Supabase). Kernfrage des Tages („zeigt sich die Reaktivierung in den Zahlen?")
-  beantwortet: **nein** — trotz 3 positiver Mail-Antworten weiterhin nur 1 von 13
-  Accounts aktiv, keine neuen Logins seit 05.08. Migrations-Commit-Punkt aus dem
-  Handover war bereits erledigt, nur nicht abgehakt — korrigiert. Neu geprüft und
-  offen: Cron-Job-Status „daily-reminders" nicht von hier verifizierbar (kein
-  Management-API-Zugang), kein Error-Tracking im Projekt vorhanden (daher keine
-  echte „Fehlerrate", nur Proxy-Signale). Tests (167/167), Lint (23/12), Build,
-  pi-lens-Cache-Staleness und `knip`-Direktlauf (5/1/8, identisch zu 06.08.) erneut
-  bestätigt, keine Veränderung. Vault-Page `zicards` als veraltet identifiziert
-  (Stand 13.07., beschreibt noch die laufende Sommerpause) — Update vorgeschlagen,
-  nicht selbst geschrieben.
