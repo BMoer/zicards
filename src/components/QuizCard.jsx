@@ -186,7 +186,7 @@ function IMECard({ character, characters, onAnswer }) {
  * Feedback overlay shown after answering.
  * Auto-plays the audio for the character so the learner hears how it sounds.
  */
-function Feedback({ character, isCorrect, isHalf, onNext, characters, progress, mnemonics }) {
+function Feedback({ character, isCorrect, isHalf, characters, progress, mnemonics }) {
   const { autoSpeak } = useAudio()
   useEffect(() => {
     autoSpeak(displayHanzi(character))
@@ -288,7 +288,6 @@ export default function QuizCard({ item, options, onAnswer, onNext, characters, 
           character={item.character}
           isCorrect={isCorrect}
           isHalf={isHalf}
-          onNext={() => onNext(false)}
           characters={characters}
           progress={progress}
           mnemonics={mnemonics}

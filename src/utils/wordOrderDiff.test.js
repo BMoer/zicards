@@ -40,8 +40,6 @@ describe('findSingleMisplacement', () => {
     // ['B','C','A','D'] → ['A','B','C','D'] cannot be fixed by moving one
     // element: removing any single word from user does not match removing
     // any single word from correct.
-    const user    = ['B', 'C', 'A', 'D']
-    const correct = ['A', 'B', 'C', 'D']
     // Actually this CAN be solved by moving A: remove user[2]='A' → ['B','C','D'],
     // remove correct[0]='A' → ['B','C','D']. Equal. So this returns A.
     // Use a case that genuinely needs 2 moves instead:
