@@ -45,6 +45,16 @@ GRANT EXECUTE ON FUNCTION public.<fn>(<args>) TO authenticated;
 ```
 Trigger-Functions brauchen KEIN GRANT — sie laufen im Kontext des Triggers.
 
+Jede Function (auch Trigger-Functions) braucht außerdem ein festes `search_path`,
+sonst meldet der Supabase Security Advisor „Function Search Path Mutable":
+```sql
+ALTER FUNCTION public.<fn>(<args>) SET search_path = '';
+```
+Voraussetzung: alle Objektreferenzen im Function-Body sind schemaqualifiziert
+(`public.<table>`, `auth.users`, ...). Bei `SECURITY DEFINER` ist das nicht nur
+Advisor-Kosmetik, sondern schließt eine echte Rechteausweitung über einen
+manipulierten `search_path`. Referenz: `supabase/security-search-path-fix-2026-08-12.sql`.
+
 ### Referenz-Migration
 
 `supabase/grants-2026-05-28-api-default-change.sql` zeigt das vollständige Pattern für die bestehenden Tabellen + `ALTER DEFAULT PRIVILEGES` für künftige Functions. Bei Unsicherheit dort spicken.
@@ -55,4 +65,5 @@ Trigger-Functions brauchen KEIN GRANT — sie laufen im Kontext des Triggers.
 - [ ] `ENABLE ROW LEVEL SECURITY` + mindestens eine SELECT-Policy
 - [ ] Passendes Grant-Profil (a/b/c) gewählt und eingefügt
 - [ ] Falls Function: `GRANT EXECUTE` für alle Roles, die sie aufrufen
+- [ ] Falls Function: `SET search_path = ''` gesetzt (siehe oben)
 - [ ] Falls Sequence (z.B. `bigserial`-PK): `GRANT USAGE ON SEQUENCE ...` für schreibende Roles
