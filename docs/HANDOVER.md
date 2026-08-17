@@ -140,19 +140,8 @@
   Komplexitäts-Ausreißer — Zahlen sind ~4 Monate alt, nicht neu erhoben.
 
 ## Aus dem globalen Check-in (2026-08-17)
-- Bens Kapazität diese Woche: heute (Mo) geschäftlich frei, aber drei
-  Nachmittags-Termine plus Ganztags-Erreichbarkeitszusage an einen Partner.
-  Di–Do mit Terminen verplant, Fr–So Junggesellenabschied (nicht verfügbar),
-  Mo 24.08. Ganztagsworkshop Heidenheim. **Bens letztes Arbeitsfenster diese
-  Woche endet Do 20.08. abends, Großteil davon geht an ein Kundenprojekt** —
-  zicards bekommt diese Woche fast keine Ben-Zeit. Entsprechend wurde in
-  dieser Session alles bearbeitet, was ohne Ben ging, und nur das nach unten
-  gereicht, was wirklich seine Entscheidung braucht.
-- Karl Zarhuber (Tablet-Login-Frage) hat am 13.08. bestätigt: „zicards läuft
-  gut nun auch auf dem Tablet." Punkt vollständig erledigt — löst auch den
-  offenen „Mobiler Viewport-Test"-Punkt aus der 13.08.-Session ab (siehe „Was
-  live/fertig").
-- Keine weiteren zicards-Signale im Posteingang der letzten vier Tage.
+
+- Bens Zeit diese Woche endet Donnerstag 20.08. abends (Fr–So privat weg, Mo 24.08. Workshop Heidenheim) → der Supabase-Security-Fix und der Push der wartenden Doku-Commits brauchen zusammen wenige Minuten Konsolenzugang, sonst liegen sie bis nach dem 24.08. [Quelle: Kalender beide Konten]
 
 ## Offene Punkte (nächste Session)
 - [ ] **Supabase-Security-Fix ausführen:**
