@@ -43,8 +43,11 @@ one_liner: Chinesisch-Lern-App (React/Vite auf Vercel, Supabase als Backend) mit
   - Offene Punkte stehen primär in `docs/HANDOVER.md` → `## Offene Punkte (nächste Session)`
 
 ## vault
-area_key:     `zicards` (existiert bereits, zuletzt aktualisiert 2026-07-13 — Stand
-  Sommerpause/offline; seit der Reaktivierung 05.08. veraltet, siehe vault_vorschlag)
+area_key:     `zicards` (existiert bereits; laut Vault-Metadaten zuletzt aktualisiert
+  2026-08-10 — Reaktivierungs-Stand, nicht mehr die alte Sommerpause-Fassung.
+  Stand 17.08. gegengelesen: Kerninhalte weiterhin stimmig, aber der
+  Supabase-Security-Fund (12.08.) und Karls Tablet-Bestätigung (13.08.) fehlen
+  noch, siehe vault_vorschlag)
 backlog_key:  (keiner eigener — Backlog lebt in docs/HANDOVER.md)
 known_issues: (keine eigene Page — offene Themen stehen in der `zicards`-Page unter
   „Open Questions" / „Next Steps")
