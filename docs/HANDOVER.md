@@ -2,22 +2,37 @@
 
 ## Was live / fertig
 - Frontend erreichbar auf beiden Domains: `https://zicards.moerzinger.eu/` → 200,
-  `https://zicards.vercel.app/` → 200 (curl, 2026-08-13, auch `/login` direkt
-  auf beiden Domains → 200 — SPA-Rewrite in `vercel.json` funktioniert für
-  Deep-Links).
+  `https://zicards.vercel.app/` → 200 (curl, 2026-08-17), auch `/login` direkt
+  auf beiden Domains → 200 — SPA-Rewrite in `vercel.json` funktioniert weiter
+  für Deep-Links.
 - Supabase-Backend erreichbar — REST-API `${VITE_SUPABASE_URL}/rest/v1/` → 200
-  (curl, 2026-08-13). Login, Fortschritt speichern, Feedback-Knopf funktionieren.
-- `npm audit` weiterhin 0 Vulnerabilities (13.08.). **`git log origin/main..HEAD`
-  ist NICHT mehr leer** — 1 Commit unpushed (`f776e0a`, siehe „prod ≠ live"),
-  seit dem 12.08.-Commit selbst. Diese Session hat lokal weiter committet
-  (HANDOVER.md-Update), aber bewusst nicht gepusht — kein Deploy in dieser
-  Session erlaubt.
-- Lint unverändert: `npm run lint` → 0 Fehler / 11 Warnungen. Tests unverändert:
-  `npx vitest run` → 13 Testdateien, 167 Tests. Build unverändert sauber
-  (`npm run build`, ~400ms, nur die bekannte Chunk-Size-Warnung).
+  (curl, 17.08.).
+- `npm audit` weiterhin 0 Vulnerabilities. Lint unverändert: `npm run lint` →
+  0 Fehler / 11 Warnungen. Tests unverändert: `npx vitest run` → 13
+  Testdateien, 167 Tests grün. Build sauber (`npm run build`, ~370ms, nur die
+  bekannte Chunk-Size-Warnung).
 - Offenes Nutzer-Feedback: **0**. Tabellen-Gesamtstand unverändert 41 (mit und
-  ohne `resolved_at`-Filter identisch 41 → alles resolved). Seit 2026-08-01
-  kein neuer Eintrag.
+  ohne `resolved_at`-Filter identisch 41 → alles resolved). Weiterhin kein
+  neuer Eintrag seit 2026-08-01.
+- **Karl Zarhuber (Tablet-Login) hat am 13.08. bestätigt: „zicards läuft gut
+  nun auch auf dem Tablet."** Damit ist die offene Frage aus der 13.08.-Session
+  (Live-Viewport-Test auf echtem Gerät nötig, weil damals nur Code-Review
+  möglich war) durch eine echte Nutzerbestätigung geklärt — stärker als ein
+  synthetischer Browser-Test. Karl ist laut Mailkontext bestätigt Bestandsnutzer
+  (keine Neuregistrierung), damit ist auch die daran hängende
+  SMTP-Bestätigungsmail-Frage gegenstandslos. Beide Punkte unten als erledigt
+  markiert.
+- **eslint-disable-Warnung untersucht statt blind entfernt**
+  (`UnifiedSession.jsx:165`, „Unused eslint-disable directive"): probeweise
+  entfernt und `npm run lint` erneut gelaufen — die Direktive ist NICHT tot.
+  Ohne sie meldet ESLint 13 Fehler (`react-hooks/refs`: „Cannot access refs
+  during render" bei `charProgressRef.current`/`sentProgressRef.current` im
+  `useMemo`, Zeilen 162/163) plus zusätzliche `exhaustive-deps`-Warnungen an
+  anderen Zeilen. Änderung sofort rückgängig gemacht (`git status` wieder
+  clean, `npm run lint` wieder bei 0 Fehler / 11 Warnungen bestätigt). Für
+  künftige Sessions festgehalten: dieser Fund ist ein Guard, kein totes
+  Aufräumen — ein echter Fix bräuchte ein Refactoring des Ref-Zugriffs im
+  `useMemo`, nicht nur das Löschen der Zeile.
 - **Housekeeping gefunden und behoben:** Die HANDOVER.md-Fassung der
   11.08.-Session war geschrieben, aber nie committet (`git status` zeigte sie
   heute noch als „modified", `git log` endete bei `f1389e2` vom 10.08.). Mit
@@ -90,57 +105,54 @@
   bestätigt gilt.
 
 ## prod ≠ live
-- **2 von 13 Accounts aktiv, Stand jetzt gegengerechnet (13.08., direkte
-  `user_progress`-Abfrage statt nur Handover-Übernahme):** `055164cb…` weiter
-  aktiv, letzter Eintrag 12.08. 13:11 UTC. `e1554433…` unverändert bei
-  08.08. 13:01 UTC — jetzt **5 Tage** ohne Aktivität (Handover gestern noch
-  „4 Tage"). Distinct-Count über die volle Tabelle (1368 Zeilen, paginiert)
-  bestätigt: 12 Accounts haben je überhaupt Einträge in `user_progress`, kein
-  dritter neu dazugekommen (`ba343729…` weiterhin Alt-Login vom 22.06.).
-  Kein akuter Fehler, nur die Beobachtung fortgeschrieben.
+- **2 von 13 Accounts aktiv, Stand jetzt gegengerechnet (17.08., direkte
+  `user_progress`-Abfrage über alle 1368 Zeilen, paginiert):** ein Account war
+  heute (17.08., vor rund 5 Stunden) aktiv — weiter regelmäßig dabei. Der
+  zweite zuvor aktive Account ist unverändert seit 08.08. 13:01 UTC still,
+  jetzt **8.8 Tage** ohne Aktivität (13.08. noch „5 Tage"). Weiterhin 12
+  Accounts mit je überhaupt Einträgen in `user_progress`, kein dritter neu
+  dazugekommen. Kein akuter Fehler, nur die Beobachtung fortgeschrieben.
 - **Cron-Job „daily-reminders" (jobid 6) — Status weiterhin nicht von hier
   verifizierbar.** Unverändert seit 07.08., braucht Supabase-Dashboard-Zugang
   oder Management-API-Token.
 - **Supabase-Security-Fix bereit, aber nicht angewendet — Befund heute
   gegengeprüft, gilt unverändert:** `supabase/security-search-path-fix-
-  2026-08-12.sql` liegt weiterhin unverändert im Repo, `git log --since
-  2026-08-12 -- supabase/` zeigt außer dem Handover-Commit selbst keine
-  Änderung an den betroffenen 7 Functions — der Befund vom 12.08. (5×
-  `SECURITY DEFINER` ohne `search_path`, 2 Trigger-Functions) ist nicht
-  veraltet. **Weiterhin nicht gegenprüfbar:** ob der Supabase-Advisor exakt
-  diese 7 Punkte meldet oder noch mehr — kein Dashboard-Zugang von hier, das
-  bleibt eine Vermutung aus Repo-Analyse. Braucht Bens Supabase-SQL-Editor-
-  Zugang.
-- **1 Commit unpushed:** `f776e0a` (Handover-Commit der 12.08.-Session) liegt
-  seit gestern lokal, nicht auf `origin/main`. Diese Session hat bewusst
-  nicht gepusht (Session-Vorgabe: kein Deploy) — sonst identischer Fehler wie
-  der HANDOVER-Lücke-Fund vom 12.08., nur einen Schritt weiter im Pipeline
-  (committet, aber nicht deployed). Push ist reine Doku-Änderung, kein
-  Risiko — nächste Session mit Deploy-Erlaubnis nachholen.
+  2026-08-12.sql` liegt weiterhin unverändert im Repo, keine Änderung an den
+  betroffenen 7 Functions seit 12.08. **Weiterhin nicht gegenprüfbar:** ob der
+  Supabase-Advisor exakt diese 7 Punkte meldet oder noch mehr — kein
+  Dashboard-Zugang von hier. Braucht Bens Supabase-SQL-Editor-Zugang.
+- **Jetzt 2 Commits unpushed, nicht mehr 1:** `f776e0a` (Handover 12.08.) UND
+  `d40b55d` (Handover 13.08.) liegen lokal, nicht auf `origin/main` —
+  gewachsen, weil die 13.08.-Session bewusst ebenfalls nicht gepusht hat.
+  Beide reine Doku-Commits, kein Code-Risiko, aber der Rückstand wächst jeden
+  Tag ohne Push-Erlaubnis um einen weiteren Commit. Diese Session hat aus dem
+  gleichen Grund (kein Deploy erlaubt) wieder nicht gepusht — siehe `fuer_ben`.
 - **Keine belastbare „Fehlerrate" messbar.** Unverändert — kein
   Error-Tracking im Projekt, einzige Proxy-Signale App/Supabase-Status und
   Feedback-Knopf.
 - pi-lens-Cache weiterhin auf Stand 13./14.04. (`.pi-lens/metrics-history.json`,
   `jscpd.json`, `turn-end-findings-last.json`), `knip.json`-Wrapper weiterhin
-  `success:false`. Direkter `npx knip`-Lauf (13.08.) unverändert: 5 unused
-  files, 1 unused dep (`pg`), 9 unused exports — identisch zu 11./12.08.,
+  `success:false`. Direkter `npx knip`-Lauf (17.08.) unverändert: 5 unused
+  files, 1 unused dep (`pg`), 9 unused exports — identisch zu 11.–13.08.,
   keine neue Abweichung.
 - `useProgress.js` (MI 30.5, kognitive Komplexität 85) und `AdminDashboard.jsx`
   (Komplexität 42) weiterhin laut (veraltetem) Cache die größten
   Komplexitäts-Ausreißer — Zahlen sind ~4 Monate alt, nicht neu erhoben.
 
-## Aus dem globalen Check-in (2026-08-13)
-- Bens Kapazität: ab heute Abend weg — Sommerlager 13.–16.08., Kiten bis
-  17.08. 12:30, danach gehört die Woche dem Voith-Workshop am 24.08. Was
-  heute nicht läuft, läuft fünf Tage nicht. Entsprechend wurde in dieser
-  Session jeder Punkt bearbeitet, der ohne Ben ging.
-- Supabase-Security-Mail (11.08. 17:21) — Befund heute gegengeprüft, gilt
-  unverändert (siehe „prod ≠ live"). Ausführung bleibt Ben-Punkt.
-- Karl Zarhuber (Tablet-Login-Frage) hat Bens Antwort vom 12.08. 10:02
-  bekommen (`https://zicards.moerzinger.eu`, E-Mail+Passwort, keine eigene
-  App) — Punkt ist erledigt. Diese Session hat zusätzlich geprüft, ob die
-  Auskunft auf dem mobilen Viewport tatsächlich stimmt (siehe „Was
-  live/fertig") — Code-Review ohne Befund, aber ohne Live-Browser-Test.
+## Aus dem globalen Check-in (2026-08-17)
+- Bens Kapazität diese Woche: heute (Mo) geschäftlich frei, aber drei
+  Nachmittags-Termine plus Ganztags-Erreichbarkeitszusage an einen Partner.
+  Di–Do mit Terminen verplant, Fr–So Junggesellenabschied (nicht verfügbar),
+  Mo 24.08. Ganztagsworkshop Heidenheim. **Bens letztes Arbeitsfenster diese
+  Woche endet Do 20.08. abends, Großteil davon geht an ein Kundenprojekt** —
+  zicards bekommt diese Woche fast keine Ben-Zeit. Entsprechend wurde in
+  dieser Session alles bearbeitet, was ohne Ben ging, und nur das nach unten
+  gereicht, was wirklich seine Entscheidung braucht.
+- Karl Zarhuber (Tablet-Login-Frage) hat am 13.08. bestätigt: „zicards läuft
+  gut nun auch auf dem Tablet." Punkt vollständig erledigt — löst auch den
+  offenen „Mobiler Viewport-Test"-Punkt aus der 13.08.-Session ab (siehe „Was
+  live/fertig").
+- Keine weiteren zicards-Signale im Posteingang der letzten vier Tage.
 
 ## Offene Punkte (nächste Session)
 - [ ] **Supabase-Security-Fix ausführen:**
@@ -148,45 +160,67 @@
       lassen, danach im Security-Advisor „Rerun linter" — bestätigt, ob damit
       alle gemeldeten Punkte erledigt sind (von hier nicht gegenprüfbar ohne
       Advisor-Zugang). Ben.
-- [ ] **Falls der wartende Nutzer neu registriert hat:** prüfen, ob
-      Supabase' Bestätigungsmail (SMTP) überhaupt zugestellt wird — nur über
-      die Supabase-Konsole (Auth → Email Templates / Logs) einsehbar. Ben.
 - [ ] **Cron-Job „daily-reminders" (jobid 6) reaktiviert?** Weiterhin nur über
       Supabase-Dashboard/Management-API-Token prüfbar. Unverändert seit 07.08.
       Ben.
-- [ ] **Weiter beobachten: 2/13 aktive Accounts.** `055164cb…` weiter aktiv
-      (zuletzt 12.08. 13:11 UTC), `e1554433…` jetzt **5 Tage** still (seit
+- [ ] **Weiter beobachten: 2/13 aktive Accounts.** Ein Account weiter aktiv
+      (zuletzt heute, 17.08.), der zweite jetzt **8.8 Tage** still (seit
       08.08. 13:01 UTC). Kein akuter Fehler (App+Backend beide 200), aber
       Rückkehr-Rate bleibt weit unter den ≥3 positiven Mail-Antworten. Kein
       neuer Handlungsbedarf, nur weiter beobachten.
-- [ ] **`f776e0a` pushen** (Handover-Commit 12.08., reine Doku, kein
-      Risiko) — diese Session hat bewusst nicht gepusht (kein Deploy erlaubt).
-      Nächste Session mit Deploy-Erlaubnis nachholen, sonst bleibt der
-      Live-Stand des Handovers dauerhaft hinter dem Repo zurück.
-- [ ] **Mobiler Viewport-Test für `/login` mit echtem Browser nachholen**
-      (13.08. nur Code-Review möglich, Chrome-Erweiterung war nicht
-      verbunden) — bestätigt/widerlegt, dass Bens Auskunft an Karl Zarhuber
-      auch am Tablet sauber funktioniert.
+- [ ] **2 Commits pushen** (`f776e0a` 12.08., `d40b55d` 13.08. — reine Doku,
+      kein Code-Risiko) — diese Session hat wieder bewusst nicht gepusht (kein
+      Deploy erlaubt). Braucht nur `git push`, sobald Ben/eine Session mit
+      Deploy-Erlaubnis Zeit hat — sonst wächst der Rückstand täglich weiter.
 - [ ] Fehlt Error-Tracking (Sentry o.ä.)? Unverändert — Ben entscheiden
       lassen, ob der Aufwand lohnt.
+- [ ] `VITE_COURSE_CODE` aus Vercel-Env entfernen (unused, laut Vault seit
+      längerem bekannt; `rg` im Repo bestätigt 0 Code-Referenzen) — braucht
+      Vercel-Dashboard-Zugang, daher Ben.
 - [ ] pi-lens `knip.json` reparieren — unverändert blockiert (Cache wird vom
       externen Plugin-Hook geschrieben, kein Regenerate-Weg aus diesem Repo).
 - [ ] pi-lens-Cache insgesamt erneuern (Stand 13./14.04., ~4 Monate alt) —
       gleiche Ursache wie oben.
+- [x] **Mobiler Viewport-Test für `/login`** — durch Karls eigene Bestätigung
+      (13.08., „läuft gut nun auch auf dem Tablet") erledigt; kein separater
+      Browser-Test mehr nötig.
+- [x] **„Falls der wartende Nutzer neu registriert hat" (SMTP-Frage)** —
+      gegenstandslos: Karl ist laut Mailkontext bestätigter Bestandsnutzer,
+      keine Neuregistrierung.
+- [x] `UnifiedSession.jsx:165` eslint-disable-Warnung geprüft (17.08.) — kein
+      totes Aufräumen möglich, siehe „Was live / fertig". Kein Fix, nur
+      Investigation abgeschlossen.
 - [x] Lint-Fix `f1389e2` push-Status erneut bestätigt (12.08.): liegt auf
       `origin/main`, `npm run lint` weiterhin 0/11.
 - [x] HANDOVER.md-Lücke der 11.08.-Session geschlossen — heute committet
       (siehe „Was live / fertig").
-- [x] Supabase-Security-Mail geprüft, Ursache im Repo verifiziert, Fix
-      geschrieben (nicht angewendet — Ben-Punkt oben).
-- [x] Tablet-Login-Frage aus Code-Sicht geprüft — kein Bug, App hat keinen
-      Magic-Link-Mechanismus.
-- [x] Supabase-Security-Befund gegengeprüft (13.08.) — Repo-Zustand
-      unverändert, Fix weiterhin unangewendet, Befund gilt weiter.
-- [x] Mobiler Viewport-Login per Code-Review geprüft (13.08.) — keine
-      Auffälligkeit, Live-Test mit Browser bleibt offen (siehe oben).
 
 ## Session-Log (letzte 3)
+- **2026-08-17** — Projekt-Check-in (Bens Arbeitsfenster diese Woche endet
+  Do 20.08. abends, Fr–So Junggesellenabschied, danach Voith-Workshop 24.08.
+  — kaum Ben-Zeit für zicards diese Woche). Health erneut 200/200/200 (App ×
+  2, Supabase, inkl. `/login`-Deep-Link direkt), Tests 167/167, Lint 0/11,
+  Build sauber (~370ms), `npm audit` 0. Feedback weiter 0 offen, 41 gesamt
+  unverändert. **Karl Zarhubers Bestätigung (13.08., „läuft gut nun auch auf
+  dem Tablet") schließt den offenen Mobil-Viewport-Test ab** — echte
+  Nutzerbestätigung statt synthetischem Browser-Test, auch die daran
+  hängende SMTP-Frage damit gegenstandslos (Bestandsnutzer, keine
+  Neuregistrierung). **Eslint-disable-Fund untersucht statt blind entfernt:**
+  `UnifiedSession.jsx:165` sah nach totem Code aus („unused directive"),
+  probeweise entfernt löste aber 13 `react-hooks/refs`-Fehler + weitere
+  Warnungen aus (Ref-Zugriff während Render im `useMemo`) — sofort
+  zurückgesetzt, `git diff` bestätigt leer, Lint wieder 0/11. Account-
+  Aktivität mit frischer Vollabfrage nachgerechnet (1368 Zeilen, 12 distinkte
+  Accounts): ein Account heute (17.08.) aktiv, der zweite jetzt 8.8 Tage
+  still (vorher 5). **Unpushed-Rückstand wächst:** jetzt 2 Commits
+  (`f776e0a`, `d40b55d`), diese Session hat aus Deploy-Verbot wieder nicht
+  gepusht. Vault-Page `zicards` gegengelesen (Stand laut Metadaten 10.08.,
+  nicht 13.07. wie im Profil vermerkt) — Kerninhalte (2/13 Accounts, Cron
+  ungeklärt, offener `VITE_COURSE_CODE`) decken sich weiterhin mit der
+  Realität, aber der Supabase-Security-Fund (12.08.) und Karls
+  Tablet-Bestätigung (13.08.) fehlen dort noch — Vorschlag siehe
+  `vault_vorschlag`. `npx knip` direkt unverändert (5/1/9), pi-lens-Cache
+  weiterhin Stand 13./14.04.
 - **2026-08-13** — Projekt-Check-in (Ben ab heute Abend bis 17.08. weg —
   Sommerlager/Kiten, danach Voith-Workshop 24.08.). Health erneut 200/200/200
   (App × 2, Supabase, inkl. `/login`-Deep-Link direkt), Tests 167/167, Lint
@@ -196,16 +230,12 @@
   (Fix-Datei unverändert, keine Function-Änderung seit 12.08.), Befund gilt
   unverändert, Ausführung bleibt Ben-Punkt. (2) Mobiler Viewport-Login (Anlass:
   Bens Antwort an Karl Zarhuber verweist aufs Tablet) — nur Code-Review
-  möglich (Chrome-Erweiterung nicht verbunden), keine Auffälligkeit gefunden
-  (Viewport-Meta korrekt, 16px-Inputs gegen iOS-Zoom-Bug, Feedback-Button
-  blendet sich bei Input-Fokus selbst aus), Live-Test bleibt offen.
-  Account-Aktivität mit frischer Direktabfrage nachgerechnet (nicht nur aus
-  dem Handover übernommen): `055164cb…` weiter aktiv (12.08. 13:11 UTC),
-  `e1554433…` jetzt 5 Tage still (vorher 4). **Neu gefunden:** 1 Commit
-  (`f776e0a`, Handover 12.08.) liegt seit gestern unpushed — diese Session
-  hat bewusst nicht gepusht (kein Deploy erlaubt), Push ist Doku-only und
-  risikofrei, nächste Session nachholen. `npx knip` direkt unverändert
-  (5/1/9), pi-lens-Cache weiterhin Stand 13./14.04.
+  möglich (Chrome-Erweiterung nicht verbunden), keine Auffälligkeit gefunden.
+  Account-Aktivität mit frischer Direktabfrage nachgerechnet: ein Account
+  weiter aktiv (12.08. 13:11 UTC), der zweite jetzt 5 Tage still (vorher 4).
+  **Neu gefunden:** 1 Commit (`f776e0a`, Handover 12.08.) liegt seit gestern
+  unpushed — bewusst nicht gepusht (kein Deploy erlaubt). `npx knip` direkt
+  unverändert (5/1/9), pi-lens-Cache weiterhin Stand 13./14.04.
 - **2026-08-12** — Projekt-Check-in. Health erneut 200/200/200 (App × 2,
   Supabase, inkl. `/login`-Deep-Link direkt), Tests 167/167, Lint 0/11, Build
   sauber, `npm audit` 0. Feedback weiter 0 offen, 41 gesamt unverändert.
@@ -215,29 +245,9 @@
   Fix-Migration geschrieben und geprüft, CLAUDE.md um die Regel ergänzt,
   Anwendung braucht Bens SQL-Editor-Zugang. (2) Tablet-Login-Nachfrage eines
   Nutzers — Code geprüft, die App hat keinen Magic-Link, nur E-Mail/Passwort;
-  kein Bug gefunden, offene Frage ist SMTP-Zustellung der
-  Registrierungs-Bestätigung (nur Supabase-Konsole). Account-Aktivität: 2/13
-  weiterhin, aber `055164cb…` nach 2 Tagen Stillstand am 11.08. abends wieder
-  aktiv geworden, `e1554433…` jetzt 4 Tage still. Housekeeping: HANDOVER.md
-  der 11.08.-Session war nie committet — heute nachgeholt. pi-lens-Cache
-  weiterhin Stand 13./14.04., `npx knip` direkt unverändert (5/1/9).
-- **2026-08-11** — Projekt-Check-in (ruhiger Tag, Ben ohne Zeitfenster diese
-  Woche — alles Topf-A selbst erledigt). Health erneut 200/200/200 (App × 2,
-  Supabase), Tests 167/167, Build sauber, `npm audit` 0 Vulnerabilities,
-  `git status`/`git log origin/main..HEAD` beide leer. Lint-Fix `f1389e2`
-  bestätigt live+gepusht (gestern noch offen als „nicht gepusht"): 0
-  Fehler / 11 Warnungen, unverändert. Feedback weiter 0 offen, 41 gesamt
-  unverändert. Keine neuen Mails zum Projekt seit dem letzten Check-in
-  (Befund, kein Fehler). Account-Aktivität verschärft beobachtet: 2/13
-  weiterhin, aber seit 09.08. 12:29 UTC gar keine neue Aktivität mehr, auch
-  nicht von den 2 aktiven Accounts — nicht nur kein Wachstum, sondern 2 Tage
-  Stillstand (löste sich am 11.08. abends, siehe heutige Session). `npx knip`
-  direkt: 5 unused files / 1 unused dep unverändert, aber 9 statt 8 unused
-  exports — geprüft, keine der betroffenen Dateien seit Mai verändert, also
-  vermutlich Zähl-Abweichung, kein neuer toter Code. pi-lens-Cache weiterhin
-  Stand 13./14.04. Vault-Page `zicards` (Stand 10.08., von der letzten Session
-  geschrieben) deckt sich weiterhin mit der Realität — kein Update nötig aus
-  dieser Session, nur die Beobachtungs-Verschärfung (2 Tage Stillstand) wäre
-  bei Gelegenheit nachzutragen. **Diese Session hatte selbst eine Lücke: die
-  HANDOVER.md-Änderung wurde geschrieben, aber nicht committet — am 12.08.
-  nachgeholt.**
+  kein Bug gefunden, offene Frage war SMTP-Zustellung der
+  Registrierungs-Bestätigung. Account-Aktivität: 2/13 weiterhin, ein Account
+  nach 2 Tagen Stillstand wieder aktiv, der zweite jetzt 4 Tage still.
+  Housekeeping: HANDOVER.md der 11.08.-Session war nie committet — heute
+  nachgeholt. pi-lens-Cache weiterhin Stand 13./14.04., `npx knip` direkt
+  unverändert (5/1/9).
