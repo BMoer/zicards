@@ -1,0 +1,40 @@
+-- ZìCards: fehlenden INSERT-Grant auf public.feedback nachtragen
+-- Fund: Check-in 18.08.2026, Ben-Auftrag "was fällt in 6 Wochen um".
+--
+-- Befund (verifiziert im Repo — grep über alle supabase/*.sql):
+--   `feedback.sql` legt die RLS-Policy "users can insert own feedback"
+--   an (FOR INSERT TO authenticated), aber KEIN GRANT begleitet sie.
+--   `feedback-resolved-2026-05-31.sql` grantet später nur
+--     GRANT SELECT, UPDATE ON TABLE public.feedback TO authenticated;
+--   — INSERT fehlt. `grants-2026-05-28-api-default-change.sql` (die
+--   allgemeine Data-API-Grant-Migration) listet `feedback` gar nicht
+--   (nur characters/sentences/mnemonics/user_progress/sentence_progress/
+--   user_settings/admin_users, 7 Tabellen).
+--
+-- Warum das heute noch nicht auffällt: Supabase hat das implizite
+-- Schema-Privileg für public.* auf bestehenden Projekten noch nicht
+-- entfernt (Cutover 30.10.2026, siehe CLAUDE.md). Der fehlende Grant
+-- ist bis dahin durch das Implizit-Privileg verdeckt — RLS lässt den
+-- INSERT durch, weil die Tabellen-Rechte noch stillschweigend da sind.
+--
+-- Risiko ab 30.10.2026: `authenticated` verliert das implizite Recht,
+-- der explizite Grant fehlt weiterhin -> der Feedback-Knopf (laut
+-- Projekt-Profil "die wichtigste Zahl" dieses Projekts) würde für alle
+-- eingeloggten Nutzer mit 401/permission denied fehlschlagen, ohne dass
+-- Code oder RLS sich geändert hätten. Kein akuter Fehler heute (App
+-- läuft, Health 200/200/200, `npm audit` 0) — reines Zeitzünder-Risiko.
+--
+-- Fix: den fehlenden Grant nachtragen, analog zum Muster in
+-- grants-2026-05-28-api-default-change.sql. Idempotent (GRANT ergänzt
+-- nur). Noch NICHT gegen Prod ausgeführt — dieses Repo hat keinen
+-- DB-Schreibzugriff (siehe CLAUDE.md-Historie). Ben führt das im
+-- Supabase SQL Editor aus, am besten zusammen mit
+-- security-search-path-fix-2026-08-12.sql (gleicher Anlass: Console-Zeit).
+
+GRANT INSERT ON TABLE public.feedback TO authenticated;
+
+-- Beweis nach Ausführung (SQL Editor):
+--   select grantee, privilege_type from information_schema.role_table_grants
+--   where table_schema = 'public' and table_name = 'feedback'
+--   order by grantee, privilege_type;
+-- Erwartet für 'authenticated': INSERT, SELECT, UPDATE (vorher nur SELECT, UPDATE).

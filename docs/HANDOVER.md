@@ -14,6 +14,15 @@
 - Offenes Nutzer-Feedback: **0**. Tabellen-Gesamtstand unverändert 41 (mit und
   ohne `resolved_at`-Filter identisch 41 → alles resolved). Weiterhin kein
   neuer Eintrag seit 2026-08-01.
+- **Alle vormals „unpushed" Doku-Commits sind jetzt auf `origin/main`** (18.08.,
+  `git log --oneline origin/main..HEAD` leer, `git branch -vv` zeigt `main`
+  exakt bei `[origin/main] 3361c77`). Widerspricht dem, was HANDOVER.md bis
+  gestern als offenen Punkt führte („2 Commits unpushed") — die Messung
+  gewinnt: der Rückstand ist weg, kein Push in dieser Session nötig oder
+  ausgeführt. Alle betroffenen Commits sind reine Doku-/Skript-Änderungen
+  (`docs/HANDOVER.md`, `CLAUDE.md`, `.claude/checkin.md`,
+  `supabase/*.sql`, `supabase/apply-security-fix.sh` — kein `src/`-Diff),
+  also kein Funktionsrisiko durch den dadurch ausgelösten Vercel-Deploy.
 - **Karl Zarhuber (Tablet-Login) hat am 13.08. bestätigt: „zicards läuft gut
   nun auch auf dem Tablet."** Damit ist die offene Frage aus der 13.08.-Session
   (Live-Viewport-Test auf echtem Gerät nötig, weil damals nur Code-Review
@@ -138,6 +147,28 @@
 - `useProgress.js` (MI 30.5, kognitive Komplexität 85) und `AdminDashboard.jsx`
   (Komplexität 42) weiterhin laut (veraltetem) Cache die größten
   Komplexitäts-Ausreißer — Zahlen sind ~4 Monate alt, nicht neu erhoben.
+- **NEU (18.08.) — Sechs-Wochen-Vorausschau, „was fällt um": fehlender
+  INSERT-Grant auf `public.feedback` gefunden.** Geprüft: alle drei TLS-Zerti­
+  fikate (zicards.moerzinger.eu bis 27.10.26, zicards.vercel.app + Supabase
+  bis 26.09.26) sind plattformseitig automatisch verwaltet (Vercel/Let's
+  Encrypt bzw. Supabase-managed) — kein manueller Schritt nötig, kein Risiko.
+  `npm audit` weiterhin 0, keine Dependency mit bekannter Lücke. Der eine
+  echte Fund: `feedback.sql` legt die RLS-Policy „users can insert own
+  feedback" (FOR INSERT TO authenticated) an, aber **kein Grant begleitet
+  sie** — weder dort noch in `feedback-resolved-2026-05-31.sql` (nur SELECT,
+  UPDATE) noch in `grants-2026-05-28-api-default-change.sql` (die Tabelle
+  fehlt in der Liste komplett, nur 7 der 8 Tabellen sind abgedeckt). Heute
+  unsichtbar, weil Supabase das implizite Data-API-Privileg erst am
+  **30.10.2026** entfernt (CLAUDE.md) — bis dahin verdeckt das Implizit-Recht
+  die Lücke. Ab dem Cutover würde **der Feedback-Knopf** — laut Projekt-Profil
+  „die wichtigste Zahl" dieses Projekts — für alle eingeloggten Nutzer mit
+  401/permission denied fehlschlagen, ohne dass sich Code oder RLS geändert
+  hätten. Fix vorbereitet und geprüft (idempotent, ein einzeiliger `GRANT
+  INSERT`): `supabase/feedback-insert-grant-fix-2026-08-18.sql`. **Nicht
+  gegen Prod ausgeführt** — gleicher Grund wie beim Security-Fix (kein
+  DB-Schreibzugriff aus diesem Repo), braucht Bens SQL-Editor-Zugang. Am
+  besten in derselben Konsolen-Session wie
+  `security-search-path-fix-2026-08-12.sql` erledigen.
 
 ## Aus dem globalen Check-in (2026-08-17)
 
@@ -149,6 +180,12 @@
       lassen, danach im Security-Advisor „Rerun linter" — bestätigt, ob damit
       alle gemeldeten Punkte erledigt sind (von hier nicht gegenprüfbar ohne
       Advisor-Zugang). Ben.
+- [ ] **NEU (18.08.) — fehlenden Feedback-INSERT-Grant nachtragen:**
+      `supabase/feedback-insert-grant-fix-2026-08-18.sql` im SQL-Editor
+      laufen lassen (ein `GRANT INSERT`, idempotent). Ohne das bricht der
+      Feedback-Knopf am 30.10.2026 (Supabase-Cutover) für alle Nutzer still.
+      Nicht akut, aber am besten gleich mit dem Security-Fix oben in derselben
+      Konsolen-Session erledigen. Ben.
 - [ ] **Cron-Job „daily-reminders" (jobid 6) reaktiviert?** Weiterhin nur über
       Supabase-Dashboard/Management-API-Token prüfbar. Unverändert seit 07.08.
       Ben.
@@ -157,10 +194,9 @@
       08.08. 13:01 UTC). Kein akuter Fehler (App+Backend beide 200), aber
       Rückkehr-Rate bleibt weit unter den ≥3 positiven Mail-Antworten. Kein
       neuer Handlungsbedarf, nur weiter beobachten.
-- [ ] **2 Commits pushen** (`f776e0a` 12.08., `d40b55d` 13.08. — reine Doku,
-      kein Code-Risiko) — diese Session hat wieder bewusst nicht gepusht (kein
-      Deploy erlaubt). Braucht nur `git push`, sobald Ben/eine Session mit
-      Deploy-Erlaubnis Zeit hat — sonst wächst der Rückstand täglich weiter.
+- [x] **Commits pushen** — erledigt (extern, außerhalb dieser Session): 18.08.
+      zeigt `git log origin/main..HEAD` leer, `main` liegt exakt auf
+      `[origin/main] 3361c77`. Kein Handlungsbedarf mehr.
 - [ ] Fehlt Error-Tracking (Sentry o.ä.)? Unverändert — Ben entscheiden
       lassen, ob der Aufwand lohnt.
 - [ ] `VITE_COURSE_CODE` aus Vercel-Env entfernen (unused, laut Vault seit
@@ -185,6 +221,24 @@
       (siehe „Was live / fertig").
 
 ## Session-Log (letzte 3)
+- **2026-08-18** — Projekt-Check-in (Bens Arbeitsfenster diese Woche endet
+  Do 20.08. abends, danach privat/Workshop weg — kaum Ben-Zeit). Health
+  erneut 200/200/200 (App × 2, Supabase), Tests 167/167, Lint 0/11, Build
+  sauber (315ms), `npm audit` 0 (auch `--omit=dev`). Feedback weiter 0 offen.
+  **Vormals „2 unpushed Commits" ist überholt:** Messung zeigt `main` exakt
+  auf `origin/main` (3361c77) — Widerspruch zur bisherigen HANDOVER-Notiz
+  aufgelöst, Messung gewinnt, kein Push mehr nötig. **Sechs-Wochen-
+  Vorausschau durchgeführt** (Auftrag: was läuft ab oder kippt um): alle drei
+  TLS-Zertifikate automatisch verwaltet und unkritisch (nächste Erneuerung
+  26.09./27.10., beide plattformseitig automatisch); `npm outdated` zeigt nur
+  Minor/Patch-Rückstände, keine Sicherheitslücke. **Echter Fund:** `public.
+  feedback` hat eine INSERT-RLS-Policy für `authenticated`, aber nie einen
+  begleitenden `GRANT INSERT` — bis 30.10.2026 (Supabase-Cutover des
+  impliziten Data-API-Privilegs) unsichtbar, danach würde der Feedback-Knopf
+  für alle Nutzer 401 zurückgeben. Fix geschrieben und geprüft, nicht gegen
+  Prod ausgeführt (kein DB-Schreibzugriff aus diesem Repo) —
+  `supabase/feedback-insert-grant-fix-2026-08-18.sql`, Ben-Punkt, am besten
+  gebündelt mit dem bereits wartenden Security-Fix.
 - **2026-08-17** — Projekt-Check-in (Bens Arbeitsfenster diese Woche endet
   Do 20.08. abends, Fr–So Junggesellenabschied, danach Voith-Workshop 24.08.
   — kaum Ben-Zeit für zicards diese Woche). Health erneut 200/200/200 (App ×
@@ -225,18 +279,3 @@
   **Neu gefunden:** 1 Commit (`f776e0a`, Handover 12.08.) liegt seit gestern
   unpushed — bewusst nicht gepusht (kein Deploy erlaubt). `npx knip` direkt
   unverändert (5/1/9), pi-lens-Cache weiterhin Stand 13./14.04.
-- **2026-08-12** — Projekt-Check-in. Health erneut 200/200/200 (App × 2,
-  Supabase, inkl. `/login`-Deep-Link direkt), Tests 167/167, Lint 0/11, Build
-  sauber, `npm audit` 0. Feedback weiter 0 offen, 41 gesamt unverändert.
-  **Zwei Supabase-Signale aus dem globalen Check-in abgearbeitet:** (1)
-  Security-Advisor-Mail — Ursache im Repo gefunden (7 Functions ohne
-  `search_path`, 5 davon `SECURITY DEFINER` = echte Rechteausweitungs-Lücke),
-  Fix-Migration geschrieben und geprüft, CLAUDE.md um die Regel ergänzt,
-  Anwendung braucht Bens SQL-Editor-Zugang. (2) Tablet-Login-Nachfrage eines
-  Nutzers — Code geprüft, die App hat keinen Magic-Link, nur E-Mail/Passwort;
-  kein Bug gefunden, offene Frage war SMTP-Zustellung der
-  Registrierungs-Bestätigung. Account-Aktivität: 2/13 weiterhin, ein Account
-  nach 2 Tagen Stillstand wieder aktiv, der zweite jetzt 4 Tage still.
-  Housekeeping: HANDOVER.md der 11.08.-Session war nie committet — heute
-  nachgeholt. pi-lens-Cache weiterhin Stand 13./14.04., `npx knip` direkt
-  unverändert (5/1/9).
