@@ -238,12 +238,7 @@
 
 ## Aus dem globalen Check-in (2026-08-19)
 
-- Bens Woche ist ab Donnerstagabend (20.08.) zu: Fr–So Junggesellenabschied
-  (privat), Mo 24.08. ganztägig Workshop Voith×TTTech Heidenheim, Di 25.08.
-  Rückreise. zicards bekommt vor dem 25.08. realistisch keine Ben-Zeit mehr.
-  Drei Punkte passen in eine einzige kurze SQL-Editor-Session (siehe unten:
-  Security-Fix, Feedback-Grant, Cron-Reaktivierung) — das ist die einzige
-  Chance diese Woche. [Quelle: Check-in-Auftrag 19.08.]
+- Bens Woche ist ab Donnerstagabend zu (21.-23.08. privat, 24.08. Workshop Heidenheim, 25.08. Rückreise), und zicards steht diese Woche hinter dem Voith-Workshop an. → Die drei Punkte, die nur Ben in der Konsole erledigen kann (Security-Fix, Feedback-GRANT, Reaktivierung des Erinnerungs-Cron), gehören in eine gemeinsame Session vor Donnerstagabend; sonst liegen sie bis zum 25.08. [Quelle: Kalender]
 
 ## Offene Punkte (nächste Session)
 - [ ] **Supabase-Security-Fix ausführen:**
