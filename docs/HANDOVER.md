@@ -72,6 +72,59 @@
   kein Login-Zugang zum Advisors-Dashboard von hier aus (Chrome-Erweiterung
   nicht verbunden), das ist eine Vermutung aus Repo-Analyse, keine Bestätigung
   gegen den tatsächlichen Advisor-Report.
+- **Cron-Job „daily-reminders" (jobid 6) — Root-Cause für die stillen Accounts
+  gefunden, kein Rätsel mehr.** Vault-Page `zicards` (gegengelesen 19.08.)
+  hatte die Antwort bereits stehen, war nur nie in dieses Handover
+  übernommen worden: der Job wurde **2026-06-25 explizit deaktiviert**
+  (`active = false`) für die Sommerpause, Re-Enable vorgesehen über
+  `select cron.alter_job(6, active := true);` „at next course start" — dieser
+  Schritt ist beim Wiederanlauf am 05.08. offenbar nicht passiert. Heute
+  (19.08.) per REST gegengeprüft, ohne Dashboard-Zugang: `public.
+  user_settings.last_reminder_sent` steht für **alle 4** Nutzer mit
+  `reminder_enabled = true` exakt auf `2026-06-25T07:00:1x` UTC (identischer
+  Lauf, Sekundenbruchteile auseinander) — seither keine einzige Aktualisierung
+  mehr. Gleichzeitig haben genau diese 4 Nutzer **jetzt, in diesem Moment**,
+  fällige Karten (`get_due_counts`-Logik nachgerechnet: 137 / 25 / 84 / 172
+  fällige `user_progress`-Zeilen) — die Reminder-Function hätte bei aktivem
+  Cron längst wieder gefeuert. Schluss: der Job läuft mit sehr hoher
+  Wahrscheinlichkeit **immer noch nicht**, seit fast 8 Wochen keine
+  Erinnerungsmail raus. Das ist die plausibelste Erklärung für die stillen
+  Accounts — niemand wird zurückgeholt. Fix ist ein Einzeiler
+  (`select cron.alter_job(6, active := true);`), aber eine Schreiboperation
+  im SQL-Editor → Ben-Punkt, siehe unten. **Unverifiziert bleibt** die
+  tatsächliche `cron.job`-Zeile (nur über Dashboard/Management-API
+  einsehbar) — die Auswertung oben ist eine sehr starke Indizienkette, kein
+  direkter Blick auf `active`.
+- **Account-Aktivität (19.08.) neu vollständig durchgezählt (1368 Zeilen,
+  12 distinkte Accounts) — bisherige „8.8 Tage still"-Aussage war bereits
+  am 17.08. veraltet, nicht erst jetzt.** Rang 1 unverändert durchgehend
+  aktiv (zuletzt 18.08. 18:03 UTC). Rang 2 — der als „seit 08.08. 13:01 UTC
+  still" geführte zweite Account — hatte tatsächlich am **17.08. 03:00–03:07
+  UTC eine echte ~7-minütige Lernsession** (15 Kartenaktualisierungen),
+  mehrere Stunden **vor** dem Commit der 17.08.-Session (07:35 UTC) — die
+  damalige „unverändert seit 08.08."-Aussage war zum Zeitpunkt des Schreibens
+  bereits falsch, nicht erst durch Zeitablauf. Aktueller Stand: Rang 2 ist
+  jetzt **2 Tage 6 Stunden** still (nicht 10.8, wie die alte Zahl
+  fortgeschrieben hätte suggeriert). Alle übrigen 10 Accounts mit
+  `user_progress`-Zeilen sind unverändert seit ≥ 2026-06-22 still (≥ 58
+  Tage), 1 Account hat nie eine `user_progress`-Zeile. **Auffällig:** drei
+  dieser 10 Accounts (Rang 3–5) wurden alle innerhalb von 30 Stunden um den
+  21./22.06. still — 3 Tage bevor der Cron am 25.06. deaktiviert wurde, nicht
+  danach. Der Cron-Ausfall erklärt also, warum niemand zurückkommt, nicht
+  zwingend das ursprüngliche Verstummen dieser drei.
+- **Security-Fix-Skript gegen aktuellen Repo-Stand geprüft (19.08.), noch
+  unverändert gültig:** die drei Schema-Dateien, die die 7 betroffenen
+  Functions definieren (`zicards-admin-schema.sql`,
+  `zicards-spaced-repetition.sql`, `zicards-final-schema.sql`,
+  `supabase/mnemonics-schema.sql`), haben seit ihrem letzten Commit
+  (07.06., „make Data-API grants explicit") keinen Diff — insbesondere
+  keinen zwischen dem Skript-Erstellungs-Commit `3361c77` und heute. Die
+  Vorabprüfung in `apply-security-fix.sh` (unqualifizierte
+  Objektreferenzen) sollte also weiterhin sauber durchlaufen. **Nicht
+  geprüft werden kann von hier**, ob der tatsächliche Function-Body in Prod
+  exakt dem Repo-Stand entspricht — dieses Repo hat weiterhin keine
+  Postgres-Connection (nur REST-Keys in `.env`), das prüft `apply-security-
+  fix.sh` selbst als Schritt 1–2, wenn Ben es mit seinem Passwort startet.
 - **Tablet/Zweitgerät-Login geprüft** (Anlass: eine Nutzer-Mail wartet seit
   gestern auf einen „Anmelde-Link", Betreff „LINK: zicards läuft wieder", hat
   zweimal nachgefragt). Befund: **Diese App hat gar keinen Magic-Link-Login.**
@@ -114,22 +167,35 @@
   bestätigt gilt.
 
 ## prod ≠ live
-- **2 von 13 Accounts aktiv, Stand jetzt gegengerechnet (17.08., direkte
-  `user_progress`-Abfrage über alle 1368 Zeilen, paginiert):** ein Account war
-  heute (17.08., vor rund 5 Stunden) aktiv — weiter regelmäßig dabei. Der
-  zweite zuvor aktive Account ist unverändert seit 08.08. 13:01 UTC still,
-  jetzt **8.8 Tage** ohne Aktivität (13.08. noch „5 Tage"). Weiterhin 12
-  Accounts mit je überhaupt Einträgen in `user_progress`, kein dritter neu
-  dazugekommen. Kein akuter Fehler, nur die Beobachtung fortgeschrieben.
-- **Cron-Job „daily-reminders" (jobid 6) — Status weiterhin nicht von hier
-  verifizierbar.** Unverändert seit 07.08., braucht Supabase-Dashboard-Zugang
-  oder Management-API-Token.
-- **Supabase-Security-Fix bereit, aber nicht angewendet — Befund heute
-  gegengeprüft, gilt unverändert:** `supabase/security-search-path-fix-
-  2026-08-12.sql` liegt weiterhin unverändert im Repo, keine Änderung an den
-  betroffenen 7 Functions seit 12.08. **Weiterhin nicht gegenprüfbar:** ob der
-  Supabase-Advisor exakt diese 7 Punkte meldet oder noch mehr — kein
-  Dashboard-Zugang von hier. Braucht Bens Supabase-SQL-Editor-Zugang.
+- **2 von 13 Accounts aktiv, neu durchgezählt (19.08., direkte
+  `user_progress`-Abfrage über alle 1368 Zeilen, paginiert, 12 distinkte
+  Accounts):** Rang 1 weiter regelmäßig aktiv (zuletzt 18.08. 18:03 UTC).
+  Rang 2 — bisher als „seit 08.08. still" geführt — hatte tatsächlich am
+  17.08. 03:00–03:07 UTC eine echte Lernsession; die „8.8 Tage still"-Zahl
+  vom 17.08. war beim Schreiben bereits überholt. Aktuell: Rang 2 ist **2
+  Tage 6 Stunden** still, nicht 10.8. Details + wahrscheinliche Ursache
+  siehe Fund oben unter „Was live/fertig".
+- **Cron-Job „daily-reminders" (jobid 6) — jetzt eine begründete Vermutung
+  statt eines offenen Unbekannten:** die Vault-Page `zicards` dokumentiert
+  bereits „DISABLED 2026-06-25 (`active = false`) für die Sommerpause,
+  Re-Enable via `cron.alter_job(6, active := true)` at next course start" —
+  dieser Re-Enable ist beim Wiederanlauf 05.08. anscheinend nicht passiert.
+  Per REST bestätigt (19.08.): `user_settings.last_reminder_sent` aller 4
+  `reminder_enabled=true`-Nutzer steht unverändert auf `2026-06-25T07:00`,
+  obwohl alle 4 aktuell fällige Karten haben. Sehr wahrscheinlich der
+  Haupttreiber für die stillen Accounts. Fix: `select cron.alter_job(6,
+  active := true);` — Schreiboperation, Ben-Punkt (SQL-Editor). Direkter
+  Blick auf `cron.job.active` bleibt von hier unmöglich (Dashboard/
+  Management-API nötig).
+- **Supabase-Security-Fix bereit, aber nicht angewendet — Skript heute
+  (19.08.) gegen Repo-Stand geprüft, gilt unverändert:** `supabase/security-
+  search-path-fix-2026-08-12.sql` liegt weiterhin unverändert im Repo, die
+  vier Schema-Dateien, die die 7 betroffenen Functions definieren, haben
+  seit ihrem letzten Commit (07.06.) keinen Diff — die Vorabprüfung im
+  Skript sollte weiterhin sauber durchlaufen. **Weiterhin nicht
+  gegenprüfbar:** ob der Prod-Function-Body exakt dem Repo entspricht und ob
+  der Supabase-Advisor exakt diese 7 Punkte meldet oder noch mehr — kein
+  Dashboard-/DB-Zugang von hier. Braucht Bens Supabase-SQL-Editor-Zugang.
 - **Jetzt 2 Commits unpushed, nicht mehr 1:** `f776e0a` (Handover 12.08.) UND
   `d40b55d` (Handover 13.08.) liegen lokal, nicht auf `origin/main` —
   gewachsen, weil die 13.08.-Session bewusst ebenfalls nicht gepusht hat.
@@ -170,30 +236,41 @@
   besten in derselben Konsolen-Session wie
   `security-search-path-fix-2026-08-12.sql` erledigen.
 
-## Aus dem globalen Check-in (2026-08-17)
+## Aus dem globalen Check-in (2026-08-19)
 
-- Bens Zeit diese Woche endet Donnerstag 20.08. abends (Fr–So privat weg, Mo 24.08. Workshop Heidenheim) → der Supabase-Security-Fix und der Push der wartenden Doku-Commits brauchen zusammen wenige Minuten Konsolenzugang, sonst liegen sie bis nach dem 24.08. [Quelle: Kalender beide Konten]
+- Bens Woche ist ab Donnerstagabend (20.08.) zu: Fr–So Junggesellenabschied
+  (privat), Mo 24.08. ganztägig Workshop Voith×TTTech Heidenheim, Di 25.08.
+  Rückreise. zicards bekommt vor dem 25.08. realistisch keine Ben-Zeit mehr.
+  Drei Punkte passen in eine einzige kurze SQL-Editor-Session (siehe unten:
+  Security-Fix, Feedback-Grant, Cron-Reaktivierung) — das ist die einzige
+  Chance diese Woche. [Quelle: Check-in-Auftrag 19.08.]
 
 ## Offene Punkte (nächste Session)
 - [ ] **Supabase-Security-Fix ausführen:**
       `supabase/security-search-path-fix-2026-08-12.sql` im SQL-Editor laufen
-      lassen, danach im Security-Advisor „Rerun linter" — bestätigt, ob damit
-      alle gemeldeten Punkte erledigt sind (von hier nicht gegenprüfbar ohne
-      Advisor-Zugang). Ben.
-- [ ] **NEU (18.08.) — fehlenden Feedback-INSERT-Grant nachtragen:**
+      lassen (Skript-Voraussetzungen heute 19.08. gegengeprüft, weiterhin
+      gültig), danach im Security-Advisor „Rerun linter". Ben.
+- [ ] **Fehlenden Feedback-INSERT-Grant nachtragen:**
       `supabase/feedback-insert-grant-fix-2026-08-18.sql` im SQL-Editor
       laufen lassen (ein `GRANT INSERT`, idempotent). Ohne das bricht der
       Feedback-Knopf am 30.10.2026 (Supabase-Cutover) für alle Nutzer still.
       Nicht akut, aber am besten gleich mit dem Security-Fix oben in derselben
       Konsolen-Session erledigen. Ben.
-- [ ] **Cron-Job „daily-reminders" (jobid 6) reaktiviert?** Weiterhin nur über
-      Supabase-Dashboard/Management-API-Token prüfbar. Unverändert seit 07.08.
-      Ben.
-- [ ] **Weiter beobachten: 2/13 aktive Accounts.** Ein Account weiter aktiv
-      (zuletzt heute, 17.08.), der zweite jetzt **8.8 Tage** still (seit
-      08.08. 13:01 UTC). Kein akuter Fehler (App+Backend beide 200), aber
-      Rückkehr-Rate bleibt weit unter den ≥3 positiven Mail-Antworten. Kein
-      neuer Handlungsbedarf, nur weiter beobachten.
+- [ ] **NEU (19.08.) — Cron-Job „daily-reminders" (jobid 6) reaktivieren:**
+      `select cron.alter_job(6, active := true);` im SQL-Editor. Sehr
+      wahrscheinlich der Grund, warum inaktive Accounts nicht zurückkommen —
+      seit dem Sommerpause-Mute am 25.06. ist keine Erinnerungsmail mehr
+      raus (Indizienkette siehe „prod ≠ live" oben), obwohl alle 4
+      Reminder-Nutzer aktuell fällige Karten haben. Dritter Punkt für
+      dieselbe Konsolen-Session wie die zwei oben. Ben.
+- [ ] **Weiter beobachten: 2/13 aktive Accounts.** Rang 1 weiter aktiv
+      (zuletzt 18.08.), Rang 2 jetzt **2 Tage 6 Stunden** still (nicht mehr
+      „8.8 Tage" — die alte Zahl war bereits am 17.08. überholt, siehe
+      „prod ≠ live"). Kein akuter Fehler (App+Backend beide 200). Erwartung:
+      wenn der Cron oben reaktiviert wird, sollte sich die Rückkehr-Rate der
+      10 langfristig stillen Accounts beobachten lassen — nächste Session
+      gegenprüfen, ob nach Reaktivierung wieder `last_reminder_sent`-Werte
+      neuer als 25.06. auftauchen.
 - [x] **Commits pushen** — erledigt (extern, außerhalb dieser Session): 18.08.
       zeigt `git log origin/main..HEAD` leer, `main` liegt exakt auf
       `[origin/main] 3361c77`. Kein Handlungsbedarf mehr.
@@ -221,6 +298,30 @@
       (siehe „Was live / fertig").
 
 ## Session-Log (letzte 3)
+- **2026-08-19** — Projekt-Check-in (Bens Woche ab 20.08. abends zu:
+  Fr–So Junggesellenabschied, Mo 24.08. Voith-Workshop Heidenheim, Di 25.08.
+  Rückreise — zicards bekommt vor dem 25.08. keine Ben-Zeit mehr). Health
+  erneut 200/200/200 (App × 2, Supabase), Tests 167/167, Lint 0/11,
+  `npm audit` 0, keine unpushed Commits. Feedback weiter 0 offen von 41,
+  letzter Eintrag unverändert 25.05. **Hauptfund: Cron-Root-Cause.**
+  Vault-Page `zicards` gegengelesen — dokumentiert bereits, dass „daily-
+  reminders" (jobid 6) am 25.06. für die Sommerpause deaktiviert wurde und
+  beim Wiederanlauf reaktiviert werden sollte; das ist beim Wiederanlauf
+  05.08. offenbar nicht passiert. Per REST bestätigt: `last_reminder_sent`
+  aller 4 Reminder-Nutzer steht seit 25.06. still, obwohl alle 4 aktuell
+  fällige Karten haben (137/25/84/172) — starke Indizienkette, dass seit
+  fast 8 Wochen keine Erinnerungsmail rausging. Wahrscheinlichster Grund für
+  die stillen Accounts. Fix ein Einzeiler (`cron.alter_job`), aber
+  Schreibzugriff → Ben-Punkt, gebündelt mit Security- und Feedback-Grant-Fix
+  vorgeschlagen. **Account-Aktivität neu durchgezählt:** die „8.8 Tage
+  still"-Zahl vom 17.08. war bereits beim Schreiben überholt (Rang-2-Account
+  hatte am 17.08. früh morgens eine echte Session, Stunden vor dem
+  Handover-Commit) — aktuell 2 Tage 6 Stunden, nicht 10.8. **Security-Fix-
+  Skript gegen Repo-Stand geprüft:** die 4 Schema-Dateien, die die 7
+  betroffenen Functions definieren, unverändert seit 07.06. — Vorabprüfung
+  im Skript sollte weiterhin sauber durchlaufen; Live-Function-Body in Prod
+  bleibt von hier unverifizierbar (kein DB-Zugang im Repo, by design).
+  `npx knip` unverändert (5/1/9), pi-lens-Cache weiterhin Stand 13./14.04.
 - **2026-08-18** — Projekt-Check-in (Bens Arbeitsfenster diese Woche endet
   Do 20.08. abends, danach privat/Workshop weg — kaum Ben-Zeit). Health
   erneut 200/200/200 (App × 2, Supabase), Tests 167/167, Lint 0/11, Build
@@ -264,18 +365,3 @@
   Tablet-Bestätigung (13.08.) fehlen dort noch — Vorschlag siehe
   `vault_vorschlag`. `npx knip` direkt unverändert (5/1/9), pi-lens-Cache
   weiterhin Stand 13./14.04.
-- **2026-08-13** — Projekt-Check-in (Ben ab heute Abend bis 17.08. weg —
-  Sommerlager/Kiten, danach Voith-Workshop 24.08.). Health erneut 200/200/200
-  (App × 2, Supabase, inkl. `/login`-Deep-Link direkt), Tests 167/167, Lint
-  0/11, Build sauber, `npm audit` 0. Feedback weiter 0 offen, 41 gesamt
-  unverändert. **Zwei Befunde aus dem globalen Kontext gegengeprüft statt nur
-  übernommen:** (1) Supabase-Security-Fund — Repo-Zustand erneut verifiziert
-  (Fix-Datei unverändert, keine Function-Änderung seit 12.08.), Befund gilt
-  unverändert, Ausführung bleibt Ben-Punkt. (2) Mobiler Viewport-Login (Anlass:
-  Bens Antwort an Karl Zarhuber verweist aufs Tablet) — nur Code-Review
-  möglich (Chrome-Erweiterung nicht verbunden), keine Auffälligkeit gefunden.
-  Account-Aktivität mit frischer Direktabfrage nachgerechnet: ein Account
-  weiter aktiv (12.08. 13:11 UTC), der zweite jetzt 5 Tage still (vorher 4).
-  **Neu gefunden:** 1 Commit (`f776e0a`, Handover 12.08.) liegt seit gestern
-  unpushed — bewusst nicht gepusht (kein Deploy erlaubt). `npx knip` direkt
-  unverändert (5/1/9), pi-lens-Cache weiterhin Stand 13./14.04.
