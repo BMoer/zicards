@@ -2,18 +2,31 @@
 
 ## Was live / fertig
 - Frontend erreichbar auf beiden Domains: `https://zicards.moerzinger.eu/` → 200,
-  `https://zicards.vercel.app/` → 200 (curl, 2026-08-17), auch `/login` direkt
-  auf beiden Domains → 200 — SPA-Rewrite in `vercel.json` funktioniert weiter
-  für Deep-Links.
+  `https://zicards.vercel.app/` → 200 (curl, 20.08. erneut bestätigt), SPA-
+  Rewrite in `vercel.json` funktioniert weiter für Deep-Links.
 - Supabase-Backend erreichbar — REST-API `${VITE_SUPABASE_URL}/rest/v1/` → 200
-  (curl, 17.08.).
+  (curl, 20.08.).
 - `npm audit` weiterhin 0 Vulnerabilities. Lint unverändert: `npm run lint` →
   0 Fehler / 11 Warnungen. Tests unverändert: `npx vitest run` → 13
-  Testdateien, 167 Tests grün. Build sauber (`npm run build`, ~370ms, nur die
-  bekannte Chunk-Size-Warnung).
+  Testdateien, 167 Tests grün. Build sauber.
 - Offenes Nutzer-Feedback: **0**. Tabellen-Gesamtstand unverändert 41 (mit und
   ohne `resolved_at`-Filter identisch 41 → alles resolved). Weiterhin kein
   neuer Eintrag seit 2026-08-01.
+- **20.08. — Cron-Root-Cause erneut bestätigt, nicht nur fortgeschrieben:**
+  frischer REST-Query auf `user_settings` zeigt `last_reminder_sent` für alle
+  4 reminder-fähigen Nutzer weiter unverändert auf `2026-06-25T07:00` — auch
+  einen Tag nach dem 19.08.-Fund identisch, der Cron ist also nicht zufällig
+  zwischenzeitlich gelaufen. Fällige Karten je Nutzer heute: 137 / 25 / 76 /
+  172 (der dritte Wert ist von 84 auf 76 gesunken — dieser Nutzer hat
+  zwischenzeitlich selbst geübt, dazu unten mehr).
+- **20.08. — Datenfehler in `public.todos` gefunden und behoben:** der Punkt
+  `zicards/feedback-grant` hatte `project = NULL` statt `'zicards'` und fiel
+  dadurch aus jeder projekt-gefilterten Todo-Abfrage heraus (auch aus dieser
+  Check-in-Session, bis gezielt danach gesucht wurde). Per
+  `todos-sync.mjs`-Upsert korrigiert; alle vier zicards-Punkte liegen jetzt
+  unter `project='zicards'`, `zicards/feedback-grant` zusätzlich von Bucket
+  `woche` nach `jetzt` verschoben (gehört sachlich in dieselbe Konsolen-
+  Session wie die anderen zwei SQL-Punkte, siehe unten).
 - **Alle vormals „unpushed" Doku-Commits sind jetzt auf `origin/main`** (18.08.,
   `git log --oneline origin/main..HEAD` leer, `git branch -vv` zeigt `main`
   exakt bei `[origin/main] 3361c77`). Widerspricht dem, was HANDOVER.md bis
@@ -167,14 +180,17 @@
   bestätigt gilt.
 
 ## prod ≠ live
-- **2 von 13 Accounts aktiv, neu durchgezählt (19.08., direkte
-  `user_progress`-Abfrage über alle 1368 Zeilen, paginiert, 12 distinkte
-  Accounts):** Rang 1 weiter regelmäßig aktiv (zuletzt 18.08. 18:03 UTC).
-  Rang 2 — bisher als „seit 08.08. still" geführt — hatte tatsächlich am
-  17.08. 03:00–03:07 UTC eine echte Lernsession; die „8.8 Tage still"-Zahl
-  vom 17.08. war beim Schreiben bereits überholt. Aktuell: Rang 2 ist **2
-  Tage 6 Stunden** still, nicht 10.8. Details + wahrscheinliche Ursache
-  siehe Fund oben unter „Was live/fertig".
+- **Weiter 2 von 13 Accounts aktiv, heute (20.08.) erneut komplett
+  durchgezählt** (`user_progress`-Abfrage über alle 1368 Zeilen, paginiert,
+  weiter 12 distinkte Accounts, 1 ohne jede Zeile): Rang 1 (zuletzt 18.08.
+  18:03 UTC, jetzt 1,5 Tage still) und Rang 2 sind aktiv. **Der bisherige
+  Rang-2-Stand war schon wieder überholt:** der Account, der gestern
+  (19.08.) mit „2 Tage 6 Stunden still" geführt wurde, hatte **am selben
+  Tag um 10:35 UTC — rund eine Stunde nach dem 19.08.-Check-in-Lauf —
+  erneut eine echte Session** (fällige Karten dieses Nutzers sanken von 84
+  auf 76). Heute also nur 0,8 Tage still, nicht 2 Tage 6 Stunden. Die
+  restlichen 10 Accounts unverändert seit ≥ 58 Tagen still. Wahrscheinliche
+  Ursache unverändert: siehe Cron-Fund unten.
 - **Cron-Job „daily-reminders" (jobid 6) — jetzt eine begründete Vermutung
   statt eines offenen Unbekannten:** die Vault-Page `zicards` dokumentiert
   bereits „DISABLED 2026-06-25 (`active = false`) für die Sommerpause,
@@ -241,34 +257,46 @@
 - Bens Woche ist ab Donnerstagabend zu (21.-23.08. privat, 24.08. Workshop Heidenheim, 25.08. Rückreise), und zicards steht diese Woche hinter dem Voith-Workshop an. → Die drei Punkte, die nur Ben in der Konsole erledigen kann (Security-Fix, Feedback-GRANT, Reaktivierung des Erinnerungs-Cron), gehören in eine gemeinsame Session vor Donnerstagabend; sonst liegen sie bis zum 25.08. [Quelle: Kalender]
 
 ## Offene Punkte (nächste Session)
-- [ ] **Supabase-Security-Fix ausführen:**
-      `supabase/security-search-path-fix-2026-08-12.sql` im SQL-Editor laufen
-      lassen (Skript-Voraussetzungen heute 19.08. gegengeprüft, weiterhin
-      gültig), danach im Security-Advisor „Rerun linter". Ben.
-- [ ] **Fehlenden Feedback-INSERT-Grant nachtragen:**
-      `supabase/feedback-insert-grant-fix-2026-08-18.sql` im SQL-Editor
-      laufen lassen (ein `GRANT INSERT`, idempotent). Ohne das bricht der
-      Feedback-Knopf am 30.10.2026 (Supabase-Cutover) für alle Nutzer still.
-      Nicht akut, aber am besten gleich mit dem Security-Fix oben in derselben
-      Konsolen-Session erledigen. Ben.
-- [ ] **NEU (19.08.) — Cron-Job „daily-reminders" (jobid 6) reaktivieren:**
-      `select cron.alter_job(6, active := true);` im SQL-Editor. Sehr
-      wahrscheinlich der Grund, warum inaktive Accounts nicht zurückkommen —
-      seit dem Sommerpause-Mute am 25.06. ist keine Erinnerungsmail mehr
-      raus (Indizienkette siehe „prod ≠ live" oben), obwohl alle 4
-      Reminder-Nutzer aktuell fällige Karten haben. Dritter Punkt für
-      dieselbe Konsolen-Session wie die zwei oben. Ben.
-- [ ] **Weiter beobachten: 2/13 aktive Accounts.** Rang 1 weiter aktiv
-      (zuletzt 18.08.), Rang 2 jetzt **2 Tage 6 Stunden** still (nicht mehr
-      „8.8 Tage" — die alte Zahl war bereits am 17.08. überholt, siehe
-      „prod ≠ live"). Kein akuter Fehler (App+Backend beide 200). Erwartung:
-      wenn der Cron oben reaktiviert wird, sollte sich die Rückkehr-Rate der
-      10 langfristig stillen Accounts beobachten lassen — nächste Session
-      gegenprüfen, ob nach Reaktivierung wieder `last_reminder_sent`-Werte
-      neuer als 25.06. auftauchen.
-- [x] **Commits pushen** — erledigt (extern, außerhalb dieser Session): 18.08.
-      zeigt `git log origin/main..HEAD` leer, `main` liegt exakt auf
-      `[origin/main] 3361c77`. Kein Handlungsbedarf mehr.
+- [ ] **EINE Konsolen-Session, drei Statements, feste Reihenfolge (20.08.
+      vorbereitet, alle drei heute erneut gegen den aktuellen Stand
+      geprüft — gültig):**
+      1. `bash supabase/apply-security-fix.sh` — fragt das DB-Passwort per
+         `read -s` ab, prüft selbst auf unqualifizierte Objektreferenzen und
+         bricht ab, falls etwas nicht passt. Setzt `search_path = ''` auf
+         allen 7 `public`-Functions.
+      2. Im selben `psql`/SQL-Editor: `supabase/feedback-insert-grant-fix-
+         2026-08-18.sql` (`GRANT INSERT ON TABLE public.feedback TO
+         authenticated;`).
+      3. `select cron.alter_job(6, active := true);` — reaktiviert
+         „daily-reminders".
+      **Verifikation danach:** (a) Supabase-Dashboard → Advisors → Security →
+      „Rerun linter" muss die „Function Search Path Mutable"-Meldungen los
+      sein. (b) `select grantee, privilege_type from
+      information_schema.role_table_grants where table_schema='public' and
+      table_name='feedback';` muss für `authenticated` INSERT, SELECT,
+      UPDATE zeigen. (c) `select jobid, active from cron.job where
+      jobid=6;` muss `active=true` zeigen. Erwartete Folge in den Tagen
+      danach: `user_settings.last_reminder_sent` der 4 Reminder-Nutzer
+      bekommt wieder Werte neuer als `2026-06-25` — nächste Session
+      gegenprüfen. Ben, braucht das DB-Passwort.
+- [ ] **Weiter beobachten: 2/13 aktive Accounts.** Rang 1 (zuletzt 18.08.
+      18:03, jetzt 1,5 Tage still) und Rang 2 (20.08. bestätigt: Session am
+      19.08. 10:35 UTC, jetzt nur 0,8 Tage still — nicht mehr „2 Tage 6
+      Stunden", diese Zahl war schon einen Tag später überholt) sind aktiv.
+      Kein akuter Fehler (App+Backend beide 200). Erwartung: wenn der Cron
+      oben reaktiviert wird, sollte sich die Rückkehr-Rate der 10
+      langfristig stillen Accounts beobachten lassen.
+- [x] **Todos-DB-Fund behoben (20.08.):** `zicards/feedback-grant` hatte
+      `project=NULL` und tauchte in keiner projekt-gefilterten Todo-Abfrage
+      auf. Per `todos-sync.mjs` korrigiert (`project='zicards'`, Bucket
+      `woche` → `jetzt`), siehe „Was live / fertig".
+- [ ] **1 Commit unpushed (bewusst, diese Session):** Vor dem Schreiben
+      dieses Handovers war `main` exakt auf `origin/main` (verifiziert per
+      `git fetch` + `git log origin/main..HEAD` leer). Der Handover-Commit
+      dieser 20.08.-Session bleibt absichtlich lokal — die Check-in-Session
+      hat heute keine Deploy-Erlaubnis. Reiner Doku-Diff (`docs/HANDOVER.md`
+      + `public.todos`-Sync, kein `src/`), also kein Funktionsrisiko;
+      nächste Session mit Deploy-Erlaubnis pusht ihn einfach mit.
 - [ ] Fehlt Error-Tracking (Sentry o.ä.)? Unverändert — Ben entscheiden
       lassen, ob der Aufwand lohnt.
 - [ ] `VITE_COURSE_CODE` aus Vercel-Env entfernen (unused, laut Vault seit
@@ -293,6 +321,28 @@
       (siehe „Was live / fertig").
 
 ## Session-Log (letzte 3)
+- **2026-08-20** — Projekt-Check-in (Bens letzter Arbeitstag vor dem
+  Voith-Workshop, ~4h frei, mit hoher Wahrscheinlichkeit für die
+  Workshop-Vorbereitung — zicards heute nicht Bens Priorität). Health
+  erneut 200/200/200 (App × 2, Supabase), Tests 167/167, Lint 0/11,
+  `npm audit` 0, keine unpushed Commits vor dieser Session. Feedback weiter
+  0 offen von 41. **Nutzerstand komplett frisch nachgemessen statt
+  fortgeschrieben:** 2/13 Accounts aktiv (unverändert), aber der
+  Rang-2-Account war entgegen der 19.08.-Notiz nicht 2 Tage 6 Stunden,
+  sondern nur 0,8 Tage still — er hatte am 19.08. 10:35 UTC (nach dem
+  vorigen Check-in-Lauf) erneut eine Session. Cron „daily-reminders"
+  erneut per REST bestätigt weiter inaktiv seit 25.06. — heute 8. Tag in
+  Folge ohne Bewegung bei `last_reminder_sent`. **SQL-Session für Ben
+  fertig vorbereitet:** feste Reihenfolge Security-Fix → Feedback-Grant →
+  Cron-Reaktivierung, alle drei Skripte heute gegen den aktuellen Repo-
+  Stand erneut geprüft (Schema-Dateien unverändert seit 07.06.), plus
+  Verifikationsschritte nach jedem Schritt. **Datenfehler in `public.todos`
+  gefunden und behoben:** `zicards/feedback-grant` hatte `project=NULL`
+  und war dadurch für jede projekt-gefilterte Abfrage unsichtbar — per
+  `todos-sync.mjs` korrigiert. `git fetch` bestätigt: keine lokalen
+  unpushed Commits vor dieser Session (Widerspruch aus der 19.08.-Übergabe
+  war bereits durch den 19.08.-Push aufgelöst). Diese Session pusht ihren
+  eigenen Handover-Commit bewusst nicht (heutige Boundary: kein Deploy).
 - **2026-08-19** — Projekt-Check-in (Bens Woche ab 20.08. abends zu:
   Fr–So Junggesellenabschied, Mo 24.08. Voith-Workshop Heidenheim, Di 25.08.
   Rückreise — zicards bekommt vor dem 25.08. keine Ben-Zeit mehr). Health
@@ -335,28 +385,3 @@
   Prod ausgeführt (kein DB-Schreibzugriff aus diesem Repo) —
   `supabase/feedback-insert-grant-fix-2026-08-18.sql`, Ben-Punkt, am besten
   gebündelt mit dem bereits wartenden Security-Fix.
-- **2026-08-17** — Projekt-Check-in (Bens Arbeitsfenster diese Woche endet
-  Do 20.08. abends, Fr–So Junggesellenabschied, danach Voith-Workshop 24.08.
-  — kaum Ben-Zeit für zicards diese Woche). Health erneut 200/200/200 (App ×
-  2, Supabase, inkl. `/login`-Deep-Link direkt), Tests 167/167, Lint 0/11,
-  Build sauber (~370ms), `npm audit` 0. Feedback weiter 0 offen, 41 gesamt
-  unverändert. **Karl Zarhubers Bestätigung (13.08., „läuft gut nun auch auf
-  dem Tablet") schließt den offenen Mobil-Viewport-Test ab** — echte
-  Nutzerbestätigung statt synthetischem Browser-Test, auch die daran
-  hängende SMTP-Frage damit gegenstandslos (Bestandsnutzer, keine
-  Neuregistrierung). **Eslint-disable-Fund untersucht statt blind entfernt:**
-  `UnifiedSession.jsx:165` sah nach totem Code aus („unused directive"),
-  probeweise entfernt löste aber 13 `react-hooks/refs`-Fehler + weitere
-  Warnungen aus (Ref-Zugriff während Render im `useMemo`) — sofort
-  zurückgesetzt, `git diff` bestätigt leer, Lint wieder 0/11. Account-
-  Aktivität mit frischer Vollabfrage nachgerechnet (1368 Zeilen, 12 distinkte
-  Accounts): ein Account heute (17.08.) aktiv, der zweite jetzt 8.8 Tage
-  still (vorher 5). **Unpushed-Rückstand wächst:** jetzt 2 Commits
-  (`f776e0a`, `d40b55d`), diese Session hat aus Deploy-Verbot wieder nicht
-  gepusht. Vault-Page `zicards` gegengelesen (Stand laut Metadaten 10.08.,
-  nicht 13.07. wie im Profil vermerkt) — Kerninhalte (2/13 Accounts, Cron
-  ungeklärt, offener `VITE_COURSE_CODE`) decken sich weiterhin mit der
-  Realität, aber der Supabase-Security-Fund (12.08.) und Karls
-  Tablet-Bestätigung (13.08.) fehlen dort noch — Vorschlag siehe
-  `vault_vorschlag`. `npx knip` direkt unverändert (5/1/9), pi-lens-Cache
-  weiterhin Stand 13./14.04.
