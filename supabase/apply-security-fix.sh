@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# HINWEIS 2026-08-21: dieser Weg (psql + DB-Passwort) wurde NICHT gefahren.
+# Ausgefuehrt wurde stattdessen supabase/apply-open-sql-2026-08-21.sh, das
+# dieselben ALTER FUNCTION ... SET search_path = '' ueber die Supabase
+# Management API setzt und dafuer kein DB-Passwort braucht. Der search_path
+# steht seit 21.08. auf allen 7 public-Functions; nachpruefbar mit
+# supabase/verify-open-sql-2026-08-21.sh. Diese Datei bleibt als Rueckfallweg
+# fuer den Fall, dass der Management-API-Token mal nicht verfuegbar ist.
 # zicards: Supabase-Security-Fix anwenden (Function Search Path Mutable, Lint 0011)
 #
 # Ben führt dieses Skript aus. Das DB-Passwort wird per `read -s` abgefragt,

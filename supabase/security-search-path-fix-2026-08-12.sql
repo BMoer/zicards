@@ -17,9 +17,19 @@
 -- keine unqualifizierten Referenzen. ALTER FUNCTION ändert nur die Function-
 -- Konfiguration, nicht den Body — idempotent, kein CREATE OR REPLACE nötig.
 --
--- Noch NICHT gegen Prod ausgeführt (dieses Repo hat keinen DB-Schreibzugriff,
--- siehe CLAUDE.md-Historie zu Management-API-Token) — Ben führt das im
--- Supabase SQL Editor aus, danach im Advisor "Rerun linter" bestätigen.
+-- STATUS 2026-08-21: AUSGEFÜHRT gegen Prod. Nicht über den SQL Editor,
+-- sondern über die Supabase Management API (supabase/apply-open-sql-
+-- 2026-08-21.sh) — dafür ist kein DB-Passwort nötig. Nachgewiesen: alle 7
+-- public-Functions tragen proconfig = search_path="".
+-- Gegenprüfen jederzeit mit supabase/verify-open-sql-2026-08-21.sh.
+-- Im Supabase-Dashboard bleibt Advisors > Security > "Rerun linter" noch
+-- als Sichtbestätigung offen (Dashboard-Zugang, daher Ben).
+--
+-- Vorprüfung vor der Ausführung: der Textcheck auf unqualifizierte
+-- Objektreferenzen meldete 8 Treffer in admin_get_users() — allesamt
+-- CTE-Namen aus dem eigenen WITH-Block (char_days, sent_days, all_days,
+-- user_list, totals, char_stats, sent_stats, day_stats), keine Relationen.
+-- Die echten Tabellen dort sind durchgehend schemaqualifiziert.
 
 -- SECURITY DEFINER (zicards-admin-schema.sql)
 ALTER FUNCTION public.is_admin() SET search_path = '';

@@ -1,6 +1,62 @@
 # zicards — Handover
 
 ## Was live / fertig
+- **21.08. (zweite Session) — die drei offenen Konsolen-Punkte sind ausgeführt
+  und gemessen nachgewiesen.** Die bisherige Handover-Prämisse „Ben, braucht das
+  DB-Passwort“ war falsch: die Statements laufen über die Supabase Management API
+  (Token aus der macOS-Keychain der Supabase CLI, Projekt-Ref
+  `obpgcttudogwfobjwjgk`), ganz ohne DB-Passwort.
+  Neu angelegt:
+  - `supabase/apply-open-sql-2026-08-21.sh` — ändernd, idempotent, je Schritt
+    PRÜFEN → ÄNDERN → BEWEISEN, bricht bei einem echten Blocker ab.
+  - `supabase/verify-open-sql-2026-08-21.sh` — rein lesend, ändert nichts,
+    Exit-Code 1 sobald ein Punkt nicht sitzt.
+  Beide startet **Ben selbst** (`! bash supabase/…`), weil der Auto-Mode-
+  Klassifikator dem Agenten den Keychain-Zugriff verweigert (dreimal geblockt,
+  kein Workaround versucht). Der Token verlässt Bens Rechner dabei nicht und
+  wird von den Skripten nie ausgegeben.
+  **Gemessene Beweise aus dem Lauf vom 21.08.:**
+  (a) alle 7 `public`-Functions tragen `proconfig = search_path=""`
+      (`is_admin`, `admin_get_users`, `admin_get_user_chars`,
+      `admin_get_user_sentences`, `get_due_counts`, `update_updated_at`,
+      `mnemonics_set_updated_at`);
+  (b) `authenticated` hat auf `public.feedback` jetzt INSERT (neben SELECT/UPDATE);
+  (c) `cron.job` jobid 6 `daily-reminders` (`0 7 * * *`) steht auf `active = true`.
+  Rauchtest direkt nach der Änderung: `public.is_admin()` → `false` ohne Fehler,
+  `select count(*) from public.characters` → 172. Der Nachkontroll-Lauf des
+  Verify-Skripts meldete „alle drei Punkte nachgewiesen“.
+- **21.08. — Ben hat das Verify-Skript selbst repariert (`f2bb970`), nicht der
+  Agent.** Die erste Fassung suchte in `pg_proc.proconfig` nach `search_path=`,
+  Postgres legt `SET search_path = ''` aber als `search_path=""` ab — dadurch
+  meldete das Skript alle 7 Functions fälschlich als ungefixt, obwohl der Fix
+  saß. Der Agent hatte parallel eine eigene, **schwächere** Korrektur
+  eingebaut (`left(cfg.v,12) = 'search_path='`), die auch ein *nicht* leeres
+  `search_path=public` durchgewunken hätte; die ist zugunsten von Bens
+  strengerer Fassung wieder entfernt worden. Vom Agenten bleibt an der Datei
+  nur die neue RLS-Kontrolle (BEWEIS 2b, +23 Zeilen).
+- **21.08. — `cron.job_run_details` erklärt die stillen Reminder abschließend:**
+  die letzten Läufe von `daily-reminders` waren 21.–25.06.2026, **alle
+  `succeeded`**. Der Job ist also nicht fehlgeschlagen, sondern war seit dem
+  25.06. schlicht abgeschaltet — das deckt sich mit dem seit 13.08. neunmal
+  unverändert gemessenen `last_reminder_sent = 2026-06-25T07:00`.
+- **21.08. — Fehlalarm der Vorprüfung gefunden und behoben (nicht umgangen):**
+  der Textcheck auf unqualifizierte Objektreferenzen meldete zuerst 8 Treffer in
+  `admin_get_users()` (`char_days`, `sent_days`, `all_days`, `user_list`,
+  `totals`, `char_stats`, `sent_stats`, `day_stats`) und brach ab. Alle acht sind
+  CTE-Namen aus dem eigenen `WITH`-Block, gegengeprüft in
+  `zicards-admin-schema.sql:49-125`; die echten Relationen dort sind durchgehend
+  qualifiziert (`auth.users`, `public.user_progress`, `public.sentence_progress`,
+  `public.characters`, `public.sentences`). Die Prüfung zieht jetzt CTE-Namen ab
+  und wertet einen Namen nur als Blocker, wenn er in `pg_class` als Relation
+  wirklich existiert; sie zeigt die verworfenen Rohtreffer samt Begründung mit an.
+- **21.08. — die 3 Doku-Commits sind gepusht** (`074f622..b052e6e`, nur
+  `docs/HANDOVER.md`, `+146/-92`, kein `src/`-Diff). `git log --oneline
+  origin/main..HEAD` ist danach leer. App nach dem dadurch ausgelösten Vercel-
+  Deploy erneut geprüft: `zicards.moerzinger.eu` → 200, `zicards.vercel.app` → 200.
+- **21.08. — Nutzer-Feedback frisch gemessen:** offene Einträge **0**,
+  Tabellenstand unverändert 41 (`content-range: 0-40/41`). Letzte Lernaktivität
+  überhaupt: 19.08. 10:35 UTC, seither kein einziger neuer `user_progress`-
+  Eintrag; Zeilenzahl weiterhin exakt 1368.
 - Frontend erreichbar auf beiden Domains: `https://zicards.moerzinger.eu/` → 200,
   `https://zicards.vercel.app/` → 200 (curl, 21.08. erneut bestätigt), SPA-
   Rewrite in `vercel.json` funktioniert weiter für Deep-Links.
@@ -274,28 +330,36 @@
 - Bens Woche ist ab Donnerstagabend zu (21.-23.08. privat, 24.08. Workshop Heidenheim, 25.08. Rückreise), und zicards steht diese Woche hinter dem Voith-Workshop an. → Die drei Punkte, die nur Ben in der Konsole erledigen kann (Security-Fix, Feedback-GRANT, Reaktivierung des Erinnerungs-Cron), gehören in eine gemeinsame Session vor Donnerstagabend; sonst liegen sie bis zum 25.08. [Quelle: Kalender]
 
 ## Offene Punkte (nächste Session)
-- [ ] **EINE Konsolen-Session, drei Statements, feste Reihenfolge (20.08.
-      vorbereitet, 21.08. erneut gegen den aktuellen Stand geprüft —
-      weiterhin gültig, keine Änderung):**
-      1. `bash supabase/apply-security-fix.sh` — fragt das DB-Passwort per
-         `read -s` ab, prüft selbst auf unqualifizierte Objektreferenzen und
-         bricht ab, falls etwas nicht passt. Setzt `search_path = ''` auf
-         allen 7 `public`-Functions.
-      2. Im selben `psql`/SQL-Editor: `supabase/feedback-insert-grant-fix-
-         2026-08-18.sql` (`GRANT INSERT ON TABLE public.feedback TO
-         authenticated;`).
-      3. `select cron.alter_job(6, active := true);` — reaktiviert
-         „daily-reminders".
-      **Verifikation danach:** (a) Supabase-Dashboard → Advisors → Security →
-      „Rerun linter" muss die „Function Search Path Mutable"-Meldungen los
-      sein. (b) `select grantee, privilege_type from
-      information_schema.role_table_grants where table_schema='public' and
-      table_name='feedback';` muss für `authenticated` INSERT, SELECT,
-      UPDATE zeigen. (c) `select jobid, active from cron.job where
-      jobid=6;` muss `active=true` zeigen. Erwartete Folge in den Tagen
-      danach: `user_settings.last_reminder_sent` der 4 Reminder-Nutzer
-      bekommt wieder Werte neuer als `2026-06-25` — nächste Session
-      gegenprüfen. Ben, braucht das DB-Passwort.
+- [x] **Die drei Statements sind am 21.08. gefahren und nachgewiesen** —
+      `search_path=''` auf allen 7 `public`-Functions, `GRANT INSERT ON
+      public.feedback TO authenticated`, `daily-reminders` wieder `active`.
+      Nicht über `apply-security-fix.sh`/SQL-Editor gelaufen, sondern über die
+      Management API; **das DB-Passwort wurde nie gebraucht**. Belege und die
+      beiden neuen Skripte siehe „Was live / fertig“. Offen bleibt allein die
+      Wirkungskontrolle einen Tag später (nächster Punkt).
+- [ ] **22.08. gegenprüfen, ob wirklich Mails rausgehen.** Der Job ist aktiv,
+      aber „aktiv“ ist noch kein Versand. Erster Lauf nach der Reaktivierung:
+      **22.08., 07:00 UTC** (`0 7 * * *`). Beweis-Abfrage:
+      `select count(*), max(last_reminder_sent) from public.user_settings;` —
+      der Höchstwert muss von `2026-06-25T07:00` auf den 22.08. springen;
+      zusätzlich `cron.job_run_details` auf einen neuen `succeeded`-Lauf prüfen.
+      Beides steckt schon in `supabase/verify-open-sql-2026-08-21.sh`
+      (BEWEIS 3b/3c) — einfach nochmal laufen lassen. Springt der Wert nicht,
+      liegt es nicht mehr am Cron, sondern an der Edge-Function/Resend.
+      **Hinweis für Ben:** 5 Nutzer stehen in `user_settings`, ab dem 22.08.
+      früh bekommen sie wieder täglich eine Mail — das ist die einzige nach
+      außen sichtbare Änderung dieser Session.
+- [ ] **Neuer Fund (nicht beauftragt): `anon` hält auf `public.feedback` die
+      vollen Table-Grants** — DELETE, INSERT, REFERENCES, SELECT, TRIGGER,
+      TRUNCATE, UPDATE, gemessen am 21.08. Das ist der Supabase-Standard-
+      Blankogrant auf `public.*`, kein Fehler dieses Repos, und abgesichert
+      wird es allein über RLS. **Noch nicht gemessen:** die RLS-Kontrolle
+      ist erst nach Bens grünem Lauf als BEWEIS 2b ins Verify-Skript
+      gekommen und daher bisher nie ausgeführt — beim nächsten Lauf
+      mitlesen. Zu entscheiden: ob die `anon`-Rechte auf
+      `feedback` explizit zurückgenommen werden, bevor Supabase am 30.10.2026
+      die impliziten Privilegien umstellt. Ben entscheiden lassen — ein
+      `REVOKE` trifft potenziell auch andere Tabellen desselben Grants.
 - [ ] **Weiter beobachten: 2/13 aktive Accounts.** 21.08. neu gemessen: Rang 1
       (zuletzt 18.08. 18:03 UTC) jetzt 2,5 Tage still, Rang 2 (zuletzt 19.08.
       10:35 UTC) jetzt 1,8 Tage still — bei beiden keine neue Session seit
@@ -307,19 +371,20 @@
       `project=NULL` und tauchte in keiner projekt-gefilterten Todo-Abfrage
       auf. Per `todos-sync.mjs` korrigiert (`project='zicards'`, Bucket
       `woche` → `jetzt`), siehe „Was live / fertig".
-- [ ] **1 Commit unpushed, unverändert seit 20.08. (`735e20c`):** `git log
-      --oneline origin/main..HEAD` zeigt weiterhin genau diesen einen
-      Commit, kein neuer dazugekommen. Diese 21.08.-Session hat aus
-      demselben Grund (keine Deploy-Erlaubnis) ebenfalls nicht gepusht.
-      Reiner Doku-Diff (`docs/HANDOVER.md` + `public.todos`-Sync, kein
-      `src/`), also kein Funktionsrisiko; nächste Session mit
-      Deploy-Erlaubnis pusht ihn einfach mit.
+- [x] **Push-Rückstand abgebaut (21.08.):** die 3 offenen Doku-Commits
+      (`735e20c`, `6d0a979`, `b052e6e`) liegen auf `origin/main`,
+      `git log --oneline origin/main..HEAD` ist leer. Nur `docs/HANDOVER.md`
+      geändert, kein `src/`-Diff — der ausgelöste Vercel-Deploy war
+      folgenlos, beide Domains danach 200.
 - [ ] **Vault-Page `zicards` seit 17.08. gegengelesen, Lücke unverändert
       (21.08. erneut geprüft):** Stand-Header sagt weiterhin „2026-08-10".
       Es fehlen der Supabase-Security-Fund (12.08.), der Feedback-Grant-Fund
       (18.08.) und die Tablet-Bestätigung eines Nutzers (13.08.). Kein Projekt-Check-in
       darf das selbst schreiben (nur der globale Lauf schreibt in den
       Vault) — Vorschlag steht, wartet auf den nächsten globalen Lauf.
+      **Dazugekommen am 21.08.:** die drei SQL-Punkte sind erledigt (nicht
+      mehr „wartet auf Ben“), der Reminder-Cron läuft wieder, und der
+      `anon`-Grant-Fund auf `public.feedback` gehört ebenfalls hinein.
 - [ ] Fehlt Error-Tracking (Sentry o.ä.)? Unverändert — Ben entscheiden
       lassen, ob der Aufwand lohnt.
 - [ ] `VITE_COURSE_CODE` aus Vercel-Env entfernen (unused, laut Vault seit
@@ -344,6 +409,27 @@
       (siehe „Was live / fertig").
 
 ## Session-Log (letzte 3)
+- **2026-08-21 (zweite Session, Ben-getrieben: „irgendwas muss getan werden“)** —
+  aus einer Nachmess- eine Ausführ-Session gemacht. Kernfund: die drei seit dem
+  12./18./19.08. als „wartet auf Bens DB-Passwort“ geführten Punkte brauchten es
+  nie — die Supabase Management API mit dem CLI-Token aus der Keychain reicht.
+  Zwei neue Skripte (`supabase/apply-open-sql-2026-08-21.sh` ändernd,
+  `supabase/verify-open-sql-2026-08-21.sh` rein lesend); Ben startet sie selbst,
+  weil der Auto-Mode-Klassifikator dem Agenten den Keychain-Zugriff dreimal
+  verweigert hat (kein Umgehungsversuch). Ergebnis: `search_path=''` auf allen 7
+  `public`-Functions, `GRANT INSERT` auf `public.feedback` für `authenticated`,
+  `daily-reminders` wieder `active=true` — alle drei per Verify-Lauf belegt,
+  Rauchtest danach grün (`is_admin()` → false, `characters` → 172). Unterwegs
+  zwei Dinge korrigiert statt umgangen: der CTE-Fehlalarm der Vorprüfung
+  (8 Treffer in `admin_get_users()`) und eine falsche Vergleichszeile im
+  Verify-Skript, die `search_path=""` nicht als gesetzt erkannt hat (die hat
+  Ben selbst gefixt und committet, `f2bb970`; die parallel vom Agenten gebaute
+  Variante war zu lasch und wurde zurückgenommen). Außerdem
+  die 3 Doku-Commits gepusht (Rückstand jetzt 0, beide Domains danach 200) und
+  ein nicht beauftragter Fund notiert: `anon` hält auf `public.feedback` die
+  vollen Table-Grants. **Nicht erledigt und bewusst offen:** ob am 22.08. früh
+  wirklich Mails rausgehen — „Job aktiv“ ist noch kein Versand, das zeigt erst
+  `last_reminder_sent` am Tag darauf.
 - **2026-08-21** — Projekt-Check-in (Ben Fr–So privat auf einem
   Junggesellenabschied, danach Mo 24.08. ganztägig Voith-x-TTTech-Workshop
   in Präsenz — zicards bekommt diese Woche keine Ben-Zeit mehr, alles

@@ -80,6 +80,29 @@ else
 fi
 
 echo
+echo "== BEWEIS 2b: RLS auf public.feedback (anon haelt breite Table-Grants) =="
+q "
+  select c.relname as tabelle, c.relrowsecurity as rls_an, c.relforcerowsecurity as rls_erzwungen,
+         (select count(*) from pg_policies pol
+          where pol.schemaname='public' and pol.tablename='feedback') as policies
+  from pg_class c join pg_namespace n on n.oid = c.relnamespace
+  where n.nspname='public' and c.relname='feedback';
+" | show
+q "
+  select policyname as policy, cmd as fuer, roles::text as rollen
+  from pg_policies where schemaname='public' and tablename='feedback' order by policyname;
+" | show
+RLS=$(q "
+  select c.relrowsecurity::text as an from pg_class c join pg_namespace n on n.oid=c.relnamespace
+  where n.nspname='public' and c.relname='feedback';
+" | jq -r '.[0].an')
+if [ "$RLS" != "true" ]; then
+  echo "   -> NICHT OK: RLS auf public.feedback ist AUS, anon hat aber Table-Grants."; FAIL=1
+else
+  echo "   -> OK: RLS auf public.feedback ist an."
+fi
+
+echo
 echo "== BEWEIS 3: pg_cron =="
 q "select jobid, jobname, schedule, active from cron.job order by jobid;" | show
 AKTIV=$(q "select count(*) as n from cron.job where jobname='daily-reminders' and active;" | jq -r '.[0].n')

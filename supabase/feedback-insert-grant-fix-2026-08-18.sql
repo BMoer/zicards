@@ -25,11 +25,18 @@
 -- läuft, Health 200/200/200, `npm audit` 0) — reines Zeitzünder-Risiko.
 --
 -- Fix: den fehlenden Grant nachtragen, analog zum Muster in
--- grants-2026-05-28-api-default-change.sql. Idempotent (GRANT ergänzt
--- nur). Noch NICHT gegen Prod ausgeführt — dieses Repo hat keinen
--- DB-Schreibzugriff (siehe CLAUDE.md-Historie). Ben führt das im
--- Supabase SQL Editor aus, am besten zusammen mit
--- security-search-path-fix-2026-08-12.sql (gleicher Anlass: Console-Zeit).
+-- grants-2026-05-28-api-default-change.sql. Idempotent (GRANT ergänzt nur).
+--
+-- STATUS 2026-08-21: AUSGEFÜHRT gegen Prod. Nicht über den SQL Editor,
+-- sondern über die Supabase Management API (supabase/apply-open-sql-
+-- 2026-08-21.sh) — dafür ist kein DB-Passwort nötig. Nachgewiesen:
+-- `authenticated` hat auf public.feedback jetzt INSERT neben SELECT/UPDATE.
+-- Gegenprüfen jederzeit mit supabase/verify-open-sql-2026-08-21.sh.
+--
+-- Nebenbefund aus demselben Lauf: `anon` hält auf public.feedback ebenfalls
+-- die vollen Table-Grants (Supabase-Standard-Blankogrant, abgesichert allein
+-- über RLS). Offen, ob das vor dem 30.10.2026 zurückgenommen wird —
+-- siehe docs/HANDOVER.md, Offene Punkte.
 
 GRANT INSERT ON TABLE public.feedback TO authenticated;
 
