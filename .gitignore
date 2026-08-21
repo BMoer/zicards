@@ -29,7 +29,9 @@ supabase/.temp/
 # Local tooling / assistant workspace (not part of the app)
 # .claude/* statt .claude/ — bei einem ignorierten VERZEICHNIS betritt git es gar
 # nicht erst, eine Ausnahme darin wuerde nie greifen. Lokales Werkzeug bleibt ignoriert,
-# nur das checkin-Profil (Registrierung fuer den globalen /checkin) gehoert ins Repo.
+# nur die beiden Projekt-Profile gehoeren ins Repo: checkin (Registrierung fuer den
+# globalen /checkin) und close-session (Registrierung fuer /close-session).
 .claude/*
 !.claude/checkin.md
+!.claude/close-session.md
 .pi/

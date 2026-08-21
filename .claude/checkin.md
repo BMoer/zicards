@@ -68,9 +68,10 @@ checkin_note: docs/HANDOVER.md → Sektion `## Aus dem globalen Check-in (<Datum
     (RLS und GRANT lösen verschiedene Probleme, beides ist Pflicht — CLAUDE.md).
 
 ## notes
-  - Dieses Projekt hat noch **kein close-session-Profil**. Solange das fehlt, ist der
-    Check-in die einzige Stelle, die den Stand einsammelt — entsprechend gründlicher
-    ins Handover schreiben.
+  - Seit 21.08.2026 gibt es ein **close-session-Profil** (`.claude/close-session.md`).
+    Der Check-in ist damit nicht mehr die einzige Stelle, die den Stand einsammelt —
+    beim Abschluss räumt close-session Handover und Vault auf. Zuvor lief jeder
+    Session-Abschluss hier im vorsichtigen Modus (nur listen, nichts beenden/ausrollen).
   - Das Projekt war von 2026-06-18 bis 2026-08-04 (Wiederaufnahme-Check-in) commit-still;
     seit 04.08. wieder aktive Check-in-Session je Tag. Ein ruhiger Check-in bleibt der
     Normalfall, **eine leere Feedback-Liste ist trotzdem eine gute Nachricht**

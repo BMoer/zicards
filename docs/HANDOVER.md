@@ -1,5 +1,7 @@
 # zicards — Handover
 
+_Stand: 2026-08-21 (close-session)._
+
 ## Was live / fertig
 - **21.08. (zweite Session) — die drei offenen Konsolen-Punkte sind ausgeführt
   und gemessen nachgewiesen.** Die bisherige Handover-Prämisse „Ben, braucht das
@@ -53,6 +55,25 @@
   `docs/HANDOVER.md`, `+146/-92`, kein `src/`-Diff). `git log --oneline
   origin/main..HEAD` ist danach leer. App nach dem dadurch ausgelösten Vercel-
   Deploy erneut geprüft: `zicards.moerzinger.eu` → 200, `zicards.vercel.app` → 200.
+- **21.08. (close-session) — Vault-Page `zicards` kompiliert, nicht ergänzt.**
+  Die seit 17.08. offene Lücke ist zu. Ersetzt wurden die vier Stellen, die durch
+  den 21.08.-Lauf faktisch falsch waren: der `STATUS 2026-08-10`-Block (inkl.
+  „Ob der Daily-Reminder-Cron wieder läuft, ist ungeklärt“), die `Users:`-Zeile
+  mit dem Stand vom 05.08., die Feature-Zeile „muted 2026-06-25“ und die
+  Infrastructure-Zeile „DISABLED 2026-06-25“. Neu dazu: Security-Fund und -Fix
+  (12./21.08.), Feedback-Grant (18./21.08.), Tablet-Bestätigung (13.08.), der
+  `anon`-Blankogrant als offene Frage und der Zugriffsweg über die Management API.
+  **Beweis gegen die Live-Page:** `STATUS 2026-08-10` → 0 Treffer,
+  „ist ungeklärt“ → 0, „seit der Reaktivierung am 05.08. aktiv“ → 0;
+  `updated` ist von `2026-08-17` auf `2026-08-21` gesprungen, `faithful=True`,
+  Wikilink `gridbert` aufgelöst, `verify` und `verify-types` beide grün.
+- **21.08. (close-session) — `.claude/close-session.md` angelegt** (87 Zeilen).
+  Bis heute hatte zicards als einziges Projekt kein Abschluss-Profil, weshalb
+  jeder Session-Abschluss im vorsichtigen Modus lief (nur listen, nichts tun).
+  Festgehalten sind jetzt: Push auf `main` **ist** der Deploy (confirm-gated,
+  kein zweites Gate danach), welche Dev-Server beendet werden dürfen und welche
+  nicht, dass der engram-Tunnel fremd ist und stehen bleibt, der Health-Dreisatz,
+  die Handover-Struktur und der Management-API-Weg für SQL gegen Prod.
 - **21.08. — Nutzer-Feedback frisch gemessen:** offene Einträge **0**,
   Tabellenstand unverändert 41 (`content-range: 0-40/41`). Letzte Lernaktivität
   überhaupt: 19.08. 10:35 UTC, seither kein einziger neuer `user_progress`-
@@ -253,44 +274,19 @@
   bestätigt gilt.
 
 ## prod ≠ live
-- **Weiter 2 von 13 Accounts aktiv, heute (20.08.) erneut komplett
-  durchgezählt** (`user_progress`-Abfrage über alle 1368 Zeilen, paginiert,
-  weiter 12 distinkte Accounts, 1 ohne jede Zeile): Rang 1 (zuletzt 18.08.
-  18:03 UTC, jetzt 1,5 Tage still) und Rang 2 sind aktiv. **Der bisherige
-  Rang-2-Stand war schon wieder überholt:** der Account, der gestern
-  (19.08.) mit „2 Tage 6 Stunden still" geführt wurde, hatte **am selben
-  Tag um 10:35 UTC — rund eine Stunde nach dem 19.08.-Check-in-Lauf —
-  erneut eine echte Session** (fällige Karten dieses Nutzers sanken von 84
-  auf 76). Heute also nur 0,8 Tage still, nicht 2 Tage 6 Stunden. Die
-  restlichen 10 Accounts unverändert seit ≥ 58 Tagen still. Wahrscheinliche
-  Ursache unverändert: siehe Cron-Fund unten.
-- **Cron-Job „daily-reminders" (jobid 6) — jetzt eine begründete Vermutung
-  statt eines offenen Unbekannten:** die Vault-Page `zicards` dokumentiert
-  bereits „DISABLED 2026-06-25 (`active = false`) für die Sommerpause,
-  Re-Enable via `cron.alter_job(6, active := true)` at next course start" —
-  dieser Re-Enable ist beim Wiederanlauf 05.08. anscheinend nicht passiert.
-  Per REST bestätigt (19.08.): `user_settings.last_reminder_sent` aller 4
-  `reminder_enabled=true`-Nutzer steht unverändert auf `2026-06-25T07:00`,
-  obwohl alle 4 aktuell fällige Karten haben. Sehr wahrscheinlich der
-  Haupttreiber für die stillen Accounts. Fix: `select cron.alter_job(6,
-  active := true);` — Schreiboperation, Ben-Punkt (SQL-Editor). Direkter
-  Blick auf `cron.job.active` bleibt von hier unmöglich (Dashboard/
-  Management-API nötig).
-- **Supabase-Security-Fix bereit, aber nicht angewendet — Skript heute
-  (19.08.) gegen Repo-Stand geprüft, gilt unverändert:** `supabase/security-
-  search-path-fix-2026-08-12.sql` liegt weiterhin unverändert im Repo, die
-  vier Schema-Dateien, die die 7 betroffenen Functions definieren, haben
-  seit ihrem letzten Commit (07.06.) keinen Diff — die Vorabprüfung im
-  Skript sollte weiterhin sauber durchlaufen. **Weiterhin nicht
-  gegenprüfbar:** ob der Prod-Function-Body exakt dem Repo entspricht und ob
-  der Supabase-Advisor exakt diese 7 Punkte meldet oder noch mehr — kein
-  Dashboard-/DB-Zugang von hier. Braucht Bens Supabase-SQL-Editor-Zugang.
-- **Jetzt 2 Commits unpushed, nicht mehr 1:** `f776e0a` (Handover 12.08.) UND
-  `d40b55d` (Handover 13.08.) liegen lokal, nicht auf `origin/main` —
-  gewachsen, weil die 13.08.-Session bewusst ebenfalls nicht gepusht hat.
-  Beide reine Doku-Commits, kein Code-Risiko, aber der Rückstand wächst jeden
-  Tag ohne Push-Erlaubnis um einen weiteren Commit. Diese Session hat aus dem
-  gleichen Grund (kein Deploy erlaubt) wieder nicht gepusht — siehe `fuer_ben`.
+- **Weiter 2 von 13 Accounts aktiv — und seit dem 19.08. gar keiner mehr.**
+  21.08. neu gemessen: `user_progress` unverändert exakt 1368 Zeilen, jüngster
+  Eintrag überhaupt 19.08. 10:35 UTC. Auch die beiden bis dahin aktiven
+  Accounts haben seither keine Session mehr gehabt; die restlichen 10 sind
+  seit ≥ 58 Tagen still. **Die bisher vermutete Hauptursache ist am 21.08.
+  beseitigt** — der Reminder-Cron war seit 25.06. abgeschaltet und läuft
+  wieder. Ob die Rückkehrrate darauf reagiert, ist die eigentliche Messung
+  der nächsten Tage.
+- **Supabase-Advisor noch nicht sichtbestätigt.** `search_path=''` sitzt
+  nachweislich auf allen 7 `public`-Functions (direkt aus `pg_proc.proconfig`
+  gemessen, 21.08.), aber Advisors > Security > „Rerun linter“ im Dashboard
+  hat niemand gedrückt — dafür fehlt der Dashboard-Zugang. Kosmetik: der Fix
+  selbst ist belegt, nur die Advisor-Anzeige hinkt.
 - **Keine belastbare „Fehlerrate" messbar.** Unverändert — kein
   Error-Tracking im Projekt, einzige Proxy-Signale App/Supabase-Status und
   Feedback-Knopf.
@@ -302,41 +298,13 @@
 - `useProgress.js` (MI 30.5, kognitive Komplexität 85) und `AdminDashboard.jsx`
   (Komplexität 42) weiterhin laut (veraltetem) Cache die größten
   Komplexitäts-Ausreißer — Zahlen sind ~4 Monate alt, nicht neu erhoben.
-- **NEU (18.08.) — Sechs-Wochen-Vorausschau, „was fällt um": fehlender
-  INSERT-Grant auf `public.feedback` gefunden.** Geprüft: alle drei TLS-Zerti­
-  fikate (zicards.moerzinger.eu bis 27.10.26, zicards.vercel.app + Supabase
-  bis 26.09.26) sind plattformseitig automatisch verwaltet (Vercel/Let's
-  Encrypt bzw. Supabase-managed) — kein manueller Schritt nötig, kein Risiko.
-  `npm audit` weiterhin 0, keine Dependency mit bekannter Lücke. Der eine
-  echte Fund: `feedback.sql` legt die RLS-Policy „users can insert own
-  feedback" (FOR INSERT TO authenticated) an, aber **kein Grant begleitet
-  sie** — weder dort noch in `feedback-resolved-2026-05-31.sql` (nur SELECT,
-  UPDATE) noch in `grants-2026-05-28-api-default-change.sql` (die Tabelle
-  fehlt in der Liste komplett, nur 7 der 8 Tabellen sind abgedeckt). Heute
-  unsichtbar, weil Supabase das implizite Data-API-Privileg erst am
-  **30.10.2026** entfernt (CLAUDE.md) — bis dahin verdeckt das Implizit-Recht
-  die Lücke. Ab dem Cutover würde **der Feedback-Knopf** — laut Projekt-Profil
-  „die wichtigste Zahl" dieses Projekts — für alle eingeloggten Nutzer mit
-  401/permission denied fehlschlagen, ohne dass sich Code oder RLS geändert
-  hätten. Fix vorbereitet und geprüft (idempotent, ein einzeiliger `GRANT
-  INSERT`): `supabase/feedback-insert-grant-fix-2026-08-18.sql`. **Nicht
-  gegen Prod ausgeführt** — gleicher Grund wie beim Security-Fix (kein
-  DB-Schreibzugriff aus diesem Repo), braucht Bens SQL-Editor-Zugang. Am
-  besten in derselben Konsolen-Session wie
-  `security-search-path-fix-2026-08-12.sql` erledigen.
 
 ## Aus dem globalen Check-in (2026-08-19)
 
 - Bens Woche ist ab Donnerstagabend zu (21.-23.08. privat, 24.08. Workshop Heidenheim, 25.08. Rückreise), und zicards steht diese Woche hinter dem Voith-Workshop an. → Die drei Punkte, die nur Ben in der Konsole erledigen kann (Security-Fix, Feedback-GRANT, Reaktivierung des Erinnerungs-Cron), gehören in eine gemeinsame Session vor Donnerstagabend; sonst liegen sie bis zum 25.08. [Quelle: Kalender]
+- **Nachtrag 21.08. (close-session): erledigt.** Alle drei Punkte sind am 21.08. gefahren und belegt — ohne Konsolen-Session und ohne DB-Passwort, über die Supabase Management API. Der Terminzwang vor Donnerstagabend ist damit gegenstandslos.
 
 ## Offene Punkte (nächste Session)
-- [x] **Die drei Statements sind am 21.08. gefahren und nachgewiesen** —
-      `search_path=''` auf allen 7 `public`-Functions, `GRANT INSERT ON
-      public.feedback TO authenticated`, `daily-reminders` wieder `active`.
-      Nicht über `apply-security-fix.sh`/SQL-Editor gelaufen, sondern über die
-      Management API; **das DB-Passwort wurde nie gebraucht**. Belege und die
-      beiden neuen Skripte siehe „Was live / fertig“. Offen bleibt allein die
-      Wirkungskontrolle einen Tag später (nächster Punkt).
 - [ ] **22.08. gegenprüfen, ob wirklich Mails rausgehen.** Der Job ist aktiv,
       aber „aktiv“ ist noch kein Versand. Erster Lauf nach der Reaktivierung:
       **22.08., 07:00 UTC** (`0 7 * * *`). Beweis-Abfrage:
@@ -367,24 +335,6 @@
       bei anderen Accounts). Kein akuter Fehler (App+Backend beide 200).
       Erwartung: wenn der Cron oben reaktiviert wird, sollte sich die
       Rückkehr-Rate der 10 langfristig stillen Accounts beobachten lassen.
-- [x] **Todos-DB-Fund behoben (20.08.):** `zicards/feedback-grant` hatte
-      `project=NULL` und tauchte in keiner projekt-gefilterten Todo-Abfrage
-      auf. Per `todos-sync.mjs` korrigiert (`project='zicards'`, Bucket
-      `woche` → `jetzt`), siehe „Was live / fertig".
-- [x] **Push-Rückstand abgebaut (21.08.):** die 3 offenen Doku-Commits
-      (`735e20c`, `6d0a979`, `b052e6e`) liegen auf `origin/main`,
-      `git log --oneline origin/main..HEAD` ist leer. Nur `docs/HANDOVER.md`
-      geändert, kein `src/`-Diff — der ausgelöste Vercel-Deploy war
-      folgenlos, beide Domains danach 200.
-- [ ] **Vault-Page `zicards` seit 17.08. gegengelesen, Lücke unverändert
-      (21.08. erneut geprüft):** Stand-Header sagt weiterhin „2026-08-10".
-      Es fehlen der Supabase-Security-Fund (12.08.), der Feedback-Grant-Fund
-      (18.08.) und die Tablet-Bestätigung eines Nutzers (13.08.). Kein Projekt-Check-in
-      darf das selbst schreiben (nur der globale Lauf schreibt in den
-      Vault) — Vorschlag steht, wartet auf den nächsten globalen Lauf.
-      **Dazugekommen am 21.08.:** die drei SQL-Punkte sind erledigt (nicht
-      mehr „wartet auf Ben“), der Reminder-Cron läuft wieder, und der
-      `anon`-Grant-Fund auf `public.feedback` gehört ebenfalls hinein.
 - [ ] Fehlt Error-Tracking (Sentry o.ä.)? Unverändert — Ben entscheiden
       lassen, ob der Aufwand lohnt.
 - [ ] `VITE_COURSE_CODE` aus Vercel-Env entfernen (unused, laut Vault seit
@@ -394,19 +344,6 @@
       externen Plugin-Hook geschrieben, kein Regenerate-Weg aus diesem Repo).
 - [ ] pi-lens-Cache insgesamt erneuern (Stand 13./14.04., ~4 Monate alt) —
       gleiche Ursache wie oben.
-- [x] **Mobiler Viewport-Test für `/login`** — durch die eigene Bestätigung des Nutzers
-      (13.08., „läuft gut nun auch auf dem Tablet") erledigt; kein separater
-      Browser-Test mehr nötig.
-- [x] **„Falls der wartende Nutzer neu registriert hat" (SMTP-Frage)** —
-      gegenstandslos: der Nutzer ist laut Mailkontext bestätigter Bestandsnutzer,
-      keine Neuregistrierung.
-- [x] `UnifiedSession.jsx:165` eslint-disable-Warnung geprüft (17.08.) — kein
-      totes Aufräumen möglich, siehe „Was live / fertig". Kein Fix, nur
-      Investigation abgeschlossen.
-- [x] Lint-Fix `f1389e2` push-Status erneut bestätigt (12.08.): liegt auf
-      `origin/main`, `npm run lint` weiterhin 0/11.
-- [x] HANDOVER.md-Lücke der 11.08.-Session geschlossen — heute committet
-      (siehe „Was live / fertig").
 
 ## Session-Log (letzte 3)
 - **2026-08-21 (zweite Session, Ben-getrieben: „irgendwas muss getan werden“)** —
@@ -429,7 +366,12 @@
   ein nicht beauftragter Fund notiert: `anon` hält auf `public.feedback` die
   vollen Table-Grants. **Nicht erledigt und bewusst offen:** ob am 22.08. früh
   wirklich Mails rausgehen — „Job aktiv“ ist noch kein Versand, das zeigt erst
-  `last_reminder_sent` am Tag darauf.
+  `last_reminder_sent` am Tag darauf. **Abschluss (close-session):** Vault-Page
+  `zicards` kompiliert (vier überholte Stellen ersetzt, gegen die Live-Page
+  bewiesen), erstes `.claude/close-session.md` für dieses Repo angelegt, und das
+  Handover aufgeräumt — 8 erledigte `- [x]`-Punkte entfernt, die Sektion
+  `prod ≠ live` von vier gelösten Einträgen befreit, Session-Log auf 3 gekürzt
+  (502 → 405 Zeilen).
 - **2026-08-21** — Projekt-Check-in (Ben Fr–So privat auf einem
   Junggesellenabschied, danach Mo 24.08. ganztägig Voith-x-TTTech-Workshop
   in Präsenz — zicards bekommt diese Woche keine Ben-Zeit mehr, alles
@@ -476,27 +418,3 @@
   unpushed Commits vor dieser Session (Widerspruch aus der 19.08.-Übergabe
   war bereits durch den 19.08.-Push aufgelöst). Diese Session pusht ihren
   eigenen Handover-Commit bewusst nicht (heutige Boundary: kein Deploy).
-- **2026-08-19** — Projekt-Check-in (Bens Woche ab 20.08. abends zu:
-  Fr–So Junggesellenabschied, Mo 24.08. Voith-Workshop Heidenheim, Di 25.08.
-  Rückreise — zicards bekommt vor dem 25.08. keine Ben-Zeit mehr). Health
-  erneut 200/200/200 (App × 2, Supabase), Tests 167/167, Lint 0/11,
-  `npm audit` 0, keine unpushed Commits. Feedback weiter 0 offen von 41,
-  letzter Eintrag unverändert 25.05. **Hauptfund: Cron-Root-Cause.**
-  Vault-Page `zicards` gegengelesen — dokumentiert bereits, dass „daily-
-  reminders" (jobid 6) am 25.06. für die Sommerpause deaktiviert wurde und
-  beim Wiederanlauf reaktiviert werden sollte; das ist beim Wiederanlauf
-  05.08. offenbar nicht passiert. Per REST bestätigt: `last_reminder_sent`
-  aller 4 Reminder-Nutzer steht seit 25.06. still, obwohl alle 4 aktuell
-  fällige Karten haben (137/25/84/172) — starke Indizienkette, dass seit
-  fast 8 Wochen keine Erinnerungsmail rausging. Wahrscheinlichster Grund für
-  die stillen Accounts. Fix ein Einzeiler (`cron.alter_job`), aber
-  Schreibzugriff → Ben-Punkt, gebündelt mit Security- und Feedback-Grant-Fix
-  vorgeschlagen. **Account-Aktivität neu durchgezählt:** die „8.8 Tage
-  still"-Zahl vom 17.08. war bereits beim Schreiben überholt (Rang-2-Account
-  hatte am 17.08. früh morgens eine echte Session, Stunden vor dem
-  Handover-Commit) — aktuell 2 Tage 6 Stunden, nicht 10.8. **Security-Fix-
-  Skript gegen Repo-Stand geprüft:** die 4 Schema-Dateien, die die 7
-  betroffenen Functions definieren, unverändert seit 07.06. — Vorabprüfung
-  im Skript sollte weiterhin sauber durchlaufen; Live-Function-Body in Prod
-  bleibt von hier unverifizierbar (kein DB-Zugang im Repo, by design).
-  `npx knip` unverändert (5/1/9), pi-lens-Cache weiterhin Stand 13./14.04.
