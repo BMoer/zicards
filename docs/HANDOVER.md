@@ -27,7 +27,7 @@
   1,8 Tage still — bei beiden keine neue Session seit dem 19.08., weiterhin
   2 von 13 Accounts aktiv. Vault-Page `zicards` gegengelesen (Stand-Header
   weiter „2026-08-10"): Security-Fund (12.08.), Feedback-Grant-Fund (18.08.)
-  und Karls Tablet-Bestätigung (13.08.) fehlen dort weiterhin — Vorschlag
+  und die Tablet-Bestätigung eines Nutzers (13.08.) fehlen dort weiterhin — Vorschlag
   unverändert offen, siehe Check-in-Bericht.
 - **20.08. — Cron-Root-Cause erneut bestätigt, nicht nur fortgeschrieben:**
   frischer REST-Query auf `user_settings` zeigt `last_reminder_sent` für alle
@@ -53,11 +53,11 @@
   (`docs/HANDOVER.md`, `CLAUDE.md`, `.claude/checkin.md`,
   `supabase/*.sql`, `supabase/apply-security-fix.sh` — kein `src/`-Diff),
   also kein Funktionsrisiko durch den dadurch ausgelösten Vercel-Deploy.
-- **Karl Zarhuber (Tablet-Login) hat am 13.08. bestätigt: „zicards läuft gut
+- **Ein Nutzer hat am 13.08. bestätigt (Tablet-Login): „zicards läuft gut
   nun auch auf dem Tablet."** Damit ist die offene Frage aus der 13.08.-Session
   (Live-Viewport-Test auf echtem Gerät nötig, weil damals nur Code-Review
   möglich war) durch eine echte Nutzerbestätigung geklärt — stärker als ein
-  synthetischer Browser-Test. Karl ist laut Mailkontext bestätigt Bestandsnutzer
+  synthetischer Browser-Test. Der Nutzer ist laut Mailkontext bestätigt Bestandsnutzer
   (keine Neuregistrierung), damit ist auch die daran hängende
   SMTP-Bestätigungsmail-Frage gegenstandslos. Beide Punkte unten als erledigt
   markiert.
@@ -174,8 +174,8 @@
   (200), PWA-Update-Konfiguration ist sauber (`registerType: autoUpdate`,
   `skipWaiting`, `clientsClaim` — kein Stale-Cache-Risiko), `localStorage`-
   Zugriffe sind überall defensiv mit try/catch abgesichert.
-- **Login auf mobilem Viewport geprüft** (13.08., Anlass: Bens Antwort an Karl
-  Zarhuber 12.08. 10:02 verweist explizit auf Tablet-Zugriff über
+- **Login auf mobilem Viewport geprüft** (13.08., Anlass: Bens Antwort an einen
+  Nutzer 12.08. 10:02 verweist explizit auf Tablet-Zugriff über
   `https://zicards.moerzinger.eu` — Aussage sollte stimmen). Nur Code-Review
   möglich, **kein Live-Screenshot-Test**: Chrome-Erweiterung war nicht
   verbunden (`tabs_context_mcp` → „Browser extension is not connected"), von
@@ -193,7 +193,7 @@
   also nicht mit der virtuellen Tastatur oder dem Anmelden-Button. Kein Bug
   gefunden, aber **unverifiziert bleibt das tatsächliche Rendering** auf
   einem echten mobilen Browser — nächste Session mit verbundener
-  Chrome-Erweiterung nachholen, bevor die Aussage an Karl als vollständig
+  Chrome-Erweiterung nachholen, bevor die Aussage an den Nutzer als vollständig
   bestätigt gilt.
 
 ## prod ≠ live
@@ -317,7 +317,7 @@
 - [ ] **Vault-Page `zicards` seit 17.08. gegengelesen, Lücke unverändert
       (21.08. erneut geprüft):** Stand-Header sagt weiterhin „2026-08-10".
       Es fehlen der Supabase-Security-Fund (12.08.), der Feedback-Grant-Fund
-      (18.08.) und Karls Tablet-Bestätigung (13.08.). Kein Projekt-Check-in
+      (18.08.) und die Tablet-Bestätigung eines Nutzers (13.08.). Kein Projekt-Check-in
       darf das selbst schreiben (nur der globale Lauf schreibt in den
       Vault) — Vorschlag steht, wartet auf den nächsten globalen Lauf.
 - [ ] Fehlt Error-Tracking (Sentry o.ä.)? Unverändert — Ben entscheiden
@@ -329,11 +329,11 @@
       externen Plugin-Hook geschrieben, kein Regenerate-Weg aus diesem Repo).
 - [ ] pi-lens-Cache insgesamt erneuern (Stand 13./14.04., ~4 Monate alt) —
       gleiche Ursache wie oben.
-- [x] **Mobiler Viewport-Test für `/login`** — durch Karls eigene Bestätigung
+- [x] **Mobiler Viewport-Test für `/login`** — durch die eigene Bestätigung des Nutzers
       (13.08., „läuft gut nun auch auf dem Tablet") erledigt; kein separater
       Browser-Test mehr nötig.
 - [x] **„Falls der wartende Nutzer neu registriert hat" (SMTP-Frage)** —
-      gegenstandslos: Karl ist laut Mailkontext bestätigter Bestandsnutzer,
+      gegenstandslos: der Nutzer ist laut Mailkontext bestätigter Bestandsnutzer,
       keine Neuregistrierung.
 - [x] `UnifiedSession.jsx:165` eslint-disable-Warnung geprüft (17.08.) — kein
       totes Aufräumen möglich, siehe „Was live / fertig". Kein Fix, nur
@@ -364,7 +364,7 @@
   pi-lens-Finding zu `AdminFeedback.jsx` als bekannter Stale-Cache-Artefakt
   bestätigt (Phantom-Datei, nie im Git-Verlauf, bereits in früheren
   Sessions dokumentiert), keine echte neue Regression. Vault-Page `zicards`
-  gegengelesen: Security-, Feedback-Grant- und Karl-Fund fehlen weiterhin
+  gegengelesen: Security-, Feedback-Grant- und Nutzerbestätigungs-Fund fehlen weiterhin
   (Stand-Header „2026-08-10") — Vorschlag bleibt offen für den nächsten
   globalen Lauf, dieser Projekt-Check-in schreibt nicht in den Vault. Kein
   Deploy-Erlaubnis diese Session, daher wieder nicht gepusht.
