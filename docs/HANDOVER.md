@@ -1,6 +1,6 @@
 # zicards — Handover
 
-_Stand: 2026-08-21 (close-session)._
+_Stand: 2026-08-24 (Check-in)._
 
 ## Was live / fertig
 - **21.08. (zweite Session) — die drei offenen Konsolen-Punkte sind ausgeführt
@@ -274,14 +274,25 @@ _Stand: 2026-08-21 (close-session)._
   bestätigt gilt.
 
 ## prod ≠ live
-- **Weiter 2 von 13 Accounts aktiv — und seit dem 19.08. gar keiner mehr.**
-  21.08. neu gemessen: `user_progress` unverändert exakt 1368 Zeilen, jüngster
-  Eintrag überhaupt 19.08. 10:35 UTC. Auch die beiden bis dahin aktiven
-  Accounts haben seither keine Session mehr gehabt; die restlichen 10 sind
-  seit ≥ 58 Tagen still. **Die bisher vermutete Hauptursache ist am 21.08.
-  beseitigt** — der Reminder-Cron war seit 25.06. abgeschaltet und läuft
-  wieder. Ob die Rückkehrrate darauf reagiert, ist die eigentliche Messung
-  der nächsten Tage.
+- **24.08. — erste Bewegung seit der Cron-Reaktivierung, ein Account.**
+  `cron.job_run_details` zeigt drei erfolgreiche `daily-reminders`-Läufe seit
+  der Reaktivierung (22.08., 23.08., 24.08., alle `succeeded`); 4 der 5
+  reminder-fähigen Nutzer haben laut `user_settings.last_reminder_sent` heute
+  24.08. 07:00 UTC tatsächlich eine Mail bekommen (vorher: alle auf
+  `2026-06-25T07:00` eingefroren) — die Mails gehen seither nachweislich raus,
+  nicht nur der Job ist aktiv. **Rang 2** (zuletzt 19.08. 10:35 UTC, seit
+  21.08. als „still" geführt) hat seit dem 21.08.-Check-in 33 neue
+  `user_progress`- und 22 neue `sentence_progress`-Zeilen erzeugt, verteilt
+  auf drei kurze Sessions (21.08. 08:50 — vor der ersten Reminder-Mail,
+  vermutlich unabhängig davon —, 23.08. 14:49 — rund 7¾h nach der 23.08.-Mail
+  —, 24.08. 04:18–04:24 — rund 21h nach der 23.08.-Mail). `user_progress`
+  bleibt trotzdem exakt bei 1368 Zeilen (Upsert auf bestehende Karten, kein
+  Zuwachs neuer Karten — richtiges Signal ist die Zahl der Aktualisierungen,
+  nicht die Gesamtzeilenzahl). **Rang 1** (zuletzt 18.08. 18:03 UTC) hat sich
+  dagegen nicht bewegt, jetzt 6 Tage still. Die übrigen 11 Accounts
+  unverändert still. Fazit: ein erstes, zeitlich plausibles Reaktivierungs-
+  Signal bei genau einem von 13 Accounts — noch kein Massen-Comeback, aber
+  die Voraussetzung „man sieht jetzt, ob die Erinnerungen wirken" ist erfüllt.
 - **Supabase-Advisor noch nicht sichtbestätigt.** `search_path=''` sitzt
   nachweislich auf allen 7 `public`-Functions (direkt aus `pg_proc.proconfig`
   gemessen, 21.08.), aber Advisors > Security > „Rerun linter“ im Dashboard
@@ -305,36 +316,32 @@ _Stand: 2026-08-21 (close-session)._
 - **Nachtrag 21.08. (close-session): erledigt.** Alle drei Punkte sind am 21.08. gefahren und belegt — ohne Konsolen-Session und ohne DB-Passwort, über die Supabase Management API. Der Terminzwang vor Donnerstagabend ist damit gegenstandslos.
 
 ## Offene Punkte (nächste Session)
-- [ ] **22.08. gegenprüfen, ob wirklich Mails rausgehen.** Der Job ist aktiv,
-      aber „aktiv“ ist noch kein Versand. Erster Lauf nach der Reaktivierung:
-      **22.08., 07:00 UTC** (`0 7 * * *`). Beweis-Abfrage:
-      `select count(*), max(last_reminder_sent) from public.user_settings;` —
-      der Höchstwert muss von `2026-06-25T07:00` auf den 22.08. springen;
-      zusätzlich `cron.job_run_details` auf einen neuen `succeeded`-Lauf prüfen.
-      Beides steckt schon in `supabase/verify-open-sql-2026-08-21.sh`
-      (BEWEIS 3b/3c) — einfach nochmal laufen lassen. Springt der Wert nicht,
-      liegt es nicht mehr am Cron, sondern an der Edge-Function/Resend.
-      **Hinweis für Ben:** 5 Nutzer stehen in `user_settings`, ab dem 22.08.
-      früh bekommen sie wieder täglich eine Mail — das ist die einzige nach
-      außen sichtbare Änderung dieser Session.
-- [ ] **Neuer Fund (nicht beauftragt): `anon` hält auf `public.feedback` die
-      vollen Table-Grants** — DELETE, INSERT, REFERENCES, SELECT, TRIGGER,
-      TRUNCATE, UPDATE, gemessen am 21.08. Das ist der Supabase-Standard-
-      Blankogrant auf `public.*`, kein Fehler dieses Repos, und abgesichert
-      wird es allein über RLS. **Noch nicht gemessen:** die RLS-Kontrolle
-      ist erst nach Bens grünem Lauf als BEWEIS 2b ins Verify-Skript
-      gekommen und daher bisher nie ausgeführt — beim nächsten Lauf
-      mitlesen. Zu entscheiden: ob die `anon`-Rechte auf
-      `feedback` explizit zurückgenommen werden, bevor Supabase am 30.10.2026
-      die impliziten Privilegien umstellt. Ben entscheiden lassen — ein
-      `REVOKE` trifft potenziell auch andere Tabellen desselben Grants.
-- [ ] **Weiter beobachten: 2/13 aktive Accounts.** 21.08. neu gemessen: Rang 1
-      (zuletzt 18.08. 18:03 UTC) jetzt 2,5 Tage still, Rang 2 (zuletzt 19.08.
-      10:35 UTC) jetzt 1,8 Tage still — bei beiden keine neue Session seit
-      gestern. `user_progress` weiterhin exakt 1368 Zeilen (keine Aktivität
-      bei anderen Accounts). Kein akuter Fehler (App+Backend beide 200).
-      Erwartung: wenn der Cron oben reaktiviert wird, sollte sich die
-      Rückkehr-Rate der 10 langfristig stillen Accounts beobachten lassen.
+- [x] **22.08. gegenprüfen, ob wirklich Mails rausgehen — erledigt, 24.08.**
+      `supabase/verify-open-sql-2026-08-21.sh` (BEWEIS 3b/3c) erneut gelaufen:
+      drei `succeeded`-Läufe seit der Reaktivierung (22./23./24.08.), 4 von 5
+      Nutzern zeigen `last_reminder_sent` jetzt auf 24.08. 07:00 UTC statt
+      `2026-06-25T07:00`. Die Mails gehen tatsächlich raus, es lag nicht an
+      der Edge-Function/Resend. Details zur Nutzungsreaktion siehe oben unter
+      „24.08. — erste Bewegung".
+- [ ] **`anon` hält auf `public.feedback` weiterhin die vollen Table-Grants**
+      — DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE,
+      unverändert seit 21.08. Das ist der Supabase-Standard-Blankogrant auf
+      `public.*`, kein Fehler dieses Repos. **RLS-Kontrolle jetzt gemessen
+      (24.08., BEWEIS 2b):** RLS auf `feedback` ist an (`relrowsecurity=true`),
+      3 Policies aktiv (`admins can read all feedback`, `admins can update
+      feedback`, `users can insert own feedback`) — der Blankogrant ist damit
+      abgesichert, kein akutes Risiko. Offen bleibt nur die Entscheidung: ob
+      die `anon`-Rechte auf `feedback` trotzdem explizit zurückgenommen
+      werden, bevor Supabase am 30.10.2026 die impliziten Privilegien
+      umstellt. Ben entscheiden lassen — ein `REVOKE` trifft potenziell auch
+      andere Tabellen desselben Grants.
+- [ ] **Weiter beobachten: Rückkehr-Rate nach der Cron-Reaktivierung.** 24.08.
+      neu gemessen: Rang 2 hat reagiert (drei Sessions seit 21.08., letzte
+      24.08. 04:18 UTC, zeitlich plausibel nach den Reminder-Mails vom
+      22./23.08.), Rang 1 weiterhin still (jetzt 6 Tage), die übrigen 11
+      Accounts unverändert. Ein Account von 13 ist noch kein belastbarer
+      Trend — weiter beobachten, ob in den nächsten Tagen mehr der 10
+      langfristig stillen Accounts zurückkommen.
 - [ ] Fehlt Error-Tracking (Sentry o.ä.)? Unverändert — Ben entscheiden
       lassen, ob der Aufwand lohnt.
 - [ ] `VITE_COURSE_CODE` aus Vercel-Env entfernen (unused, laut Vault seit
@@ -346,6 +353,28 @@ _Stand: 2026-08-21 (close-session)._
       gleiche Ursache wie oben.
 
 ## Session-Log (letzte 3)
+- **2026-08-24** — Projekt-Check-in (Ben ganztägig im Voith×TTTech-Workshop,
+  zicards ohne Ben-Zeit diese Woche). Health erneut 200/200/200 (App × 2,
+  Supabase), Tests 167/167, Lint 0/11, `npm audit` 0, 0 unpushed Commits.
+  Feedback weiter 0 offen von 41. **Kernpunkt: Lerngruppe-Nachfassen-Sperre
+  gegengeprüft.** `verify-open-sql-2026-08-21.sh` erneut gelaufen: drei
+  erfolgreiche `daily-reminders`-Läufe seit der Reaktivierung (22./23./24.08.),
+  4 von 5 Nutzern haben laut `last_reminder_sent` heute tatsächlich eine Mail
+  bekommen — die Reminder gehen nachweislich raus. Frisch dazu: Nutzung neu
+  gemessen und gegen den 20./21.08.-Stand gehalten — ein Account (vorher
+  „Rang 2", seit 19.08. als still geführt) hat seit dem 21.08. drei kurze
+  Sessions nachgeholt (33 `user_progress`-, 22 `sentence_progress`-Zeilen),
+  zeitlich passend zu den Reminder-Mails vom 22./23.08.; der andere bisher
+  aktive Account („Rang 1") und alle übrigen 11 sind unverändert still.
+  `user_progress`-Gesamtzeilen weiterhin exakt 1368 (Upsert, kein Zuwachs).
+  HANDOVER entsprechend korrigiert (die „seit 19.08. gar keiner mehr"-Aussage
+  war zum Zeitpunkt dieser Session bereits überholt) und die RLS-Lücke bei
+  BEWEIS 2b nachgemessen (jetzt gemessen: RLS an, 3 Policies). `npx knip`
+  frisch gelaufen, identisch zum 17.08. (5 unused files/1 unused dep/9 unused
+  exports). GitHub-Actions-Minuten-Meldung geprüft: `BMoer/zicards` hat 0
+  Workflows und 0 Actions-Runs (`.github/` existiert nicht im Repo) — trägt
+  nicht zu den 90 % verbrauchten Kontingent-Minuten bei, nichts zu drosseln.
+  Kein Deploy diese Session (kein Konsens-Anlass, ohnehin nichts zu pushen).
 - **2026-08-21 (zweite Session, Ben-getrieben: „irgendwas muss getan werden“)** —
   aus einer Nachmess- eine Ausführ-Session gemacht. Kernfund: die drei seit dem
   12./18./19.08. als „wartet auf Bens DB-Passwort“ geführten Punkte brauchten es
@@ -396,25 +425,3 @@ _Stand: 2026-08-21 (close-session)._
   (Stand-Header „2026-08-10") — Vorschlag bleibt offen für den nächsten
   globalen Lauf, dieser Projekt-Check-in schreibt nicht in den Vault. Kein
   Deploy-Erlaubnis diese Session, daher wieder nicht gepusht.
-- **2026-08-20** — Projekt-Check-in (Bens letzter Arbeitstag vor dem
-  Voith-Workshop, ~4h frei, mit hoher Wahrscheinlichkeit für die
-  Workshop-Vorbereitung — zicards heute nicht Bens Priorität). Health
-  erneut 200/200/200 (App × 2, Supabase), Tests 167/167, Lint 0/11,
-  `npm audit` 0, keine unpushed Commits vor dieser Session. Feedback weiter
-  0 offen von 41. **Nutzerstand komplett frisch nachgemessen statt
-  fortgeschrieben:** 2/13 Accounts aktiv (unverändert), aber der
-  Rang-2-Account war entgegen der 19.08.-Notiz nicht 2 Tage 6 Stunden,
-  sondern nur 0,8 Tage still — er hatte am 19.08. 10:35 UTC (nach dem
-  vorigen Check-in-Lauf) erneut eine Session. Cron „daily-reminders"
-  erneut per REST bestätigt weiter inaktiv seit 25.06. — heute 8. Tag in
-  Folge ohne Bewegung bei `last_reminder_sent`. **SQL-Session für Ben
-  fertig vorbereitet:** feste Reihenfolge Security-Fix → Feedback-Grant →
-  Cron-Reaktivierung, alle drei Skripte heute gegen den aktuellen Repo-
-  Stand erneut geprüft (Schema-Dateien unverändert seit 07.06.), plus
-  Verifikationsschritte nach jedem Schritt. **Datenfehler in `public.todos`
-  gefunden und behoben:** `zicards/feedback-grant` hatte `project=NULL`
-  und war dadurch für jede projekt-gefilterte Abfrage unsichtbar — per
-  `todos-sync.mjs` korrigiert. `git fetch` bestätigt: keine lokalen
-  unpushed Commits vor dieser Session (Widerspruch aus der 19.08.-Übergabe
-  war bereits durch den 19.08.-Push aufgelöst). Diese Session pusht ihren
-  eigenen Handover-Commit bewusst nicht (heutige Boundary: kein Deploy).
