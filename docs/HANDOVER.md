@@ -310,10 +310,10 @@ _Stand: 2026-08-24 (Check-in)._
   (Komplexität 42) weiterhin laut (veraltetem) Cache die größten
   Komplexitäts-Ausreißer — Zahlen sind ~4 Monate alt, nicht neu erhoben.
 
-## Aus dem globalen Check-in (2026-08-19)
+## Aus dem globalen Check-in (2026-08-24)
 
-- Bens Woche ist ab Donnerstagabend zu (21.-23.08. privat, 24.08. Workshop Heidenheim, 25.08. Rückreise), und zicards steht diese Woche hinter dem Voith-Workshop an. → Die drei Punkte, die nur Ben in der Konsole erledigen kann (Security-Fix, Feedback-GRANT, Reaktivierung des Erinnerungs-Cron), gehören in eine gemeinsame Session vor Donnerstagabend; sonst liegen sie bis zum 25.08. [Quelle: Kalender]
-- **Nachtrag 21.08. (close-session): erledigt.** Alle drei Punkte sind am 21.08. gefahren und belegt — ohne Konsolen-Session und ohne DB-Passwort, über die Supabase Management API. Der Terminzwang vor Donnerstagabend ist damit gegenstandslos.
+- Bens Woche ist nach dem heutigen Voith-Workshop faktisch auf Di-Nachmittag, Mi-Nachmittag und evtl. Fr geschrumpft, und auf diese Slots zielen bereits drei Kundenzusagen (Gridbert/Benda Di–Mi, eine Lastgang-Auswertung, der ImmoScene-Durchstich) → das Nachfassen bei der Lerngruppe hat diese Woche realistisch kein Fenster, obwohl die Datenlage jetzt dafür spricht [Quelle: Kalender + Projekte gridbert/immoscene/moerzinger-eu]
+- Die GitHub-Meldung "90 % der Actions-Minuten des Accounts BMoer verbraucht" ist für dieses Repo geklärt: 0 Workflows, 0 Runs, kein Beitrag → die Ursache liegt in einem anderen Repo des Accounts, hier ist nichts zu drosseln [Quelle: Posteingang 23.08.]
 
 ## Offene Punkte (nächste Session)
 - [x] **22.08. gegenprüfen, ob wirklich Mails rausgehen — erledigt, 24.08.**
