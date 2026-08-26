@@ -324,8 +324,7 @@ _Stand: 2026-08-26 (Check-in)._
 
 ## Aus dem globalen Check-in (2026-08-26)
 
-- GitHub-Actions-Kontingent (Account BMoer) ist diese Woche zu 100 % verbraucht, Reset erst 01.09. — für zicards erneut gegengeprüft (nicht nur wiederholt): `gh workflow list` und `gh run list` liefern beide 0 Zeilen, `.github/workflows/` existiert im Repo nicht. zicards deployt ausschließlich über Vercel (Push auf `main`) → vom Minuten-Ausfall nicht betroffen, diese Woche nichts blockiert [Quelle: `gh workflow list`, `gh run list`, `ls .github/workflows`, 26.08.]
-- Bens Kapazität diese Woche: Mi (heute) nur Vormittag bis 11:00 frei, danach bis 18:15 verplant; Do 27.08. praktisch ganztägig (06:30–21:30) verplant; Fr–So privat, 04./05.09. zwei Hochzeiten → das Lerngruppe-Nachfassen hat auch diese Woche kein realistisches Fenster, obwohl die Datenlage (4 Tage Reminder-Versand in Folge, anhaltende Nutzung eines reaktivierten Accounts) inzwischen noch klarer dafür spricht als am 24.08. [Quelle: Kalender, im globalen Check-in erhoben]
+- Bens Woche ist praktisch dicht (heute nur bis 11:00 frei, Do 27.08. durchgehend verplant, Fr-So privat, 04./05.09. zwei Hochzeiten) → das Nachfassen bei der Lerngruppe braucht ein Fenster, das diese Woche nicht kommt; die Datenlage dafuer ist inzwischen aber deutlich besser als am 24.08. [Quelle: Kalender beide Konten]
 
 ## Offene Punkte (nächste Session)
 - [x] **22.08. gegenprüfen, ob wirklich Mails rausgehen — erledigt, 24.08.**
