@@ -1,6 +1,6 @@
 # zicards — Handover
 
-_Stand: 2026-08-24 (Check-in)._
+_Stand: 2026-08-26 (Check-in)._
 
 ## Was live / fertig
 - **21.08. (zweite Session) — die drei offenen Konsolen-Punkte sind ausgeführt
@@ -274,6 +274,18 @@ _Stand: 2026-08-24 (Check-in)._
   bestätigt gilt.
 
 ## prod ≠ live
+- **26.08. — Reminder laufen jetzt 4 Tage in Folge, Rang 2 bleibt aktiv über
+  den 24.08.-Stand hinaus.** `user_settings.last_reminder_sent` steht bei
+  allen 4 reminder-fähigen Nutzern jetzt auf `2026-08-25T07:00` (vorher
+  24.08.) — vierter erfolgreicher Tag in Folge (22.–25.08.), kein Aussetzer.
+  Frisch gemessen: `sentence_progress` zeigt für Rang 2 (User-Präfix
+  `055164`, derselbe Account wie am 24.08.) eine neue Zeile mit
+  `updated_at = 2026-08-25T15:02:18 UTC` — die Rückkehr vom 21./23./24.08.
+  war also kein Einzelausschlag, der Account übt weiter. `user_progress`
+  bleibt unverändert bei 1368 Zeilen (Upsert). Rang 1 weiterhin ohne neue
+  Aktivität. Damit ist die „Sperre" hinter dem Lerngruppe-Nachfassen-Todo
+  ein weiteres Mal frisch nachgewiesen weg — siehe Todo-Urteil im
+  Check-in-Bericht vom 26.08.
 - **24.08. — erste Bewegung seit der Cron-Reaktivierung, ein Account.**
   `cron.job_run_details` zeigt drei erfolgreiche `daily-reminders`-Läufe seit
   der Reaktivierung (22.08., 23.08., 24.08., alle `succeeded`); 4 der 5
@@ -310,10 +322,10 @@ _Stand: 2026-08-24 (Check-in)._
   (Komplexität 42) weiterhin laut (veraltetem) Cache die größten
   Komplexitäts-Ausreißer — Zahlen sind ~4 Monate alt, nicht neu erhoben.
 
-## Aus dem globalen Check-in (2026-08-24)
+## Aus dem globalen Check-in (2026-08-26)
 
-- Bens Woche ist nach dem heutigen Voith-Workshop faktisch auf Di-Nachmittag, Mi-Nachmittag und evtl. Fr geschrumpft, und auf diese Slots zielen bereits drei Kundenzusagen (Gridbert/Benda Di–Mi, eine Lastgang-Auswertung, der ImmoScene-Durchstich) → das Nachfassen bei der Lerngruppe hat diese Woche realistisch kein Fenster, obwohl die Datenlage jetzt dafür spricht [Quelle: Kalender + Projekte gridbert/immoscene/moerzinger-eu]
-- Die GitHub-Meldung "90 % der Actions-Minuten des Accounts BMoer verbraucht" ist für dieses Repo geklärt: 0 Workflows, 0 Runs, kein Beitrag → die Ursache liegt in einem anderen Repo des Accounts, hier ist nichts zu drosseln [Quelle: Posteingang 23.08.]
+- GitHub-Actions-Kontingent (Account BMoer) ist diese Woche zu 100 % verbraucht, Reset erst 01.09. — für zicards erneut gegengeprüft (nicht nur wiederholt): `gh workflow list` und `gh run list` liefern beide 0 Zeilen, `.github/workflows/` existiert im Repo nicht. zicards deployt ausschließlich über Vercel (Push auf `main`) → vom Minuten-Ausfall nicht betroffen, diese Woche nichts blockiert [Quelle: `gh workflow list`, `gh run list`, `ls .github/workflows`, 26.08.]
+- Bens Kapazität diese Woche: Mi (heute) nur Vormittag bis 11:00 frei, danach bis 18:15 verplant; Do 27.08. praktisch ganztägig (06:30–21:30) verplant; Fr–So privat, 04./05.09. zwei Hochzeiten → das Lerngruppe-Nachfassen hat auch diese Woche kein realistisches Fenster, obwohl die Datenlage (4 Tage Reminder-Versand in Folge, anhaltende Nutzung eines reaktivierten Accounts) inzwischen noch klarer dafür spricht als am 24.08. [Quelle: Kalender, im globalen Check-in erhoben]
 
 ## Offene Punkte (nächste Session)
 - [x] **22.08. gegenprüfen, ob wirklich Mails rausgehen — erledigt, 24.08.**
@@ -335,24 +347,50 @@ _Stand: 2026-08-24 (Check-in)._
       werden, bevor Supabase am 30.10.2026 die impliziten Privilegien
       umstellt. Ben entscheiden lassen — ein `REVOKE` trifft potenziell auch
       andere Tabellen desselben Grants.
-- [ ] **Weiter beobachten: Rückkehr-Rate nach der Cron-Reaktivierung.** 24.08.
-      neu gemessen: Rang 2 hat reagiert (drei Sessions seit 21.08., letzte
-      24.08. 04:18 UTC, zeitlich plausibel nach den Reminder-Mails vom
-      22./23.08.), Rang 1 weiterhin still (jetzt 6 Tage), die übrigen 11
-      Accounts unverändert. Ein Account von 13 ist noch kein belastbarer
-      Trend — weiter beobachten, ob in den nächsten Tagen mehr der 10
-      langfristig stillen Accounts zurückkommen.
+- [ ] **Weiter beobachten: Rückkehr-Rate nach der Cron-Reaktivierung.** 26.08.
+      neu gemessen: Rang 2 bleibt aktiv — neue `sentence_progress`-Zeile vom
+      25.08. 15:02 UTC, vierter erfolgreicher Reminder-Tag in Folge
+      (22.–25.08., `last_reminder_sent` aller 4 Nutzer jetzt auf 25.08.).
+      Rang 1 weiterhin ohne neue Aktivität, übrige 11 Accounts unverändert.
+      Immer noch nur 1 von 13 Accounts reagiert, aber die Reaktion hält jetzt
+      über mehrere Tage — weiter beobachten.
 - [ ] Fehlt Error-Tracking (Sentry o.ä.)? Unverändert — Ben entscheiden
       lassen, ob der Aufwand lohnt.
 - [ ] `VITE_COURSE_CODE` aus Vercel-Env entfernen (unused, laut Vault seit
-      längerem bekannt; `rg` im Repo bestätigt 0 Code-Referenzen) — braucht
-      Vercel-Dashboard-Zugang, daher Ben.
+      längerem bekannt; `rg` im Repo bestätigt weiterhin 0 Code-Referenzen).
+      **26.08.: `vercel env ls production` zeigt die Variable live bestätigt**
+      (135 Tage alt, `Non-sensitive`, neben `VITE_SUPABASE_ANON_KEY`/`_URL`),
+      und die Vercel-CLI ist hier tatsächlich eingeloggt (`bmoerzinger-6310`)
+      — der bisherige Grund „braucht Dashboard-Zugang" stimmt technisch nicht
+      mehr. Trotzdem nicht selbst entfernt: Löschen eines Prod-Env-Werts ist
+      eine Infra-Änderung, kein reiner Lesevorgang — Ben kurz fragen/machen
+      lassen, dann ist es ein Einzeiler (`vercel env rm VITE_COURSE_CODE
+      production`).
 - [ ] pi-lens `knip.json` reparieren — unverändert blockiert (Cache wird vom
       externen Plugin-Hook geschrieben, kein Regenerate-Weg aus diesem Repo).
 - [ ] pi-lens-Cache insgesamt erneuern (Stand 13./14.04., ~4 Monate alt) —
       gleiche Ursache wie oben.
 
 ## Session-Log (letzte 3)
+- **2026-08-26** — Projekt-Check-in (globaler Morgen-Check-in, Ben Mi nur bis
+  11:00 frei, Do 27.08. praktisch ganztägig verplant, Fr–So privat). Health
+  erneut 200/200/200 (App × 2, Supabase), 0 unpushed Commits, Tests 167/167,
+  Lint 0 Fehler/11 Warnungen, `npm audit` 0, `npx knip` identisch zum
+  17.08.-Stand (5 unused files/1 unused dep/9 unused exports) — keine
+  Regression. Feedback weiter 0 offen von 41. GitHub-Actions-Minutenausfall
+  für zicards frisch gegengeprüft (`gh workflow list`/`gh run list` beide
+  leer, kein `.github/workflows/`) — bestätigt nicht betroffen.
+  **Lerngruppe-Nachfassen-Todo geprüft:** Sperre (Reminder-Cron) frisch
+  nachgemessen weiterhin weg — vierter erfolgreicher Reminder-Tag in Folge
+  (22.–25.08.), `last_reminder_sent` aller 4 Nutzer jetzt auf 25.08.; Rang-2-
+  Account bleibt über den 24.08.-Stand hinaus aktiv (neue Zeile 25.08. 15:02
+  UTC). Trotzdem als **offen** eingestuft, nicht erledigt: die eigentliche
+  externe Kommunikation an die Lerngruppe hat noch nicht stattgefunden, Ben
+  hatte laut Kalender auch diese Woche kein Fenster dafür (Topf B). Neuer
+  Fund: `vercel env ls` zeigt eine eingeloggte Vercel-CLI (`bmoerzinger-6310`)
+  — `VITE_COURSE_CODE`-Cleanup braucht damit technisch keinen
+  Dashboard-Zugang mehr, bleibt aber als Prod-Infra-Änderung bewusst bei Ben.
+  Kein Deploy diese Session (nur Doku-Commit).
 - **2026-08-24** — Projekt-Check-in (Ben ganztägig im Voith×TTTech-Workshop,
   zicards ohne Ben-Zeit diese Woche). Health erneut 200/200/200 (App × 2,
   Supabase), Tests 167/167, Lint 0/11, `npm audit` 0, 0 unpushed Commits.
@@ -401,27 +439,3 @@ _Stand: 2026-08-24 (Check-in)._
   Handover aufgeräumt — 8 erledigte `- [x]`-Punkte entfernt, die Sektion
   `prod ≠ live` von vier gelösten Einträgen befreit, Session-Log auf 3 gekürzt
   (502 → 405 Zeilen).
-- **2026-08-21** — Projekt-Check-in (Ben Fr–So privat auf einem
-  Junggesellenabschied, danach Mo 24.08. ganztägig Voith-x-TTTech-Workshop
-  in Präsenz — zicards bekommt diese Woche keine Ben-Zeit mehr, alles
-  Konsolen-Pflichtige liegt frühestens ab Di 25.08. nachmittags). Reine
-  Nachmess-Session, keine Bewegung seit gestern: Health erneut 200/200/200
-  (App × 2, Supabase), Tests 167/167, Lint 0/11, `npm audit` 0, weiterhin
-  genau 1 unpushed Commit (`735e20c`, unverändert seit 20.08., kein neuer
-  dazugekommen). Feedback weiter 0 offen von 41. **Alle drei Ben-Punkte
-  unabhängig re-verifiziert:** `last_reminder_sent` aller 4 Reminder-Nutzer
-  weiter exakt auf `2026-06-25T07:00` (9. Beobachtung ohne Bewegung), die
-  vier Schema-Dateien der Security-Fix-Functions weiterhin ohne Diff seit
-  `3361c77` (07.06.) — beide SQL-Skripte + der Feedback-Grant-Einzeiler
-  bleiben unverändert gültig, nichts musste neu geschrieben werden.
-  **Account-Aktivität neu gemessen statt fortgeschrieben:** `user_progress`
-  weiterhin exakt 1368 Zeilen, Rang 1 jetzt 2,5 Tage still, Rang 2 jetzt
-  1,8 Tage still — keine neue Session bei beiden, unverändert 2/13 aktiv.
-  `npx knip` unverändert (5 unused files/1 unused dep/9 unused exports),
-  pi-lens-Finding zu `AdminFeedback.jsx` als bekannter Stale-Cache-Artefakt
-  bestätigt (Phantom-Datei, nie im Git-Verlauf, bereits in früheren
-  Sessions dokumentiert), keine echte neue Regression. Vault-Page `zicards`
-  gegengelesen: Security-, Feedback-Grant- und Nutzerbestätigungs-Fund fehlen weiterhin
-  (Stand-Header „2026-08-10") — Vorschlag bleibt offen für den nächsten
-  globalen Lauf, dieser Projekt-Check-in schreibt nicht in den Vault. Kein
-  Deploy-Erlaubnis diese Session, daher wieder nicht gepusht.
