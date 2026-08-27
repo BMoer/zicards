@@ -1,6 +1,6 @@
 # zicards — Handover
 
-_Stand: 2026-08-26 (Check-in)._
+_Stand: 2026-08-27 (Check-in)._
 
 ## Was live / fertig
 - **21.08. (zweite Session) — die drei offenen Konsolen-Punkte sind ausgeführt
@@ -274,6 +274,20 @@ _Stand: 2026-08-26 (Check-in)._
   bestätigt gilt.
 
 ## prod ≠ live
+- **27.08. — fünfter Reminder-Tag in Folge, keine neue Nutzeraktivität seit
+  dem 25.08.** `user_settings.last_reminder_sent` steht bei allen 4
+  reminder-fähigen Nutzern jetzt auf `2026-08-26T07:00` (vorher 25.08.) —
+  fünfter erfolgreicher Tag ohne Aussetzer (22.–26.08.; der Lauf für heute,
+  27.08. 07:00 UTC, steht laut Uhrzeit dieser Session, 06:1x UTC, noch aus).
+  Rang 2 (User-Präfix `055164`) hat seit der letzten `sentence_progress`-Zeile
+  vom 25.08. 15:02 UTC keine weitere Session nachgelegt — `user_progress` für
+  diesen Account bleibt bei der letzten Zeile vom 24.08. 04:18 UTC stehen.
+  Rang 1 weiterhin ohne neue Aktivität, jetzt rund 8,5 Tage still (zuletzt
+  18.08. 18:03 UTC). `user_progress` insgesamt unverändert 1368 Zeilen,
+  Feedback-Tabelle unverändert 41 Zeilen gesamt. Fazit unverändert zum 26.08.:
+  die „Sperre" hinter dem Lerngruppe-Nachfassen-Todo bleibt nachweislich weg,
+  aber es ist kein Massen-Comeback — weiter 1 von 13 Accounts reagiert, jetzt
+  ohne Bewegung seit 2 Tagen.
 - **26.08. — Reminder laufen jetzt 4 Tage in Folge, Rang 2 bleibt aktiv über
   den 24.08.-Stand hinaus.** `user_settings.last_reminder_sent` steht bei
   allen 4 reminder-fähigen Nutzern jetzt auf `2026-08-25T07:00` (vorher
@@ -371,6 +385,23 @@ _Stand: 2026-08-26 (Check-in)._
       gleiche Ursache wie oben.
 
 ## Session-Log (letzte 3)
+- **2026-08-27** — Projekt-Check-in (Ben ab 10:30 fast durchgehend belegt,
+  Fr–So 28.–30.08. privat — für zicards heute realistisch keine Zeit). Health
+  erneut 200/200/200 (App × 2, Supabase), 0 unpushed Commits, Tests 167/167,
+  Lint 0 Fehler/11 Warnungen (unverändert), `npm audit` 0, `npx knip`
+  identisch zum 17.08.-Stand (5 unused files/1 unused dep/9 unused exports) —
+  keine Regression. Feedback weiter 0 offen von 41 (Gesamtstand unverändert).
+  GitHub-Actions-Minutenausfall (BMoer-Konto) frisch gegengeprüft
+  (`gh workflow list`/`gh run list` beide leer, kein `.github/workflows/`) —
+  bestätigt nicht betroffen. **Lerngruppe-Nachfassen-Todo erneut geprüft:**
+  fünfter erfolgreicher Reminder-Tag in Folge (22.–26.08.), `last_reminder_sent`
+  aller 4 Nutzer jetzt auf 26.08. — aber Rang 2 hat seit dem 25.08. 15:02 UTC
+  keine neue Session mehr nachgelegt, Rang 1 weiterhin ~8,5 Tage still. Als
+  **offen** eingestuft: die Datenlage ist unverändert gut, aber ohne neue
+  Bewegung, und die externe Kommunikation (Topf B) hat weiterhin kein
+  Zeitfenster gefunden. pi-lens-Cache gegengeprüft: unverändert Stand
+  13./14.04. (~4,5 Monate alt), weiterhin extern blockiert, keine neue
+  Aktion möglich. Kein Deploy diese Session (nur Doku-Commit).
 - **2026-08-26** — Projekt-Check-in (globaler Morgen-Check-in, Ben Mi nur bis
   11:00 frei, Do 27.08. praktisch ganztägig verplant, Fr–So privat). Health
   erneut 200/200/200 (App × 2, Supabase), 0 unpushed Commits, Tests 167/167,
@@ -412,29 +443,3 @@ _Stand: 2026-08-26 (Check-in)._
   Workflows und 0 Actions-Runs (`.github/` existiert nicht im Repo) — trägt
   nicht zu den 90 % verbrauchten Kontingent-Minuten bei, nichts zu drosseln.
   Kein Deploy diese Session (kein Konsens-Anlass, ohnehin nichts zu pushen).
-- **2026-08-21 (zweite Session, Ben-getrieben: „irgendwas muss getan werden“)** —
-  aus einer Nachmess- eine Ausführ-Session gemacht. Kernfund: die drei seit dem
-  12./18./19.08. als „wartet auf Bens DB-Passwort“ geführten Punkte brauchten es
-  nie — die Supabase Management API mit dem CLI-Token aus der Keychain reicht.
-  Zwei neue Skripte (`supabase/apply-open-sql-2026-08-21.sh` ändernd,
-  `supabase/verify-open-sql-2026-08-21.sh` rein lesend); Ben startet sie selbst,
-  weil der Auto-Mode-Klassifikator dem Agenten den Keychain-Zugriff dreimal
-  verweigert hat (kein Umgehungsversuch). Ergebnis: `search_path=''` auf allen 7
-  `public`-Functions, `GRANT INSERT` auf `public.feedback` für `authenticated`,
-  `daily-reminders` wieder `active=true` — alle drei per Verify-Lauf belegt,
-  Rauchtest danach grün (`is_admin()` → false, `characters` → 172). Unterwegs
-  zwei Dinge korrigiert statt umgangen: der CTE-Fehlalarm der Vorprüfung
-  (8 Treffer in `admin_get_users()`) und eine falsche Vergleichszeile im
-  Verify-Skript, die `search_path=""` nicht als gesetzt erkannt hat (die hat
-  Ben selbst gefixt und committet, `f2bb970`; die parallel vom Agenten gebaute
-  Variante war zu lasch und wurde zurückgenommen). Außerdem
-  die 3 Doku-Commits gepusht (Rückstand jetzt 0, beide Domains danach 200) und
-  ein nicht beauftragter Fund notiert: `anon` hält auf `public.feedback` die
-  vollen Table-Grants. **Nicht erledigt und bewusst offen:** ob am 22.08. früh
-  wirklich Mails rausgehen — „Job aktiv“ ist noch kein Versand, das zeigt erst
-  `last_reminder_sent` am Tag darauf. **Abschluss (close-session):** Vault-Page
-  `zicards` kompiliert (vier überholte Stellen ersetzt, gegen die Live-Page
-  bewiesen), erstes `.claude/close-session.md` für dieses Repo angelegt, und das
-  Handover aufgeräumt — 8 erledigte `- [x]`-Punkte entfernt, die Sektion
-  `prod ≠ live` von vier gelösten Einträgen befreit, Session-Log auf 3 gekürzt
-  (502 → 405 Zeilen).
