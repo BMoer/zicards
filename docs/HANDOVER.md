@@ -381,13 +381,7 @@ _Stand: 2026-08-29 (Check-in)._
 
 ## Aus dem globalen Check-in (2026-08-29)
 
-- Ben ist heute (Sa) ab 15:00 privat weg, Vormittag frei. Mo 31.8. 15:45
-  Voith/TTTech, Mi 2.9. 09:00 Retainer, Do 3.9. 13:00–14:30 Energie AG, dann
-  **Fr 4.9. ab 14:30 bis So 6.9. komplett weg** (zwei Hochzeiten). Die
-  Geschäftswoche ist dicht — für das Lerngruppe-Nachfassen (Topf B) bleibt
-  wenig Zeit, am ehesten heute Vormittag. [Quelle: Kalender beide Konten]
-- Aus dem Posteingang gibt es zu zicards kein Signal (keine Alarm-, CI- oder
-  Nutzer-Mail im Fenster der letzten 2 Tage).
+- Bens Woche ist geschäftlich weitgehend belegt (Mo 31.08. Voith/TTTech, Mi 02.09. Retainer, Do 03.09. Energie AG) und ab Fr 04.09. 14:30 bis So 06.09. ist er komplett weg (zwei Hochzeiten) → für zicards bleibt realistisch nur der heutige Vormittag, danach erst wieder nach dem 06.09. [Quelle: Kalender geschäftlich + privat]
 
 ## Offene Punkte (nächste Session)
 - [x] **22.08. gegenprüfen, ob wirklich Mails rausgehen — erledigt, 24.08.**
