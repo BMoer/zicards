@@ -1,6 +1,6 @@
 # zicards — Handover
 
-_Stand: 2026-08-28 (Check-in)._
+_Stand: 2026-08-29 (Check-in)._
 
 ## Was live / fertig
 - **21.08. (zweite Session) — die drei offenen Konsolen-Punkte sind ausgeführt
@@ -274,6 +274,23 @@ _Stand: 2026-08-28 (Check-in)._
   bestätigt gilt.
 
 ## prod ≠ live
+- **29.08. — achter Reminder-Tag in Folge, seit dem 27.08. keine neue
+  Nutzeraktivität.** `cron.job_run_details`/`last_reminder_sent` zeigen den
+  achten ununterbrochenen Tag (22.–29.08., alle 4 reminder-fähigen Nutzer auf
+  `2026-08-29T07:00`). Rang 2 (User-Präfix `055164`) bleibt bei seiner letzten
+  Session vom 27.08. 15:42–15:49 UTC stehen — `user_progress` unverändert
+  1368 Zeilen, keine neue `sentence_progress`-Zeile seit 27.08. — jetzt knapp
+  2 Tage still. Rang 1 (zuletzt 18.08. 18:03 UTC) jetzt rund 11 Tage still.
+  Feedback unverändert 0 offen von 41 gesamt (Content-Range-Header). Tests
+  167/167, Lint 0 Fehler/11 unveränderte Warnungen, `npm audit` 0, `npx knip`
+  identisch zum 17.08.-Stand (5 unused files/1 unused dep/9 unused exports) —
+  keine Regression. App/Supabase weiter 200/200/200. **Mail an die
+  Lerngruppe weiterhin nicht raus:** `list_drafts` (Query „zicards") liefert
+  keinen Treffer, `search_threads in:sent` nach „zicards"/„Erinnerungsmails"/
+  „字Cards" findet als jüngste einschlägige Mail weiterhin die
+  Sommerpause-Ankündigung vom 05.08. — der am 27.08. erwähnte Entwurf ist
+  bestätigt weg (wie am 28.08. gefunden) und bleibt es; nicht neu angelegt
+  (Autonomy-Regel: fehlender Entwurf ist Aufräumen, kein Datenverlust).
 - **27.08. — fünfter Reminder-Tag in Folge, keine neue Nutzeraktivität seit
   dem 25.08.** `user_settings.last_reminder_sent` steht bei allen 4
   reminder-fähigen Nutzern jetzt auf `2026-08-26T07:00` (vorher 25.08.) —
@@ -362,9 +379,15 @@ _Stand: 2026-08-28 (Check-in)._
   ist eine Aufräum-Entscheidung, kein Datenverlust — erst auf Bens Anfrage
   neu anlegen).
 
-## Aus dem globalen Check-in (2026-08-26)
+## Aus dem globalen Check-in (2026-08-29)
 
-- Bens Woche ist praktisch dicht (heute nur bis 11:00 frei, Do 27.08. durchgehend verplant, Fr-So privat, 04./05.09. zwei Hochzeiten) → das Nachfassen bei der Lerngruppe braucht ein Fenster, das diese Woche nicht kommt; die Datenlage dafuer ist inzwischen aber deutlich besser als am 24.08. [Quelle: Kalender beide Konten]
+- Ben ist heute (Sa) ab 15:00 privat weg, Vormittag frei. Mo 31.8. 15:45
+  Voith/TTTech, Mi 2.9. 09:00 Retainer, Do 3.9. 13:00–14:30 Energie AG, dann
+  **Fr 4.9. ab 14:30 bis So 6.9. komplett weg** (zwei Hochzeiten). Die
+  Geschäftswoche ist dicht — für das Lerngruppe-Nachfassen (Topf B) bleibt
+  wenig Zeit, am ehesten heute Vormittag. [Quelle: Kalender beide Konten]
+- Aus dem Posteingang gibt es zu zicards kein Signal (keine Alarm-, CI- oder
+  Nutzer-Mail im Fenster der letzten 2 Tage).
 
 ## Offene Punkte (nächste Session)
 - [x] **22.08. gegenprüfen, ob wirklich Mails rausgehen — erledigt, 24.08.**
@@ -386,15 +409,15 @@ _Stand: 2026-08-28 (Check-in)._
       werden, bevor Supabase am 30.10.2026 die impliziten Privilegien
       umstellt. Ben entscheiden lassen — ein `REVOKE` trifft potenziell auch
       andere Tabellen desselben Grants.
-- [ ] **Weiter beobachten: Rückkehr-Rate nach der Cron-Reaktivierung.** 28.08.
-      neu gemessen: siebter erfolgreicher Reminder-Tag in Folge (22.–28.08.),
-      `last_reminder_sent` aller 4 Nutzer jetzt auf 28.08. Rang 2 hat am
-      27.08. 15:42–15:49 UTC frisch nachgelegt (war zum 27.08.-Check-in noch
-      nicht sichtbar). Wirkung sauber gerechnet: 22.–27.08. nur 1 aktiver
-      Nutzer / 33 (`user_progress`) bzw. 26 (`sentence_progress`) Zeilen,
-      gegen 2 Nutzer / 68 bzw. 30 Zeilen in der Vorwoche 15.–21.08. — die
-      Sperre ist weg, aber kein Comeback der Gruppe, nur der eine ohnehin
-      aktivste Account auf niedrigerem Niveau als vorher. Weiter beobachten.
+- [ ] **Weiter beobachten: Rückkehr-Rate nach der Cron-Reaktivierung.** 29.08.
+      neu gemessen: achter erfolgreicher Reminder-Tag in Folge (22.–29.08.),
+      `last_reminder_sent` aller 4 Nutzer jetzt auf 29.08. Seit dem 27.08.
+      15:49 UTC keine neue Bewegung mehr (Rang 2 knapp 2 Tage still, Rang 1
+      rund 11 Tage). Der Mail-Entwurf an die Lerngruppe ist weiterhin nicht
+      im Postfach (`list_drafts`/`search_threads in:sent` beide ohne
+      Treffer) — die Sperre (Cron) ist zweifelsfrei weg, aber die Gruppe
+      weiß es laut Mail-Lage weiterhin nicht. Weiter beobachten, Nachfassen
+      bleibt Topf B / Ben.
 - [ ] Fehlt Error-Tracking (Sentry o.ä.)? Unverändert — Ben entscheiden
       lassen, ob der Aufwand lohnt.
 - [ ] `VITE_COURSE_CODE` aus Vercel-Env entfernen (unused, laut Vault seit
@@ -413,6 +436,24 @@ _Stand: 2026-08-28 (Check-in)._
       gleiche Ursache wie oben.
 
 ## Session-Log (letzte 3)
+- **2026-08-29** — Projekt-Check-in (Ben heute Sa nur bis 15:00 frei, dann
+  privat weg; die Geschäftswoche Mo–Do ist dicht, Fr 4.9. 14:30 bis So 6.9.
+  komplett weg — zwei Hochzeiten). Health erneut 200/200/200 (App × 2,
+  Supabase), 2 unpushed Doku-Commits (nur `docs/HANDOVER.md`, kein
+  `src/`-Diff), Tests 167/167, Lint 0/11 (unverändert), `npm audit` 0,
+  `npx knip` identisch zum 17.08.-Stand — keine Regression. Feedback weiter
+  0 offen von 41 gesamt. **Lerngruppe-Nachfassen-Todo erneut geprüft, als
+  offen eingestuft:** achter erfolgreicher Reminder-Tag in Folge (22.–29.08.,
+  `last_reminder_sent` aller 4 Nutzer auf 29.08.), Sperre bleibt zweifelsfrei
+  weg. Seit dem 27.08. 15:49 UTC keine neue Nutzeraktivität (Rang 2 knapp
+  2 Tage still, Rang 1 rund 11 Tage). Frisch gegengeprüft: der am 27.08.
+  erwähnte Mail-Entwurf ist weiterhin nicht im Postfach (`list_drafts`,
+  `search_threads in:sent` beide ohne Treffer für die naheliegenden
+  Suchbegriffe) — nicht neu angelegt (Aufräum-Entscheidung, kein
+  Datenverlust). Vault-Page `zicards` gegengelesen: Stand vom 27.08.
+  (globaler Ingest) bereits eingepflegt, nichts Neues gegenüber dem
+  gemessenen Stand hier. Kein Deploy diese Session (nur Doku-Commit, lokal,
+  nicht gepusht).
 - **2026-08-28** — Projekt-Check-in (Ben heute nur 11:00–17:00 frei, inhaltlich
   von Voith/TTTech und ImmoScene belegt; ab 04.09. Nachmittag bis 06.09.
   Hochzeit, danach Ben laut eigener Aussage bis 3.9. frei/danach September
@@ -448,22 +489,3 @@ _Stand: 2026-08-28 (Check-in)._
   Zeitfenster gefunden. pi-lens-Cache gegengeprüft: unverändert Stand
   13./14.04. (~4,5 Monate alt), weiterhin extern blockiert, keine neue
   Aktion möglich. Kein Deploy diese Session (nur Doku-Commit).
-- **2026-08-26** — Projekt-Check-in (globaler Morgen-Check-in, Ben Mi nur bis
-  11:00 frei, Do 27.08. praktisch ganztägig verplant, Fr–So privat). Health
-  erneut 200/200/200 (App × 2, Supabase), 0 unpushed Commits, Tests 167/167,
-  Lint 0 Fehler/11 Warnungen, `npm audit` 0, `npx knip` identisch zum
-  17.08.-Stand (5 unused files/1 unused dep/9 unused exports) — keine
-  Regression. Feedback weiter 0 offen von 41. GitHub-Actions-Minutenausfall
-  für zicards frisch gegengeprüft (`gh workflow list`/`gh run list` beide
-  leer, kein `.github/workflows/`) — bestätigt nicht betroffen.
-  **Lerngruppe-Nachfassen-Todo geprüft:** Sperre (Reminder-Cron) frisch
-  nachgemessen weiterhin weg — vierter erfolgreicher Reminder-Tag in Folge
-  (22.–25.08.), `last_reminder_sent` aller 4 Nutzer jetzt auf 25.08.; Rang-2-
-  Account bleibt über den 24.08.-Stand hinaus aktiv (neue Zeile 25.08. 15:02
-  UTC). Trotzdem als **offen** eingestuft, nicht erledigt: die eigentliche
-  externe Kommunikation an die Lerngruppe hat noch nicht stattgefunden, Ben
-  hatte laut Kalender auch diese Woche kein Fenster dafür (Topf B). Neuer
-  Fund: `vercel env ls` zeigt eine eingeloggte Vercel-CLI (`bmoerzinger-6310`)
-  — `VITE_COURSE_CODE`-Cleanup braucht damit technisch keinen
-  Dashboard-Zugang mehr, bleibt aber als Prod-Infra-Änderung bewusst bei Ben.
-  Kein Deploy diese Session (nur Doku-Commit).
