@@ -274,6 +274,29 @@ _Stand: 2026-08-29 (Check-in)._
   bestätigt gilt.
 
 ## prod ≠ live
+- **30.08. — neunter Reminder-Tag in Folge, UND erste neue Bewegung seit dem
+  27.08.: ein zweiter Account ist zurück.** `last_reminder_sent` aller 4
+  reminder-fähigen Nutzer steht jetzt auf `2026-08-30T07:00` (neunter
+  ununterbrochener Erfolgstag, 22.–30.08.). Frisch gemessen in
+  `user_progress`/`sentence_progress`: **User-Präfix `bfe8c879`** — seit dem
+  06.06.2026 komplett still (85 Tage, kein einziger Treffer in den 12
+  Wochen dazwischen) — hat am **29.08. zwischen 20:06 und 20:11 UTC** eine
+  echte Session gemacht (7 neue `user_progress`- + mehrere
+  `sentence_progress`-Zeilen), rund 13 Stunden nach der Reminder-Mail
+  desselben Tages (`reminder_enabled=true` für diesen Account, bestätigt).
+  Damit haben seit der Cron-Reaktivierung (22.08.) jetzt **2 von 13**
+  Accounts reagiert (vorher 1) — Rang-2-Account (`055164cb`) bleibt
+  weiterhin bei seiner letzten Session vom 27.08. 15:42–15:49 UTC stehen,
+  keine neue Bewegung dort. Kein Massen-Comeback, aber die erste Bewegung
+  überhaupt seit dem 27.08. und der zweite unabhängige Beleg (nach dem
+  24.08.-Fund), dass die Reminder-Mails tatsächlich Nutzer zurückholen.
+  Feedback unverändert 0 offen von 41 gesamt (Content-Range-Header). Tests
+  167/167, Lint 0 Fehler/11 unveränderte Warnungen, `npm audit` 0, `npx knip`
+  identisch zum 17.08.-Stand (5 unused files/1 unused dep/9 unused exports) —
+  keine Regression. App/Supabase weiter 200/200/200, keine unpushed Commits
+  vor dieser Session. Mail-Entwurf an die Lerngruppe weiterhin nicht im
+  Postfach geprüft (siehe Vortage) — Autonomy-Regel: kein neuer Entwurf ohne
+  Bens Anfrage.
 - **29.08. — achter Reminder-Tag in Folge, seit dem 27.08. keine neue
   Nutzeraktivität.** `cron.job_run_details`/`last_reminder_sent` zeigen den
   achten ununterbrochenen Tag (22.–29.08., alle 4 reminder-fähigen Nutzer auf
@@ -379,9 +402,9 @@ _Stand: 2026-08-29 (Check-in)._
   ist eine Aufräum-Entscheidung, kein Datenverlust — erst auf Bens Anfrage
   neu anlegen).
 
-## Aus dem globalen Check-in (2026-08-29)
+## Aus dem globalen Check-in (2026-08-30)
 
-- Bens Woche ist geschäftlich weitgehend belegt (Mo 31.08. Voith/TTTech, Mi 02.09. Retainer, Do 03.09. Energie AG) und ab Fr 04.09. 14:30 bis So 06.09. ist er komplett weg (zwei Hochzeiten) → für zicards bleibt realistisch nur der heutige Vormittag, danach erst wieder nach dem 06.09. [Quelle: Kalender geschäftlich + privat]
+- Reales Arbeitsfenster diese Woche: Mo, Di, Mi, Do-Vormittag — Fr 04.09. ab 14:30 bis So 06.09. ist Ben komplett weg (zwei Hochzeiten), danach 07.–16.09. privater Blocker „Dänemark?" (als frei markiert, Fragezeichen). Zicards ist Nebenprojekt in einer Woche, die von Kundenterminen dominiert wird (Voith/TTTech, Energie AG, ImmoScene). [Quelle: Kalender geschäftlich + privat, globaler Check-in 30.08.]
 
 ## Offene Punkte (nächste Session)
 - [x] **22.08. gegenprüfen, ob wirklich Mails rausgehen — erledigt, 24.08.**
@@ -403,15 +426,17 @@ _Stand: 2026-08-29 (Check-in)._
       werden, bevor Supabase am 30.10.2026 die impliziten Privilegien
       umstellt. Ben entscheiden lassen — ein `REVOKE` trifft potenziell auch
       andere Tabellen desselben Grants.
-- [ ] **Weiter beobachten: Rückkehr-Rate nach der Cron-Reaktivierung.** 29.08.
-      neu gemessen: achter erfolgreicher Reminder-Tag in Folge (22.–29.08.),
-      `last_reminder_sent` aller 4 Nutzer jetzt auf 29.08. Seit dem 27.08.
-      15:49 UTC keine neue Bewegung mehr (Rang 2 knapp 2 Tage still, Rang 1
-      rund 11 Tage). Der Mail-Entwurf an die Lerngruppe ist weiterhin nicht
-      im Postfach (`list_drafts`/`search_threads in:sent` beide ohne
-      Treffer) — die Sperre (Cron) ist zweifelsfrei weg, aber die Gruppe
-      weiß es laut Mail-Lage weiterhin nicht. Weiter beobachten, Nachfassen
-      bleibt Topf B / Ben.
+- [ ] **Weiter beobachten: Rückkehr-Rate nach der Cron-Reaktivierung.** 30.08.
+      neu gemessen: neunter erfolgreicher Reminder-Tag in Folge (22.–30.08.),
+      `last_reminder_sent` aller 4 Nutzer jetzt auf 30.08. **Neu seit dem
+      27.08.:** ein zweiter Account (Präfix `bfe8c879`, zuvor 85 Tage seit
+      06.06. komplett still) hat am 29.08. 20:06–20:11 UTC eine echte Session
+      gemacht, ~13h nach der Reminder-Mail — 2 von 13 Accounts haben jetzt seit
+      der Reaktivierung reagiert (vorher 1). Der Mail-Entwurf an die
+      Lerngruppe ist weiterhin nicht im Postfach — die Sperre (Cron) ist
+      zweifelsfrei weg, die Wirkung jetzt zweifach belegt, die Gruppe weiß es
+      laut Mail-Lage aber weiterhin nicht. Weiter beobachten, Nachfassen
+      bleibt Topf B / Ben — die Datenlage spricht inzwischen deutlicher dafür.
 - [ ] Fehlt Error-Tracking (Sentry o.ä.)? Unverändert — Ben entscheiden
       lassen, ob der Aufwand lohnt.
 - [ ] `VITE_COURSE_CODE` aus Vercel-Env entfernen (unused, laut Vault seit
@@ -430,6 +455,23 @@ _Stand: 2026-08-29 (Check-in)._
       gleiche Ursache wie oben.
 
 ## Session-Log (letzte 3)
+- **2026-08-30** — Projekt-Check-in (Ben heute So frei, aber Nebenprojekt in
+  einer Woche voller Kundentermine — reales Fenster nur Mo–Do-Vormittag,
+  Fr 4.9. 14:30 bis So 6.9. komplett weg, zwei Hochzeiten). Health erneut
+  200/200/200 (App × 2, Supabase), keine unpushed Commits, Tests 167/167,
+  Lint 0/11 (unverändert), `npm audit` 0, `npx knip` identisch zum
+  17.08.-Stand — keine Regression. Feedback weiter 0 offen von 41 gesamt.
+  **Lerngruppe-Nachfassen-Todo erneut geprüft, als offen eingestuft:**
+  neunter erfolgreicher Reminder-Tag in Folge (22.–30.08.,
+  `last_reminder_sent` aller 4 Nutzer auf 30.08.), Sperre bleibt
+  zweifelsfrei weg. **Neue Bewegung seit dem 27.08.:** ein zweiter, seit
+  06.06. (85 Tage) komplett stiller Account hat am 29.08. 20:06–20:11 UTC
+  eine echte Session gemacht, ~13h nach der Reminder-Mail — 2 von 13
+  Accounts haben seit der Reaktivierung reagiert (vorher 1). Todo bleibt
+  offen (Kommunikation ist Topf B), aber die Datenlage spricht jetzt
+  deutlicher für ein Nachfassen. Check-in-Sektion (Kapazitätsfenster) und
+  „Weiter beobachten"-Punkt aktualisiert. Kein Deploy diese Session (nur
+  Doku-Commit, lokal, nicht gepusht).
 - **2026-08-29** — Projekt-Check-in (Ben heute Sa nur bis 15:00 frei, dann
   privat weg; die Geschäftswoche Mo–Do ist dicht, Fr 4.9. 14:30 bis So 6.9.
   komplett weg — zwei Hochzeiten). Health erneut 200/200/200 (App × 2,
@@ -466,20 +508,3 @@ _Stand: 2026-08-29 (Check-in)._
   im Postfach (weder Entwürfe noch Gesendet) — nicht neu angelegt, das ist
   eine Aufräum-Entscheidung, kein Datenverlust. Kein Deploy diese Session
   (nur Doku-Commit, lokal, nicht gepusht).
-- **2026-08-27** — Projekt-Check-in (Ben ab 10:30 fast durchgehend belegt,
-  Fr–So 28.–30.08. privat — für zicards heute realistisch keine Zeit). Health
-  erneut 200/200/200 (App × 2, Supabase), 0 unpushed Commits, Tests 167/167,
-  Lint 0 Fehler/11 Warnungen (unverändert), `npm audit` 0, `npx knip`
-  identisch zum 17.08.-Stand (5 unused files/1 unused dep/9 unused exports) —
-  keine Regression. Feedback weiter 0 offen von 41 (Gesamtstand unverändert).
-  GitHub-Actions-Minutenausfall (BMoer-Konto) frisch gegengeprüft
-  (`gh workflow list`/`gh run list` beide leer, kein `.github/workflows/`) —
-  bestätigt nicht betroffen. **Lerngruppe-Nachfassen-Todo erneut geprüft:**
-  fünfter erfolgreicher Reminder-Tag in Folge (22.–26.08.), `last_reminder_sent`
-  aller 4 Nutzer jetzt auf 26.08. — aber Rang 2 hat seit dem 25.08. 15:02 UTC
-  keine neue Session mehr nachgelegt, Rang 1 weiterhin ~8,5 Tage still. Als
-  **offen** eingestuft: die Datenlage ist unverändert gut, aber ohne neue
-  Bewegung, und die externe Kommunikation (Topf B) hat weiterhin kein
-  Zeitfenster gefunden. pi-lens-Cache gegengeprüft: unverändert Stand
-  13./14.04. (~4,5 Monate alt), weiterhin extern blockiert, keine neue
-  Aktion möglich. Kein Deploy diese Session (nur Doku-Commit).
