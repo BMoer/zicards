@@ -424,10 +424,6 @@ _Stand: 2026-08-31 (Check-in)._
   ist eine Aufräum-Entscheidung, kein Datenverlust — erst auf Bens Anfrage
   neu anlegen).
 
-## Aus dem globalen Check-in (2026-08-30)
-
-- Bens Arbeitsfenster diese Woche ist nur Mo–Do-Vormittag, ab Fr 04.09. 14:30 bis So 06.09. ist er auf zwei Hochzeiten weg → für zicards als Nebenprojekt bleibt neben Voith (Mo), ImmoScene (Di) und Energie AG (Do) kaum Zeit [Quelle: Privatkalender]
-
 ## Offene Punkte (nächste Session)
 - [x] **22.08. gegenprüfen, ob wirklich Mails rausgehen — erledigt, 24.08.**
       `supabase/verify-open-sql-2026-08-21.sh` (BEWEIS 3b/3c) erneut gelaufen:
