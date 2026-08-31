@@ -1,6 +1,6 @@
 # zicards — Handover
 
-_Stand: 2026-08-29 (Check-in)._
+_Stand: 2026-08-31 (Check-in)._
 
 ## Was live / fertig
 - **21.08. (zweite Session) — die drei offenen Konsolen-Punkte sind ausgeführt
@@ -274,6 +274,28 @@ _Stand: 2026-08-29 (Check-in)._
   bestätigt gilt.
 
 ## prod ≠ live
+- **31.08. — zehnter Reminder-Tag in Folge, kein drittes Konto zurück, aber
+  Rang-2-Account wieder aktiv über Nacht.** `last_reminder_sent` aller 4
+  reminder-fähigen Nutzer steht jetzt auf `2026-08-31T07:00` (zehnter
+  ununterbrochener Erfolgstag, 22.–31.08.). Frisch gemessen in
+  `user_progress`/`sentence_progress`: **Rang-2-Account (`055164cb`)** hat
+  zwischen 03:16 und 03:39 UTC heute Nacht eine neue Session gemacht (14 neue
+  `user_progress`- + 15 `sentence_progress`-Zeilen) — der Account bleibt aktiv,
+  aber es ist kein neuer (dritter) Rückkehrer. `bfe8c879` (Rückkehrer vom
+  29.08.) bleibt unverändert bei seiner letzten Session vom 29.08.
+  20:06–20:11 UTC stehen. Weiterhin exakt **2 von 13** Accounts seit der
+  Reaktivierung (22.08.) aktiv — unverändert zum 30.08. Feedback unverändert
+  0 offen von 41 gesamt (Content-Range-Header). Tests 167/167, Lint 0
+  Fehler/11 unveränderte Warnungen, `npm audit` 0, `npx knip` identisch zum
+  17.08.-Stand (5 unused files/1 unused dep/9 unused exports) — keine
+  Regression. App/Supabase weiter 200/200/200. 1 unpushed Doku-Commit vor
+  dieser Session (`c150acf`, 30.08.) plus eine bereits vorher uncommittete,
+  fremde Änderung in diesem File (Satz-Kürzung im
+  „Aus dem globalen Check-in"-Abschnitt vom 30.08., nicht von dieser
+  Session — unangetastet gelassen, wird mit committet). **Todo
+  `zicards/lerngruppe-nachfassen` wurde am 30.08. bereits von Ben
+  geschlossen** — keine neue Prüfung des Postfachs, kein neuer Entwurf,
+  Thema nicht unter neuem Key wieder aufgemacht.
 - **30.08. — neunter Reminder-Tag in Folge, UND erste neue Bewegung seit dem
   27.08.: ein zweiter Account ist zurück.** `last_reminder_sent` aller 4
   reminder-fähigen Nutzer steht jetzt auf `2026-08-30T07:00` (neunter
@@ -404,7 +426,7 @@ _Stand: 2026-08-29 (Check-in)._
 
 ## Aus dem globalen Check-in (2026-08-30)
 
-- Reales Arbeitsfenster diese Woche: Mo, Di, Mi, Do-Vormittag — Fr 04.09. ab 14:30 bis So 06.09. ist Ben komplett weg (zwei Hochzeiten), danach 07.–16.09. privater Blocker „Dänemark?" (als frei markiert, Fragezeichen). Zicards ist Nebenprojekt in einer Woche, die von Kundenterminen dominiert wird (Voith/TTTech, Energie AG, ImmoScene). [Quelle: Kalender geschäftlich + privat, globaler Check-in 30.08.]
+- Bens Arbeitsfenster diese Woche ist nur Mo–Do-Vormittag, ab Fr 04.09. 14:30 bis So 06.09. ist er auf zwei Hochzeiten weg → für zicards als Nebenprojekt bleibt neben Voith (Mo), ImmoScene (Di) und Energie AG (Do) kaum Zeit [Quelle: Privatkalender]
 
 ## Offene Punkte (nächste Session)
 - [x] **22.08. gegenprüfen, ob wirklich Mails rausgehen — erledigt, 24.08.**
@@ -426,17 +448,16 @@ _Stand: 2026-08-29 (Check-in)._
       werden, bevor Supabase am 30.10.2026 die impliziten Privilegien
       umstellt. Ben entscheiden lassen — ein `REVOKE` trifft potenziell auch
       andere Tabellen desselben Grants.
-- [ ] **Weiter beobachten: Rückkehr-Rate nach der Cron-Reaktivierung.** 30.08.
-      neu gemessen: neunter erfolgreicher Reminder-Tag in Folge (22.–30.08.),
-      `last_reminder_sent` aller 4 Nutzer jetzt auf 30.08. **Neu seit dem
-      27.08.:** ein zweiter Account (Präfix `bfe8c879`, zuvor 85 Tage seit
-      06.06. komplett still) hat am 29.08. 20:06–20:11 UTC eine echte Session
-      gemacht, ~13h nach der Reminder-Mail — 2 von 13 Accounts haben jetzt seit
-      der Reaktivierung reagiert (vorher 1). Der Mail-Entwurf an die
-      Lerngruppe ist weiterhin nicht im Postfach — die Sperre (Cron) ist
-      zweifelsfrei weg, die Wirkung jetzt zweifach belegt, die Gruppe weiß es
-      laut Mail-Lage aber weiterhin nicht. Weiter beobachten, Nachfassen
-      bleibt Topf B / Ben — die Datenlage spricht inzwischen deutlicher dafür.
+- [ ] **Weiter beobachten: Rückkehr-Rate nach der Cron-Reaktivierung.** 31.08.
+      neu gemessen: zehnter erfolgreicher Reminder-Tag in Folge (22.–31.08.),
+      `last_reminder_sent` aller 4 Nutzer jetzt auf 31.08. Weiterhin **2 von 13**
+      Accounts seit der Reaktivierung aktiv (unverändert seit 29.08.) —
+      Rang-2-Account (`055164cb`) hat heute Nacht (03:16–03:39 UTC) erneut eine
+      Session gemacht, aber kein drittes Konto ist zurück. **Todo
+      `zicards/lerngruppe-nachfassen` wurde am 30.08. von Ben geschlossen**
+      (abgehakt = Prioritätsentscheidung, nicht Vollzugsmeldung) — dieser Punkt
+      bleibt als reine Beobachtung stehen, ohne erneute Handlungsaufforderung
+      an Ben. Kein neuer Todo unter anderem Key angelegt.
 - [ ] Fehlt Error-Tracking (Sentry o.ä.)? Unverändert — Ben entscheiden
       lassen, ob der Aufwand lohnt.
 - [ ] `VITE_COURSE_CODE` aus Vercel-Env entfernen (unused, laut Vault seit
@@ -455,6 +476,28 @@ _Stand: 2026-08-29 (Check-in)._
       gleiche Ursache wie oben.
 
 ## Session-Log (letzte 3)
+- **2026-08-31** — Projekt-Check-in (Ben heute Mo effektiv rund 4 Stunden
+  frei — 10:00/11:00 Termine, 15:45 Voith-Abstimmung, ab 17:30 privat; die
+  Woche bleibt von Kundenterminen dominiert, Fr 4.9. 14:30 bis So 6.9.
+  komplett weg). Health erneut 200/200/200 (App × 2, Supabase). Tests
+  167/167, Lint 0 Fehler/11 unveränderte Warnungen, `npm audit` 0, `npx knip`
+  identisch zum 17.08.-Stand — keine Regression. Feedback weiter 0 offen von
+  41 gesamt. **Reminder-Cron: zehnter erfolgreicher Tag in Folge**
+  (22.–31.08., `last_reminder_sent` aller 4 Nutzer auf 31.08. 07:00 UTC).
+  **Aktive Accounts weiterhin 2 von 13** (unverändert zum 30.08.) —
+  Rang-2-Account (`055164cb`) hat heute Nacht 03:16–03:39 UTC erneut eine
+  Session gemacht, kein drittes Konto zurück. Todo
+  `zicards/lerngruppe-nachfassen` war bereits am 30.08. von Ben geschlossen —
+  nicht neu geprüft, nicht neu aufgemacht. **Topf A:** keine offene
+  HANDOVER-Position ist ohne Ben/Prod-Zugriff umsetzbar (anon-Grant-
+  Entscheidung, `VITE_COURSE_CODE`-Entfernung und Error-Tracking bleiben
+  Ben-Entscheidungen; pi-lens-Cache-Reparatur bleibt extern blockiert) —
+  keine Code-Änderung diese Session. `VITE_COURSE_CODE`-Entfernung als
+  Todo-Vorschlag an Ben weitergegeben (Einzeiler, wartet auf sein Go). Eine
+  bereits vorher (30.08., nicht diese Session) uncommittete Satzkürzung im
+  „Aus dem globalen Check-in"-Abschnitt unangetastet gelassen und mit
+  committet. Kein Deploy diese Session (nur Doku-Commit, lokal, nicht
+  gepusht).
 - **2026-08-30** — Projekt-Check-in (Ben heute So frei, aber Nebenprojekt in
   einer Woche voller Kundentermine — reales Fenster nur Mo–Do-Vormittag,
   Fr 4.9. 14:30 bis So 6.9. komplett weg, zwei Hochzeiten). Health erneut
@@ -490,21 +533,3 @@ _Stand: 2026-08-29 (Check-in)._
   (globaler Ingest) bereits eingepflegt, nichts Neues gegenüber dem
   gemessenen Stand hier. Kein Deploy diese Session (nur Doku-Commit, lokal,
   nicht gepusht).
-- **2026-08-28** — Projekt-Check-in (Ben heute nur 11:00–17:00 frei, inhaltlich
-  von Voith/TTTech und ImmoScene belegt; ab 04.09. Nachmittag bis 06.09.
-  Hochzeit, danach Ben laut eigener Aussage bis 3.9. frei/danach September
-  voll — diese Woche realistisch kein Fenster für zicards). Health erneut
-  200/200/200 (App × 2, Supabase), Tests 167/167, Lint 0/11 (unverändert),
-  `npm audit` 0, `npx knip` identisch zum 17.08.-Stand — keine Regression.
-  Feedback weiter 0 offen von 41 gesamt. **Lerngruppe-Nachfassen-Todo erneut
-  geprüft, als offen eingestuft:** siebter erfolgreicher Reminder-Tag in
-  Folge (22.–28.08., `last_reminder_sent` aller 4 Nutzer auf 28.08.), Sperre
-  bleibt zweifelsfrei weg. Frisch gemessen: Rang-2-Account hat am 27.08.
-  15:42–15:49 UTC nachgelegt (war am 27.08. noch nicht sichtbar). Wirkung
-  sauber gegen die Vorwoche gerechnet: 1 aktiver Nutzer / 33+26 Zeilen
-  (22.–27.08.) gegen 2 aktive Nutzer / 68+30 Zeilen (Vorwoche 15.–21.08.) —
-  kein Comeback der Gruppe, nur der ohnehin aktivste Account, und zwar auf
-  niedrigerem Niveau als vorher. Mail-Entwurf an die Lerngruppe nicht mehr
-  im Postfach (weder Entwürfe noch Gesendet) — nicht neu angelegt, das ist
-  eine Aufräum-Entscheidung, kein Datenverlust. Kein Deploy diese Session
-  (nur Doku-Commit, lokal, nicht gepusht).
