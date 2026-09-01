@@ -1,6 +1,15 @@
 # zicards — Handover
 
-_Stand: 2026-08-31 (Check-in)._
+_Stand: 2026-09-01 (Check-in)._
+
+## Aus dem globalen Check-in (2026-09-01)
+- **Kein Posteingangs-Signal für zicards seit dem letzten Lauf (30.08.).**
+- **Kapazitätslage ändert nichts am Plan.** Ben hat diese Woche nur Di-Abend
+  sowie Mi/Do tagsüber Zeit; ab Fr 04.09. 14:30 bis So 06.09. ist er
+  komplett weg (zwei Hochzeiten). zicards braucht diese Woche nichts von
+  Ben außer den zwei bekannten Einzeiler-Entscheidungen
+  (`VITE_COURSE_CODE` entfernen, `anon`-Grant auf `feedback` prüfen) —
+  beide ohne Frist, können bis nach dem Wochenende warten.
 
 ## Was live / fertig
 - **21.08. (zweite Session) — die drei offenen Konsolen-Punkte sind ausgeführt
@@ -274,6 +283,26 @@ _Stand: 2026-08-31 (Check-in)._
   bestätigt gilt.
 
 ## prod ≠ live
+- **01.09. — elfter Reminder-Tag in Folge, weiterhin 2 von 13 Accounts aktiv,
+  keine Regression.** `last_reminder_sent` aller 4 reminder-fähigen Nutzer
+  steht jetzt auf `2026-09-01T07:00` (elfter ununterbrochener Erfolgstag,
+  22.08.–01.09.). Rang-2-Account (`055164cb`) hat heute Nacht 05:11–05:13 UTC
+  erneut eine Session gemacht — der Account bleibt der einzige mit
+  Bewegung, kein drittes Konto zurück. `user_progress` unverändert 1368
+  Zeilen, `sentence_progress` 975 Zeilen. Feedback unverändert 0 offen von
+  41 gesamt (Content-Range-Header). Tests 167/167, Lint 0 Fehler/11
+  unveränderte Warnungen, `npm audit` 0, `npx knip` identisch zum
+  17.08.-Stand (5 unused files/1 unused dep/9 unused exports) — keine
+  Regression. App/Supabase weiter 200/200/200. 3 unpushed Doku-Commits vor
+  dieser Session (`c150acf`, `0ee5876`, `6e0ba2e`, alle nur
+  `docs/HANDOVER.md`, kein `src/`-Diff) — bleiben unpushed, da ein Push den
+  Vercel-Deploy auslöst und das dieser Session per Auftrag untersagt ist.
+  Vault-Page `zicards` gegengelesen: Stand vom 30.08. bereits eingepflegt
+  (Sektion „Stand 2026-08-30"), seither nur unveränderte Fortsetzung derselben
+  Zahlen (9→11 Tage Streak, weiterhin 2/13) — kein neuer Vault-Ingest nötig,
+  siehe Vorschlag im Check-in-Bericht. `anon`-Blankogrant auf `feedback` und
+  `VITE_COURSE_CODE`-Entfernung heute nicht neu geprüft (unverändert seit
+  24./26.08., beides Ben-Entscheidungen ohne Zeitdruck).
 - **31.08. — zehnter Reminder-Tag in Folge, kein drittes Konto zurück, aber
   Rang-2-Account wieder aktiv über Nacht.** `last_reminder_sent` aller 4
   reminder-fähigen Nutzer steht jetzt auf `2026-08-31T07:00` (zehnter
@@ -472,6 +501,27 @@ _Stand: 2026-08-31 (Check-in)._
       gleiche Ursache wie oben.
 
 ## Session-Log (letzte 3)
+- **2026-09-01** — Projekt-Check-in (Ben heute Di real nur bis ca. 10:45 und
+  nach 16:45 frei — Kiten, Voith-Protokoll-Call, Rene-Call zwischen den
+  Terminen; ab Fr 4.9. 14:30 bis So 6.9. komplett weg, zwei Hochzeiten).
+  Health erneut 200/200/200 (App × 2, Supabase). Tests 167/167, Lint 0
+  Fehler/11 unveränderte Warnungen, `npm audit` 0, `npx knip` identisch zum
+  17.08.-Stand — keine Regression. Feedback weiter 0 offen von 41 gesamt.
+  **Reminder-Cron: elfter erfolgreicher Tag in Folge** (22.08.–01.09.,
+  `last_reminder_sent` aller 4 Nutzer auf 01.09. 07:00 UTC). **Aktive
+  Accounts weiterhin 2 von 13** (unverändert seit 29.08.) — Rang-2-Account
+  hat heute Nacht 05:11–05:13 UTC erneut eine Session gemacht, kein drittes
+  Konto zurück. Todo `zicards/vite-course-code-entfernen` erneut geprüft,
+  als offen eingestuft (`vercel env ls production` zeigt die Variable
+  weiterhin, 141 Tage alt). **Topf A:** keine offene HANDOVER-Position ist
+  ohne Ben/Prod-Zugriff umsetzbar (anon-Grant-Entscheidung,
+  `VITE_COURSE_CODE`-Entfernung und Error-Tracking bleiben
+  Ben-Entscheidungen; pi-lens-Cache-Reparatur bleibt extern blockiert) —
+  keine Code-Änderung diese Session. Neue Sektion „Aus dem globalen
+  Check-in (2026-09-01)" ergänzt (kein Posteingangs-Signal, Kapazitätslage
+  ändert nichts am Plan). Kein Deploy diese Session (nur Doku-Commit,
+  lokal, nicht gepusht — 3 unpushed Doku-Commits stehen jetzt an, siehe
+  „prod ≠ live").
 - **2026-08-31** — Projekt-Check-in (Ben heute Mo effektiv rund 4 Stunden
   frei — 10:00/11:00 Termine, 15:45 Voith-Abstimmung, ab 17:30 privat; die
   Woche bleibt von Kundenterminen dominiert, Fr 4.9. 14:30 bis So 6.9.
@@ -511,21 +561,3 @@ _Stand: 2026-08-31 (Check-in)._
   deutlicher für ein Nachfassen. Check-in-Sektion (Kapazitätsfenster) und
   „Weiter beobachten"-Punkt aktualisiert. Kein Deploy diese Session (nur
   Doku-Commit, lokal, nicht gepusht).
-- **2026-08-29** — Projekt-Check-in (Ben heute Sa nur bis 15:00 frei, dann
-  privat weg; die Geschäftswoche Mo–Do ist dicht, Fr 4.9. 14:30 bis So 6.9.
-  komplett weg — zwei Hochzeiten). Health erneut 200/200/200 (App × 2,
-  Supabase), 2 unpushed Doku-Commits (nur `docs/HANDOVER.md`, kein
-  `src/`-Diff), Tests 167/167, Lint 0/11 (unverändert), `npm audit` 0,
-  `npx knip` identisch zum 17.08.-Stand — keine Regression. Feedback weiter
-  0 offen von 41 gesamt. **Lerngruppe-Nachfassen-Todo erneut geprüft, als
-  offen eingestuft:** achter erfolgreicher Reminder-Tag in Folge (22.–29.08.,
-  `last_reminder_sent` aller 4 Nutzer auf 29.08.), Sperre bleibt zweifelsfrei
-  weg. Seit dem 27.08. 15:49 UTC keine neue Nutzeraktivität (Rang 2 knapp
-  2 Tage still, Rang 1 rund 11 Tage). Frisch gegengeprüft: der am 27.08.
-  erwähnte Mail-Entwurf ist weiterhin nicht im Postfach (`list_drafts`,
-  `search_threads in:sent` beide ohne Treffer für die naheliegenden
-  Suchbegriffe) — nicht neu angelegt (Aufräum-Entscheidung, kein
-  Datenverlust). Vault-Page `zicards` gegengelesen: Stand vom 27.08.
-  (globaler Ingest) bereits eingepflegt, nichts Neues gegenüber dem
-  gemessenen Stand hier. Kein Deploy diese Session (nur Doku-Commit, lokal,
-  nicht gepusht).
