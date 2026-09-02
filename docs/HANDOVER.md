@@ -1,6 +1,6 @@
 # zicards — Handover
 
-_Stand: 2026-09-01 (Check-in)._
+_Stand: 2026-09-02 (Check-in)._
 
 ## Aus dem globalen Check-in (2026-09-01)
 - **Kein Posteingangs-Signal für zicards seit dem letzten Lauf (30.08.).**
@@ -283,6 +283,23 @@ _Stand: 2026-09-01 (Check-in)._
   bestätigt gilt.
 
 ## prod ≠ live
+- **02.09. — keine Regression, Cron-Lauf des Tages noch nicht fällig.**
+  `last_reminder_sent` aller 4 reminder-fähigen Nutzer steht weiterhin auf
+  `2026-09-01T07:00` — erwartungsgemäß, denn der Job (`0 7 * * *` UTC) läuft
+  erst um 09:00 CEST, der Check-in lief um 08:2x CEST, also vor dem
+  heutigen Fenster. Das ist der geplante Zustand, kein Ausfall; der elfte
+  Erfolgstag (22.08.–01.09.) bleibt bestätigt, der zwölfte ist offen bis
+  09:00 CEST. `user_progress`/`sentence_progress` seit 01.09. 00:00 UTC
+  nur vom Rang-2-Account (`055164cb`, 04:57–05:32 UTC) — weiterhin exakt
+  **2 von 13** Accounts seit der Reaktivierung aktiv, kein drittes Konto.
+  Feedback unverändert 0 offen von 41 gesamt (leeres Array). Tests 167/167,
+  Lint 0 Fehler/11 unveränderte Warnungen, `npm audit` 0, `npx knip`
+  identisch zum 17.08.-Stand (5 unused files/1 unused dep/9 unused exports)
+  — keine Regression. App/Supabase weiter 200/200/200 (beide Domains).
+  `VITE_COURSE_CODE` in Vercel-Produktion weiterhin vorhanden, jetzt 142
+  Tage alt (`vercel env ls production`). 4 unpushed Doku-Commits vor dieser
+  Session (`400ade0`, `6e0ba2e`, `0ee5876`, `c150acf`, alle nur
+  `docs/HANDOVER.md`) — bleiben unpushed, Push löst Deploy aus.
 - **01.09. — elfter Reminder-Tag in Folge, weiterhin 2 von 13 Accounts aktiv,
   keine Regression.** `last_reminder_sent` aller 4 reminder-fähigen Nutzer
   steht jetzt auf `2026-09-01T07:00` (elfter ununterbrochener Erfolgstag,
@@ -473,12 +490,13 @@ _Stand: 2026-09-01 (Check-in)._
       werden, bevor Supabase am 30.10.2026 die impliziten Privilegien
       umstellt. Ben entscheiden lassen — ein `REVOKE` trifft potenziell auch
       andere Tabellen desselben Grants.
-- [ ] **Weiter beobachten: Rückkehr-Rate nach der Cron-Reaktivierung.** 31.08.
-      neu gemessen: zehnter erfolgreicher Reminder-Tag in Folge (22.–31.08.),
-      `last_reminder_sent` aller 4 Nutzer jetzt auf 31.08. Weiterhin **2 von 13**
-      Accounts seit der Reaktivierung aktiv (unverändert seit 29.08.) —
-      Rang-2-Account (`055164cb`) hat heute Nacht (03:16–03:39 UTC) erneut eine
-      Session gemacht, aber kein drittes Konto ist zurück. **Todo
+- [ ] **Weiter beobachten: Rückkehr-Rate nach der Cron-Reaktivierung.** 02.09.
+      neu gemessen: elfter erfolgreicher Reminder-Tag bestätigt (22.08.–01.09.),
+      der zwölfte ist um Check-in-Zeit noch nicht fällig (Job läuft erst
+      09:00 CEST). Weiterhin **2 von 13** Accounts seit der Reaktivierung aktiv
+      (unverändert seit 29.08.) — Rang-2-Account (`055164cb`) hat 01.09.
+      04:57–05:32 UTC erneut eine Session gemacht, aber kein drittes Konto ist
+      zurück. **Todo
       `zicards/lerngruppe-nachfassen` wurde am 30.08. von Ben geschlossen**
       (abgehakt = Prioritätsentscheidung, nicht Vollzugsmeldung) — dieser Punkt
       bleibt als reine Beobachtung stehen, ohne erneute Handlungsaufforderung
@@ -487,11 +505,9 @@ _Stand: 2026-09-01 (Check-in)._
       lassen, ob der Aufwand lohnt.
 - [ ] `VITE_COURSE_CODE` aus Vercel-Env entfernen (unused, laut Vault seit
       längerem bekannt; `rg` im Repo bestätigt weiterhin 0 Code-Referenzen).
-      **26.08.: `vercel env ls production` zeigt die Variable live bestätigt**
-      (135 Tage alt, `Non-sensitive`, neben `VITE_SUPABASE_ANON_KEY`/`_URL`),
-      und die Vercel-CLI ist hier tatsächlich eingeloggt (`bmoerzinger-6310`)
-      — der bisherige Grund „braucht Dashboard-Zugang" stimmt technisch nicht
-      mehr. Trotzdem nicht selbst entfernt: Löschen eines Prod-Env-Werts ist
+      **02.09.: `vercel env ls production` zeigt die Variable weiterhin, jetzt
+      142 Tage alt** (`Non-sensitive`, neben `VITE_SUPABASE_ANON_KEY`/`_URL`).
+      Trotzdem nicht selbst entfernt: Löschen eines Prod-Env-Werts ist
       eine Infra-Änderung, kein reiner Lesevorgang — Ben kurz fragen/machen
       lassen, dann ist es ein Einzeiler (`vercel env rm VITE_COURSE_CODE
       production`).
@@ -501,6 +517,28 @@ _Stand: 2026-09-01 (Check-in)._
       gleiche Ursache wie oben.
 
 ## Session-Log (letzte 3)
+- **2026-09-02** — Projekt-Check-in (globaler /checkin, Bens Fokus heute:
+  Voith-Operationalisierung, Kommunikation, Betriebssystem-Sorge, Sales-
+  Pipeline-Transparenz, Energie-AG-Termin morgen, Monos/Schweizer-
+  Softwareentscheidung — kein Bezug zu zicards, keiner konstruiert). Health
+  erneut 200/200/200 (App × 2, Supabase). Tests 167/167, Lint 0 Fehler/11
+  unveränderte Warnungen, `npm audit` 0, `npx knip` identisch zum
+  17.08.-Stand — keine Regression. Feedback weiter 0 offen von 41 gesamt.
+  **Reminder-Cron: elfter Erfolgstag (22.08.–01.09.) bestätigt, zwölfter
+  zur Check-in-Zeit noch nicht fällig** (Job läuft 09:00 CEST, Check-in lief
+  08:2x CEST) — geplanter Zustand, kein Ausfall. **Aktive Accounts
+  weiterhin 2 von 13** (unverändert seit 29.08.) — Rang-2-Account hatte am
+  01.09. 04:57–05:32 UTC erneut eine Session, kein drittes Konto zurück.
+  Todo `zicards/vite-course-code-entfernen` erneut geprüft, offen bestätigt
+  (`vercel env ls production`, jetzt 142 Tage). **Topf A:** keine offene
+  HANDOVER-Position ohne Ben/Prod-Zugriff umsetzbar (anon-Grant-
+  Entscheidung, `VITE_COURSE_CODE`-Entfernung und Error-Tracking bleiben
+  Ben-Entscheidungen; pi-lens-Cache-Reparatur bleibt extern blockiert) —
+  keine Code-Änderung diese Session, nur Messungen aktualisiert.
+  „Aus dem globalen Check-in"-Sektion unangetastet gelassen (Projektmodus:
+  keine Querbezüge erhoben). Kein Deploy diese Session (nur Doku-Commit,
+  lokal, nicht gepusht — 4 unpushed Doku-Commits stehen jetzt an, siehe
+  „prod ≠ live").
 - **2026-09-01** — Projekt-Check-in (Ben heute Di real nur bis ca. 10:45 und
   nach 16:45 frei — Kiten, Voith-Protokoll-Call, Rene-Call zwischen den
   Terminen; ab Fr 4.9. 14:30 bis So 6.9. komplett weg, zwei Hochzeiten).
@@ -544,20 +582,3 @@ _Stand: 2026-09-01 (Check-in)._
   „Aus dem globalen Check-in"-Abschnitt unangetastet gelassen und mit
   committet. Kein Deploy diese Session (nur Doku-Commit, lokal, nicht
   gepusht).
-- **2026-08-30** — Projekt-Check-in (Ben heute So frei, aber Nebenprojekt in
-  einer Woche voller Kundentermine — reales Fenster nur Mo–Do-Vormittag,
-  Fr 4.9. 14:30 bis So 6.9. komplett weg, zwei Hochzeiten). Health erneut
-  200/200/200 (App × 2, Supabase), keine unpushed Commits, Tests 167/167,
-  Lint 0/11 (unverändert), `npm audit` 0, `npx knip` identisch zum
-  17.08.-Stand — keine Regression. Feedback weiter 0 offen von 41 gesamt.
-  **Lerngruppe-Nachfassen-Todo erneut geprüft, als offen eingestuft:**
-  neunter erfolgreicher Reminder-Tag in Folge (22.–30.08.,
-  `last_reminder_sent` aller 4 Nutzer auf 30.08.), Sperre bleibt
-  zweifelsfrei weg. **Neue Bewegung seit dem 27.08.:** ein zweiter, seit
-  06.06. (85 Tage) komplett stiller Account hat am 29.08. 20:06–20:11 UTC
-  eine echte Session gemacht, ~13h nach der Reminder-Mail — 2 von 13
-  Accounts haben seit der Reaktivierung reagiert (vorher 1). Todo bleibt
-  offen (Kommunikation ist Topf B), aber die Datenlage spricht jetzt
-  deutlicher für ein Nachfassen. Check-in-Sektion (Kapazitätsfenster) und
-  „Weiter beobachten"-Punkt aktualisiert. Kein Deploy diese Session (nur
-  Doku-Commit, lokal, nicht gepusht).
