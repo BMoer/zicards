@@ -2,15 +2,6 @@
 
 _Stand: 2026-09-04 (Check-in)._
 
-## Aus dem globalen Check-in (2026-09-03)
-- **Bens heutiger Fokus (Voith×TTTech-Projektplan/Framing als Accelerator)
-  hat keinen Bezug zu zicards** — geprüft, nichts konstruiert.
-- **Keine zicards-Mails seit dem letzten Lauf.**
-- **Kapazitätslage:** ab Fr 04.09. 14:30 bis So 06.09. ist Ben komplett weg,
-  22.–29.09. Urlaub. zicards braucht nichts Fristgebundenes von ihm — die
-  bekannten Einzeiler-Entscheidungen (`VITE_COURSE_CODE` entfernen,
-  `anon`-Grant auf `feedback` prüfen) bleiben ohne Frist liegen.
-
 ## Was live / fertig
 - **21.08. (zweite Session) — die drei offenen Konsolen-Punkte sind ausgeführt
   und gemessen nachgewiesen.** Die bisherige Handover-Prämisse „Ben, braucht das
@@ -484,6 +475,10 @@ _Stand: 2026-09-04 (Check-in)._
   Kein neuer Entwurf angelegt (siehe Autonomy-Regel: ein fehlender Entwurf
   ist eine Aufräum-Entscheidung, kein Datenverlust — erst auf Bens Anfrage
   neu anlegen).
+
+## Aus dem globalen Check-in (2026-09-04)
+
+- Ben ist 22.–29.09. auf Urlaub; in dieser Woche ist der tägliche Check-in die einzige Beobachtung des Reminder-Crons → ein stiller Ausfall fiele sonst niemandem auf, das ist das konkrete Argument für die offene Sentry-Entscheidung [Quelle: Bens Mail an Kampus 03.09., Projekt-Check-in 04.09.]
 
 ## Offene Punkte (nächste Session)
 - [x] **22.08. gegenprüfen, ob wirklich Mails rausgehen — erledigt, 24.08.**
