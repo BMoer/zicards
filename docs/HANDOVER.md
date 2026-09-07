@@ -274,6 +274,12 @@ _Stand: 2026-09-04 (Check-in)._
   bestätigt gilt.
 
 ## prod ≠ live
+- **07.09. — 2 unpushed Doku-Commits stehen weiterhin an** (`268b4b0`,
+  `4571fbd`, beide vom 04.09., nur `docs/HANDOVER.md`, kein `src/`-Diff).
+  Nicht gepusht: dieser globale Check-in-Lauf ist ausdrücklich angewiesen,
+  nicht zu deployen (Push auf `main` löst den Vercel-Deploy aus). `git
+  status --short` sonst sauber, `app`/`app-vercel`/`supabase` weiterhin
+  200/200/200.
 - **03.09. — keine Regression, 4 Doku-Commits sind zwischenzeitlich gepusht.**
   `git fetch origin main` + `git rev-parse HEAD origin/main`: beide zeigen
   `0eb756d` — die am 02.09. noch als „4 unpushed" geführten Commits
@@ -476,9 +482,10 @@ _Stand: 2026-09-04 (Check-in)._
   ist eine Aufräum-Entscheidung, kein Datenverlust — erst auf Bens Anfrage
   neu anlegen).
 
-## Aus dem globalen Check-in (2026-09-04)
+## Aus dem globalen Check-in (2026-09-07)
 
-- Ben ist 22.–29.09. auf Urlaub; in dieser Woche ist der tägliche Check-in die einzige Beobachtung des Reminder-Crons → ein stiller Ausfall fiele sonst niemandem auf, das ist das konkrete Argument für die offene Sentry-Entscheidung [Quelle: Bens Mail an Kampus 03.09., Projekt-Check-in 04.09.]
+- Bens (abgeleiteter) Fokus heute (Bau-Tag spotty/MONOS, Voith-BESS-Kickoff-Frage) hat keinen Bezug zu zicards — heute ohnehin kein Termin im Kalender.
+- Keine neuen Punkte gegenüber dem 04.09.-Stand; Urlaubs-Argument für die offene Sentry-Entscheidung (22.–29.09., Reminder-Cron unbeobachtet) bleibt unverändert gültig.
 
 ## Offene Punkte (nächste Session)
 - [x] **22.08. gegenprüfen, ob wirklich Mails rausgehen — erledigt, 24.08.**
@@ -500,18 +507,17 @@ _Stand: 2026-09-04 (Check-in)._
       werden, bevor Supabase am 30.10.2026 die impliziten Privilegien
       umstellt. Ben entscheiden lassen — ein `REVOKE` trifft potenziell auch
       andere Tabellen desselben Grants.
-- [ ] **Weiter beobachten: Rückkehr-Rate nach der Cron-Reaktivierung.** 04.09.
-      neu gemessen: dreizehnter erfolgreicher Reminder-Tag bestätigt
-      (22.08.–03.09., `last_reminder_sent` bei 4 von 5 `user_settings`-Zeilen
-      auf 03.09. 07:00 UTC), der vierzehnte ist um Check-in-Zeit noch nicht
-      fällig (Job läuft 09:00 CEST, Check-in lief 07:5x CEST). Aktive-
-      Accounts-Zahl diese Session nicht neu erhoben (Profil verlangt sie
-      nicht explizit) — laut Handover-Stand vom 02.09. weiterhin 2 von 13.
-      **Todo `zicards/lerngruppe-nachfassen` wurde am 30.08. von Ben
-      geschlossen** (abgehakt = Prioritätsentscheidung, nicht
-      Vollzugsmeldung) — dieser Punkt bleibt als reine Beobachtung stehen,
-      ohne erneute Handlungsaufforderung an Ben. Kein neuer Todo unter
-      anderem Key angelegt.
+- [ ] **Weiter beobachten: Rückkehr-Rate nach der Cron-Reaktivierung.** 07.09.
+      neu gemessen: sechzehnter erfolgreicher Reminder-Tag bestätigt
+      (22.08.–06.09., `last_reminder_sent` bei allen 4 reminder-fähigen
+      `user_settings`-Zeilen auf 06.09. 07:00 UTC), der siebzehnte ist um
+      Check-in-Zeit (07:2x CEST) noch nicht fällig (Job läuft 09:00 CEST) —
+      geplanter Zustand, kein Ausfall. Aktive-Accounts-Zahl diese Session
+      nicht neu erhoben (Profil verlangt sie nicht explizit) — laut
+      Handover-Stand weiterhin 2 von 13. **Todo `zicards/lerngruppe-nachfassen`
+      wurde am 30.08. von Ben geschlossen** (abgehakt = Prioritätsentscheidung,
+      nicht Vollzugsmeldung) — dieser Punkt bleibt als reine Beobachtung
+      stehen, ohne erneute Handlungsaufforderung an Ben.
 - [ ] Fehlt Error-Tracking (Sentry o.ä.)? Unverändert — Ben entscheiden
       lassen, ob der Aufwand lohnt. **04.09.: bekommt zusätzliches Gewicht
       durch Bens Griechenland-Urlaub 22.–29.09.** — der Reminder-Cron ist
@@ -524,12 +530,11 @@ _Stand: 2026-09-04 (Check-in)._
       vermerkt.
 - [ ] `VITE_COURSE_CODE` aus Vercel-Env entfernen (unused, laut Vault seit
       längerem bekannt; `rg` im Repo bestätigt weiterhin 0 Code-Referenzen).
-      **04.09.: `vercel env ls production` zeigt die Variable weiterhin, jetzt
-      144 Tage alt** (`Non-sensitive`, neben `VITE_SUPABASE_ANON_KEY`/`_URL`).
-      Trotzdem nicht selbst entfernt: Löschen eines Prod-Env-Werts ist
-      eine Infra-Änderung, kein reiner Lesevorgang — Ben kurz fragen/machen
-      lassen, dann ist es ein Einzeiler (`vercel env rm VITE_COURSE_CODE
-      production`).
+      **07.09.: `vercel env ls production` zeigt die Variable weiterhin, jetzt
+      147 Tage alt** (`Encrypted`, neben `VITE_SUPABASE_ANON_KEY`/`_URL`).
+      Befehl bereit (`vercel env rm VITE_COURSE_CODE production`), CLI
+      eingeloggt — Prod-Env-Änderung bleibt bewusst bei Ben, nicht selbst
+      ausgeführt.
 - [ ] pi-lens `knip.json` reparieren — unverändert blockiert (Cache wird vom
       externen Plugin-Hook geschrieben, kein Regenerate-Weg aus diesem Repo).
 - [ ] pi-lens-Cache insgesamt erneuern (Stand 13./14.04., jetzt ~4,5 Monate
@@ -544,6 +549,26 @@ _Stand: 2026-09-04 (Check-in)._
       aus dem Projektmodus — Vorschlag für den nächsten globalen Vault-Ingest.
 
 ## Session-Log (letzte 3)
+- **2026-09-07** — Projekt-Check-in, Teil eines globalen Laufs (Bens
+  abgeleiteter Fokus heute: Bau-Tag spotty/MONOS, Voith-BESS-Kickoff-Frage —
+  kein Bezug zu zicards, keiner konstruiert; heute ohnehin kein Kalender-
+  Termin). Health 200/200/200 (App × 2, Supabase). Tests 167/167, Lint 0
+  Fehler/11 unveränderte Warnungen, `npm audit` 0 Vulnerabilities. Feedback
+  weiter 0 offen von 41 gesamt. **Reminder-Cron: sechzehnter Erfolgstag
+  bestätigt** (22.08.–06.09., `last_reminder_sent` bei allen 4
+  reminder-fähigen `user_settings`-Zeilen auf 06.09. 07:00 UTC), siebzehnter
+  zur Check-in-Zeit (07:2x CEST) noch nicht fällig — geplanter Zustand, kein
+  Ausfall. Todo `zicards/vite-course-code-entfernen` geprüft: bleibt offen,
+  Prod-Env-Eingriff bewusst nicht ausgeführt (Topf B) — Befehl bereit
+  (`vercel env rm VITE_COURSE_CODE production`), Variable jetzt 147 Tage alt,
+  weiterhin 0 Code-Referenzen. **2 unpushed Doku-Commits vom 04.09. weiterhin
+  nicht gepusht** (dieser Lauf ist angewiesen, nicht zu deployen). pi-lens-
+  Caches unverändert (Stand 13./14.04., weiterhin extern blockiert). **Topf
+  A:** keine offene HANDOVER-Position ohne Ben/Prod-Zugriff umsetzbar
+  (anon-Grant-Entscheidung, `VITE_COURSE_CODE`-Entfernung und
+  Error-Tracking bleiben Ben-Entscheidungen) — keine Code-Änderung diese
+  Session, nur Messungen aktualisiert. Kein Deploy diese Session (kein
+  Push).
 - **2026-09-04** — Projekt-Check-in (Bens Fokus heute: halber Arbeitstag, ab
   14:30 Anreise/Hochzeiten bis So — kein Bezug zu zicards, keiner
   konstruiert). Health erneut 200/200/200 (App × 2, Supabase), `git status`
@@ -593,25 +618,3 @@ _Stand: 2026-09-04 (Check-in)._
   Ben-Entscheidungen; pi-lens-Cache-Reparatur bleibt extern blockiert) —
   keine Code-Änderung diese Session, nur Messungen aktualisiert. Kein
   Deploy diese Session (kein Push).
-- **2026-09-02** — Projekt-Check-in (globaler /checkin, Bens Fokus heute:
-  Voith-Operationalisierung, Kommunikation, Betriebssystem-Sorge, Sales-
-  Pipeline-Transparenz, Energie-AG-Termin morgen, Monos/Schweizer-
-  Softwareentscheidung — kein Bezug zu zicards, keiner konstruiert). Health
-  erneut 200/200/200 (App × 2, Supabase). Tests 167/167, Lint 0 Fehler/11
-  unveränderte Warnungen, `npm audit` 0, `npx knip` identisch zum
-  17.08.-Stand — keine Regression. Feedback weiter 0 offen von 41 gesamt.
-  **Reminder-Cron: elfter Erfolgstag (22.08.–01.09.) bestätigt, zwölfter
-  zur Check-in-Zeit noch nicht fällig** (Job läuft 09:00 CEST, Check-in lief
-  08:2x CEST) — geplanter Zustand, kein Ausfall. **Aktive Accounts
-  weiterhin 2 von 13** (unverändert seit 29.08.) — Rang-2-Account hatte am
-  01.09. 04:57–05:32 UTC erneut eine Session, kein drittes Konto zurück.
-  Todo `zicards/vite-course-code-entfernen` erneut geprüft, offen bestätigt
-  (`vercel env ls production`, jetzt 142 Tage). **Topf A:** keine offene
-  HANDOVER-Position ohne Ben/Prod-Zugriff umsetzbar (anon-Grant-
-  Entscheidung, `VITE_COURSE_CODE`-Entfernung und Error-Tracking bleiben
-  Ben-Entscheidungen; pi-lens-Cache-Reparatur bleibt extern blockiert) —
-  keine Code-Änderung diese Session, nur Messungen aktualisiert.
-  „Aus dem globalen Check-in"-Sektion unangetastet gelassen (Projektmodus:
-  keine Querbezüge erhoben). Kein Deploy diese Session (nur Doku-Commit,
-  lokal, nicht gepusht — 4 unpushed Doku-Commits stehen jetzt an, siehe
-  „prod ≠ live").
