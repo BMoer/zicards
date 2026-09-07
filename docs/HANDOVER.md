@@ -484,8 +484,7 @@ _Stand: 2026-09-04 (Check-in)._
 
 ## Aus dem globalen Check-in (2026-09-07)
 
-- Bens (abgeleiteter) Fokus heute (Bau-Tag spotty/MONOS, Voith-BESS-Kickoff-Frage) hat keinen Bezug zu zicards — heute ohnehin kein Termin im Kalender.
-- Keine neuen Punkte gegenüber dem 04.09.-Stand; Urlaubs-Argument für die offene Sentry-Entscheidung (22.–29.09., Reminder-Cron unbeobachtet) bleibt unverändert gültig.
+- Urlaub 22.–29.09.: der Reminder-Cron (16. Erfolgstag in Folge) läuft dann als einziger Automatismus des Projekts unbeobachtet → Sentry-/Error-Tracking-Entscheidung vor dem 22.09. treffen oder bewusst vertagen [Quelle: Kalender, Cron-Messung 07.09.]
 
 ## Offene Punkte (nächste Session)
 - [x] **22.08. gegenprüfen, ob wirklich Mails rausgehen — erledigt, 24.08.**
