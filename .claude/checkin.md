@@ -1,6 +1,9 @@
 # checkin Profil — 字Cards (zicards)
 
-cadence: daily
+cadence: paused
+# Ben, 08.09.2026: „zicards kannst aus dem roster nehmen." Das Profil bleibt vollständig
+# erhalten — `checkin zicards` aus dem Repo heraus läuft unverändert. Nur der globale
+# Morgenlauf greift das Projekt nicht mehr von selbst auf, auch nicht bei `checkin alle`.
 one_liner: Chinesisch-Lern-App (React/Vite auf Vercel, Supabase als Backend) mit echten
   Nutzern und eingebautem Feedback-Knopf. **Das einzige Projekt, in dem Nutzer direkt
   zurückschreiben** — offenes Feedback ist hier die wichtigste Zahl, nicht die Telemetrie.
