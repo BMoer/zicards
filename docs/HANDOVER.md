@@ -1,6 +1,6 @@
 # zicards — Handover
 
-_Stand: 2026-09-04 (Check-in)._
+_Stand: 2026-09-08 (Check-in)._
 
 ## Was live / fertig
 - **21.08. (zweite Session) — die drei offenen Konsolen-Punkte sind ausgeführt
@@ -274,6 +274,30 @@ _Stand: 2026-09-04 (Check-in)._
   bestätigt gilt.
 
 ## prod ≠ live
+- **08.09. — `npm audit` fand 4 neue Dev-Dependency-Schwachstellen (1 low, 1
+  moderate, 2 high), behoben, lokal committet, nicht gepusht.** Neu gegenüber
+  dem 07.09.-Stand (damals `npm audit` 0): `fast-uri` (2× high, SSRF/Host-
+  Confusion, über `vite-plugin-pwa`→`workbox-build`→`ajv`), `browserslist`/
+  `humanfs`-Kette (1× moderate) und `postcss-selector-parser` (1× low DoS,
+  über `tailwindcss`). Alle vier ausschließlich `devDependencies`
+  (Build-Tooling), kein Laufzeit-Bundle betroffen — Risiko war gering, aber
+  real. `npm audit fix` (ohne `--force`) behebt alle vier, `package.json`
+  bleibt unverändert (nur `package-lock.json`, 54 Zeilen +/37 -). Danach
+  verifiziert: 167/167 Tests, Lint 0 Fehler/11 unveränderte Warnungen,
+  `npm run build` erfolgreich, `npm audit` jetzt 0. Commit `0fe7b44`, **nicht
+  gepusht** (Push löst den Vercel-Deploy aus, bleibt bei Ben).
+  Reminder-Cron: **siebzehnter Erfolgstag bestätigt** (22.08.–07.09.,
+  `last_reminder_sent` bei allen 4 reminder-fähigen `user_settings`-Zeilen auf
+  07.09. 07:00 UTC), der achtzehnte ist um Check-in-Zeit (08:1x CEST) noch
+  nicht fällig (Job läuft 09:00 CEST) — geplanter Zustand. Feedback weiterhin
+  0 offen von 41 gesamt. `npx knip` identisch zum 17.08.-Stand (5 unused
+  files/1 unused dep/9 unused exports) — keine Regression. App/Supabase
+  weiter 200/200/200 (beide Domains). `VITE_COURSE_CODE` in Vercel-Produktion
+  weiterhin vorhanden, jetzt 148 Tage alt (`vercel env ls production`) —
+  unverändert Ben-Entscheidung. Die beiden vom 07.09. noch als „unpushed"
+  geführten Doku-Commits (`e3c4dd9`, `432b70c`) sind zwischenzeitlich auf
+  `origin/main` (nicht durch diese Session) — kein Rest offen außer dem
+  heutigen `0fe7b44`.
 - **07.09. — 2 unpushed Doku-Commits stehen weiterhin an** (`268b4b0`,
   `4571fbd`, beide vom 04.09., nur `docs/HANDOVER.md`, kein `src/`-Diff).
   Nicht gepusht: dieser globale Check-in-Lauf ist ausdrücklich angewiesen,
@@ -529,8 +553,8 @@ _Stand: 2026-09-04 (Check-in)._
       vermerkt.
 - [ ] `VITE_COURSE_CODE` aus Vercel-Env entfernen (unused, laut Vault seit
       längerem bekannt; `rg` im Repo bestätigt weiterhin 0 Code-Referenzen).
-      **07.09.: `vercel env ls production` zeigt die Variable weiterhin, jetzt
-      147 Tage alt** (`Encrypted`, neben `VITE_SUPABASE_ANON_KEY`/`_URL`).
+      **08.09.: `vercel env ls production` zeigt die Variable weiterhin, jetzt
+      148 Tage alt** (`Encrypted`, neben `VITE_SUPABASE_ANON_KEY`/`_URL`).
       Befehl bereit (`vercel env rm VITE_COURSE_CODE production`), CLI
       eingeloggt — Prod-Env-Änderung bleibt bewusst bei Ben, nicht selbst
       ausgeführt.
@@ -548,6 +572,22 @@ _Stand: 2026-09-04 (Check-in)._
       aus dem Projektmodus — Vorschlag für den nächsten globalen Vault-Ingest.
 
 ## Session-Log (letzte 3)
+- **2026-09-08** — Projekt-Check-in (Bens Fokus heute: Sorge um Spotty/
+  Rechnungs-Diversität, LI-Prozess unzufrieden, IKEA-Home-Smart-Idee/Gridbert-
+  IoT — kein Bezug zu zicards, keiner konstruiert). Health 200/200/200 (App ×
+  2, Supabase). Tests 167/167, Lint 0 Fehler/11 unveränderte Warnungen, Build
+  erfolgreich. **`npm audit` fand 4 neue Dev-Dependency-Schwachstellen (1
+  low, 1 moderate, 2 high) — behoben** (`npm audit fix`, nur
+  `package-lock.json`, Tests/Lint/Build danach erneut grün, Commit `0fe7b44`,
+  nicht gepusht). Feedback weiter 0 offen von 41 gesamt. **Reminder-Cron:
+  siebzehnter Erfolgstag bestätigt** (22.08.–07.09.), achtzehnter zur
+  Check-in-Zeit noch nicht fällig — geplanter Zustand. `npx knip` unverändert
+  (5 unused files/1 unused dep/9 unused exports). Todo
+  `zicards/vite-course-code-entfernen` geprüft: bleibt offen, Variable jetzt
+  148 Tage alt, weiterhin 0 Code-Referenzen, Prod-Env-Eingriff bewusst nicht
+  ausgeführt (Topf B). Die beiden am 07.09. noch offenen Doku-Commits sind
+  zwischenzeitlich gepusht (nicht durch diese Session). **Topf A:** npm-audit-
+  Fix ist die einzige Code-Änderung dieser Session; kein Deploy (kein Push).
 - **2026-09-07** — Projekt-Check-in, Teil eines globalen Laufs (Bens
   abgeleiteter Fokus heute: Bau-Tag spotty/MONOS, Voith-BESS-Kickoff-Frage —
   kein Bezug zu zicards, keiner konstruiert; heute ohnehin kein Kalender-
