@@ -1,8 +1,21 @@
 # zicards — Handover
 
-_Stand: 2026-09-08 (Check-in)._
+_Stand: 2026-10-20._
 
 ## Was live / fertig
+- **20.10. — Erinnerungsmails mit Abmeldung, Empfänger bereinigt.** Commit `790b73e`.
+  - `send-reminders` hängt an jede Mail einen signierten Abmelde-Link (Seite
+    `https://zicards.moerzinger.eu/abmelden`, `src/components/Abmelden.jsx`) und die
+    Header `List-Unsubscribe` / `List-Unsubscribe-Post` (One-Click, RFC 8058). Ohne Secret
+    `REMINDER_UNSUBSCRIBE_SECRET` (gesetzt 20.10.) bricht die Funktion ab, statt Mails ohne
+    Abmeldung zu schicken.
+  - Neue Edge Function `unsubscribe` (`--no-verify-jwt`, Logik in `handler.ts`, HMAC in
+    `_shared/abmelde-token.ts`): nur POST meldet ab, GET gibt 405 (Mail-Scanner).
+    11 Deno-Tests (`cd supabase/functions && deno test _shared unsubscribe/handler.test.ts`).
+    Live gemessen: GET 405, falsches Token 403, CORS für zicards.moerzinger.eu,
+    `send-reminders` 200. Der Erfolgsweg mit echtem Link ist nur per Unit-Test belegt.
+  - Daten: `reminder_enabled=false` für Bens Admin-Konto und für alle, die 30 Tage
+    nicht geübt hatten (2 Nutzer). Erinnerung bekommt seither noch 1 Nutzer.
 - **21.08. (zweite Session) — die drei offenen Konsolen-Punkte sind ausgeführt
   und gemessen nachgewiesen.** Die bisherige Handover-Prämisse „Ben, braucht das
   DB-Passwort“ war falsch: die Statements laufen über die Supabase Management API
