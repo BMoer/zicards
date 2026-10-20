@@ -13,6 +13,7 @@ import DeepLearning from './components/DeepLearning'
 import AdminDashboard from './components/AdminDashboard'
 import AdminUserDetail from './components/AdminUserDetail'
 import { useAdmin } from './hooks/useAdmin'
+import Abmelden from './components/Abmelden'
 
 function RedirectToLesson() {
   const { id } = useParams()
@@ -176,6 +177,9 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* Abmelde-Link aus der Erinnerungsmail, ohne Login */}
+        <Route path="/abmelden" element={<Abmelden />} />
 
         {/* Redirects for old routes */}
         <Route path="/week/:id" element={<RedirectToLesson />} />

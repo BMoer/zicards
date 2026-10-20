@@ -12,6 +12,7 @@
  */
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { abmeldeLink } from "../_shared/abmelde-token.ts";
 
 const CONFUCIUS_QUOTES = [
   { zh: "学而时习之，不亦说乎？", de: "Lernen und es immer wieder üben – ist das nicht erfreulich?" },
@@ -54,6 +55,11 @@ function getDailyQuote(): typeof CONFUCIUS_QUOTES[0] {
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+// Seit 20.10.2026: jede Erinnerung trägt einen Abmelde-Link. Ohne Geheimnis
+// keine Mail, lieber gar keine Erinnerung als eine ohne Abmeldemöglichkeit.
+const ABMELDE_GEHEIMNIS = Deno.env.get("REMINDER_UNSUBSCRIBE_SECRET") ?? "";
+const APP_ABMELDEN = "https://zicards.moerzinger.eu/abmelden";
+const ONE_CLICK_ABMELDEN = `${SUPABASE_URL}/functions/v1/unsubscribe`;
 
 Deno.serve(async (req) => {
   try {
@@ -66,6 +72,9 @@ Deno.serve(async (req) => {
       .eq("reminder_enabled", true);
 
     if (settingsErr) throw settingsErr;
+    if (ABMELDE_GEHEIMNIS.length < 32) {
+      throw new Error("REMINDER_UNSUBSCRIBE_SECRET fehlt, keine Erinnerung ohne Abmelde-Link");
+    }
     if (!settings || settings.length === 0) {
       return new Response(JSON.stringify({ sent: 0, message: "No users with reminders" }));
     }
@@ -96,6 +105,9 @@ Deno.serve(async (req) => {
       const email = userData?.user?.email;
       if (!email) continue;
 
+      const abmeldenSeite = await abmeldeLink(APP_ABMELDEN, setting.user_id, ABMELDE_GEHEIMNIS);
+      const abmeldenOneClick = await abmeldeLink(ONE_CLICK_ABMELDEN, setting.user_id, ABMELDE_GEHEIMNIS);
+
       // Send email
       if (RESEND_API_KEY) {
         await fetch("https://api.resend.com/emails", {
@@ -107,6 +119,11 @@ Deno.serve(async (req) => {
           body: JSON.stringify({
             from: "字Cards <noreply@gridbert.at>",
             to: email,
+            // One-Click-Abmeldung direkt im Mailprogramm (RFC 8058).
+            headers: {
+              "List-Unsubscribe": `<${abmeldenOneClick}>`,
+              "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+            },
             subject: `📚 ${totalDue} Karten warten auf dich!`,
             html: (() => {
               const quote = getDailyQuote();
@@ -128,7 +145,8 @@ Deno.serve(async (req) => {
                   <p style="font-size: 11px; margin: 6px 0 0 0; color: #999;">— 孔子 (Konfuzius)</p>
                 </div>
                 <p style="color: #999; font-size: 12px; margin-top: 24px;">
-                  Du bekommst diese Mail weil du die Erinnerung in 字Cards aktiviert hast.
+                  Du bekommst diese Mail, weil du die Erinnerung in 字Cards aktiviert hast.
+                  <a href="${abmeldenSeite}" style="color: #999;">Erinnerung abbestellen</a>
                 </p>
               </div>
             `})(),
@@ -149,6 +167,7 @@ Deno.serve(async (req) => {
       headers: { "Content-Type": "application/json" },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+    const message = err instanceof Error ? err.message : String(err);
+    return new Response(JSON.stringify({ error: message }), { status: 500 });
   }
 });
